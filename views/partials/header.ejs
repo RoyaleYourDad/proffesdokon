@@ -1,43 +1,43 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
   <title>ProffesDokon</title>
-  <link href="/css/tailwind.min.css" rel="stylesheet" />
+  <!-- Tailwind CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <!-- Favicon -->
-  <link rel="icon" type="image/jpeg" href="/images/icon.png" />
-  <link rel="apple-touch-icon" href="/images/icon.png" />
-  <meta name="theme-color" content="#ffffff" />
-  <script src="/js/scripts.js" defer></script>
+  <link rel="icon" type="image/jpeg" href="/images/icon.png">
+  <link rel="apple-touch-icon" href="/images/icon.png">
+  <meta name="theme-color" content="#ffffff">
 </head>
-
-<body class="bg-gray-100 flex flex-col min-h-screen">
-  <nav class="bg-white shadow sticky top-0 z-10">
-    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+<body class="bg-gray-100 flex flex-col min-h-screen font-sans">
+  <nav class="bg-white shadow sticky top-0 z-20">
+    <div class="container mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
       <!-- Logo -->
       <a href="/" class="text-2xl font-bold text-gray-900 flex items-center">
-        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-8 h-8 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
         ProffesDokon
       </a>
 
       <!-- Hamburger Menu Button (Mobile) -->
-      <button id="menu-toggle" class="md:hidden focus:outline-none">
-        <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <button id="menu-toggle" class="mobile-only focus:outline-none focus:ring-2 focus:ring-blue-500 rounded" aria-label="Toggle menu">
+        <svg class="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
 
       <!-- Navigation (Desktop) -->
-      <div class="hidden md:flex items-center gap-4">
+      <div class="desktop-only flex items-center gap-4">
         <!-- Search Bar -->
         <form action="/" method="GET" class="relative">
           <input type="text" name="search" placeholder="Search products..."
-            class="p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value="<%= typeof query !== 'undefined' && query.search ? query.search : '' %>" />
+            class="p-2.5 w-64 bg-gray-50 border border-gray-200 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px]"
+            value="<%= typeof query !== 'undefined' && query.search ? query.search : '' %>">
           <button type="submit"
-            class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+            class="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -45,19 +45,19 @@
           </button>
         </form>
         <!-- Cart and User Links -->
-        <a href="/cart" class="text-gray-700 hover:text-gray-900 flex items-center">
-          <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="/cart" class="text-gray-700 hover:text-gray-900 flex items-center text-base">
+          <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
           Cart (<%= user ? user.cartCount : 0 %>)
         </a>
         <% if (user) { %>
-          <span class="text-sm text-gray-700">
+          <span class="text-base text-gray-700">
             <%= user.displayName %>
           </span>
-          <a href="/auth/logout" class="text-gray-700 hover:text-gray-900 flex items-center">
-            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <a href="/auth/logout" class="text-gray-700 hover:text-gray-900 flex items-center text-base">
+            <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
@@ -65,8 +65,8 @@
           </a>
           <% if (user.isAdmin) { %>
             <a href="/admin"
-              class="bg-blue-600 text-white py-1.5 px-3 rounded-lg text-sm hover:bg-blue-700 flex items-center">
-              <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              class="bg-blue-600 text-white py-1.5 px-4 rounded-lg text-base hover:bg-blue-700 flex items-center">
+              <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -74,49 +74,49 @@
               </svg>
               Admin Controls
             </a>
-            <% } %>
-              <% } else { %>
-                <a href="/auth/login" class="text-gray-700 hover:text-gray-900 flex items-center">
-                  <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
-                  Login
-                </a>
-                <% } %>
+          <% } %>
+        <% } else { %>
+          <a href="/auth/login" class="text-gray-700 hover:text-gray-900 flex items-center text-base">
+            <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+            Login
+          </a>
+        <% } %>
       </div>
     </div>
 
     <!-- Mobile Menu -->
-    <div id="mobile-menu" class="hidden md:hidden bg-white shadow-md">
-      <div class="flex flex-col items-start gap-4 p-4">
+    <div id="mobile-menu" class="hidden bg-white shadow-md border-t border-gray-200">
+      <div class="flex flex-col items-start gap-4 p-4 sm:p-6 mobile-menu-items">
         <!-- Search Bar (Mobile) -->
         <form action="/" method="GET" class="relative w-full">
           <input type="text" name="search" placeholder="Search products..."
-            class="p-2 w-full bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value="<%= typeof query !== 'undefined' && query.search ? query.search : '' %>" />
+            class="p-3 w-full bg-gray-50 border border-gray-200 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[48px]"
+            value="<%= typeof query !== 'undefined' && query.search ? query.search : '' %>">
           <button type="submit"
-            class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </button>
         </form>
         <!-- Cart and User Links (Mobile) -->
-        <a href="/cart" class="text-gray-700 hover:text-gray-900 flex items-center">
-          <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="/cart" class="text-gray-700 hover:text-gray-900 flex items-center text-base">
+          <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
           Cart (<%= user ? user.cartCount : 0 %>)
         </a>
         <% if (user) { %>
-          <span class="text-sm text-gray-700">
+          <span class="text-base text-gray-700">
             <%= user.displayName %>
           </span>
-          <a href="/auth/logout" class="text-gray-700 hover:text-gray-900 flex items-center">
-            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <a href="/auth/logout" class="text-gray-700 hover:text-gray-900 flex items-center text-base">
+            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
@@ -124,8 +124,8 @@
           </a>
           <% if (user.isAdmin) { %>
             <a href="/admin"
-              class="bg-blue-600 text-white py-1.5 px-3 rounded-lg text-sm hover:bg-blue-700 flex items-center">
-              <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              class="bg-blue-600 text-white py-2 px-4 rounded-lg text-base hover:bg-blue-700 flex items-center">
+              <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -133,40 +133,121 @@
               </svg>
               Admin Controls
             </a>
-            <% } %>
-              <% } else { %>
-                <a href="/auth/login" class="text-gray-700 hover:text-gray-900 flex items-center">
-                  <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
-                  Login
-                </a>
-                <% } %>
+          <% } %>
+        <% } else { %>
+          <a href="/auth/login" class="text-gray-700 hover:text-gray-900 flex items-center text-base">
+            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+            Login
+          </a>
+        <% } %>
       </div>
     </div>
   </nav>
 
   <script>
-    document.getElementById('menu-toggle')?.addEventListener('click', () => {
-      const mobileMenu = document.getElementById('mobile-menu');
+    // Toggle mobile menu
+    const menuToggle = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    menuToggle?.addEventListener('click', () => {
       mobileMenu.classList.toggle('hidden');
       mobileMenu.classList.toggle('animate-slide-in');
+      const isExpanded = mobileMenu.classList.contains('animate-slide-in');
+      menuToggle.setAttribute('aria-expanded', isExpanded);
     });
 
-    // Animation for mobile menu
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!mobileMenu.contains(e.target) && !menuToggle.contains(e.target) && !mobileMenu.classList.contains('hidden')) {
+        mobileMenu.classList.add('hidden');
+        mobileMenu.classList.remove('animate-slide-in');
+        menuToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Responsive styles with width and height checks
     const style = document.createElement('style');
     style.textContent = `
-        .animate-slide-in {
-          animation: slideIn 0.3s ease-in-out;
+      .animate-slide-in {
+        animation: slideIn 0.3s ease-in-out;
+      }
+      @keyframes slideIn {
+        from { transform: translateY(-10px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      /* Touch-friendly inputs */
+      input[type="text"], button {
+        min-height: 44px;
+        touch-action: manipulation;
+      }
+      /* Mobile-only styles (hamburger menu) */
+      .mobile-only {
+        display: block;
+      }
+      .desktop-only {
+        display: none;
+      }
+      /* Width-based breakpoint for desktop */
+      @media (min-width: 768px) {
+        .mobile-only {
+          display: none;
         }
-        @keyframes slideIn {
-          from { transform: translateY(-20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
+        .desktop-only {
+          display: flex;
         }
-      `;
+      }
+      /* Height-based breakpoint for tall mobile screens */
+      @media (max-width: 768px) and (min-height: 800px) {
+        .mobile-only {
+          display: block; /* Ensure hamburger stays on tall screens */
+        }
+        .desktop-only {
+          display: none;
+        }
+        .container {
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
+        .mobile-menu-items {
+          gap: 1.25rem; /* More spacing for tall screens */
+          padding: 1.5rem;
+        }
+        input[type="text"] {
+          min-height: 50px;
+          font-size: 1.1rem;
+        }
+        .text-base {
+          font-size: 1.125rem;
+        }
+        svg {
+          width: 1.75rem;
+          height: 1.75rem;
+        }
+      }
+      /* Fallback for very small screens */
+      @media (max-width: 640px) {
+        .mobile-only {
+          display: block;
+        }
+        .desktop-only {
+          display: none;
+        }
+        body {
+          font-size: 16px;
+        }
+        svg {
+          width: 1.5rem;
+          height: 1.5rem;
+        }
+      }
+      /* MIUI browser fix */
+      @media (max-width: 768px) {
+        nav {
+          -webkit-overflow-scrolling: touch;
+        }
+      }
+    `;
     document.head.appendChild(style);
   </script>
-</body>
-
-</html>
