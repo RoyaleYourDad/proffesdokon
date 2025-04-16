@@ -185,6 +185,5 @@ product.reviews.push({
 
 saveDB(db);
 res.redirect(`/product/${req.params.id}`);
-});
 
 module.exports = router;
