@@ -1,17 +1,17 @@
 <%- include('../partials/header') %>
-<div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12">
-  <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-8 flex items-center">
-      <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-4">
+  <div class="container mx-auto px-3 max-w-7xl">
+    <h1 class="text-lg md:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 flex items-center">
+      <svg class="w-5 h-5 md:w-6 md:h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       Stock History
     </h1>
-    <div class="bg-white shadow-xl rounded-2xl p-6 sm:p-8">
+    <div class="bg-white shadow-xl rounded-2xl p-3 md:p-4">
       <!-- Filter Section -->
-      <div class="mb-6 flex justify-between items-center">
-        <button id="toggle-filter" class="text-blue-600 hover:text-blue-700 flex items-center text-sm font-medium">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="mb-3 flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+        <button id="toggle-filter" class="text-blue-600 hover:text-blue-700 flex items-center text-xs md:text-sm font-medium">
+          <svg class="w-4 h-4 mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1m-17 4h14m-7 4h7m-14 4h14" />
           </svg>
           Filter History
@@ -22,16 +22,19 @@
           <input type="hidden" name="endDate" value="<%= endDate || '' %>">
           <input type="hidden" name="productId" value="<%= productId || '' %>">
           <input type="hidden" name="action" value="<%= action || '' %>">
-          <button type="submit" class="bg-green-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-green-700 transition-colors">
-            Export to Excel
+          <button type="submit" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-1.5 px-2 md:px-3 rounded-lg text-xs font-medium shadow-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center">
+            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export History
           </button>
         </form>
       </div>
-      <form id="filter-form" action="/admin/stock/history" method="GET" class="hidden mt-4 space-y-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <form id="filter-form" action="/admin/stock/history" method="GET" class="hidden mt-2 space-y-2">
+        <div class="grid grid-cols-1 gap-2">
           <div>
-            <label for="dateRange" class="block text-sm font-medium text-gray-700">Date Range</label>
-            <select name="dateRange" id="dateRange" class="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label for="dateRange" class="block text-xs font-medium text-gray-700">Date Range</label>
+            <select name="dateRange" id="dateRange" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="lastDay" <%= dateRange === 'lastDay' ? 'selected' : '' %>>Last Day</option>
               <option value="lastWeek" <%= dateRange === 'lastWeek' ? 'selected' : '' %>>Last Week</option>
               <option value="lastMonth" <%= dateRange === 'lastMonth' ? 'selected' : '' %>>Last Month</option>
@@ -39,75 +42,75 @@
             </select>
           </div>
           <div id="custom-date" class="hidden">
-            <label for="startDate" class="block text-sm font-medium text-gray-700">Start Date</label>
-            <input type="date" name="startDate" id="startDate" value="<%= startDate || '' %>" class="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <label for="endDate" class="block text-sm font-medium text-gray-700 mt-2">End Date</label>
-            <input type="date" name="endDate" id="endDate" value="<%= endDate || '' %>" class="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label for="startDate" class="block text-xs font-medium text-gray-700">Start Date</label>
+            <input type="date" name="startDate" id="startDate" value="<%= startDate || '' %>" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label for="endDate" class="block text-xs font-medium text-gray-700 mt-1">End Date</label>
+            <input type="date" name="endDate" id="endDate" value="<%= endDate || '' %>" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label for="productId" class="block text-xs font-medium text-gray-700">Product</label>
+            <select name="productId" id="productId" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">All Products</option>
+              <% products.forEach(product => { %>
+                <option value="<%= product.id %>" <%= productId === product.id ? 'selected' : '' %>><%= product.name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div>
+            <label for="action" class="block text-xs font-medium text-gray-700">Action</label>
+            <select name="action" id="action" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">All Actions</option>
+              <option value="sold" <%= action === 'sold' ? 'selected' : '' %>>Sold</option>
+              <option value="bought" <%= action === 'bought' ? 'selected' : '' %>>Bought</option>
+            </select>
           </div>
         </div>
-        <div>
-          <label for="productId" class="block text-sm font-medium text-gray-700">Product</label>
-          <select name="productId" id="productId" class="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">All Products</option>
-            <% products.forEach(product => { %>
-              <option value="<%= product.id %>" <%= productId === product.id ? 'selected' : '' %>><%= product.name %></option>
-            <% }) %>
-          </select>
-        </div>
-        <div>
-          <label for="action" class="block text-sm font-medium text-gray-700">Action</label>
-          <select name="action" id="action" class="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="">All Actions</option>
-            <option value="sold" <%= action === 'sold' ? 'selected' : '' %>>Sold</option>
-            <option value="bought" <%= action === 'bought' ? 'selected' : '' %>>Bought</option>
-          </select>
-        </div>
-        <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 transition-colors">Apply Filter</button>
+        <button type="submit" class="w-full bg-blue-600 text-white py-1.5 px-3 rounded-lg text-xs hover:bg-blue-700 transition-colors">Apply Filter</button>
       </form>
       <!-- History Table -->
       <% if (history.length === 0) { %>
-        <div class="text-center py-16">
-          <svg class="mx-auto w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="text-center py-6 md:py-8">
+          <svg class="mx-auto w-10 h-10 md:w-12 md:h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-3 0v6m-9 5h18M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
           </svg>
-          <p class="text-gray-500 text-lg">No stock history found for the selected filters.</p>
+          <p class="text-gray-500 text-sm md:text-base">No stock history found for the selected filters.</p>
         </div>
       <% } else { %>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm text-gray-600">
+        <div class="overflow-x-auto shadow-sm">
+          <table class="w-full text-left text-xs md:text-sm text-gray-600 min-w-[600px]">
             <thead class="bg-gray-50">
               <tr>
-                <th class="p-4 font-medium text-gray-700">Date & Time</th>
-                <th class="p-4 font-medium text-gray-700">Product</th>
-                <th class="p-4 font-medium text-gray-700">Action</th>
-                <th class="p-4 font-medium text-gray-700">Quantity</th>
-                <th class="p-4 font-medium text-gray-700">Notes</th>
-                <th class="p-4 font-medium text-gray-700">Updated By</th>
-                <th class="p-4 font-medium text-gray-700">Actions</th>
+                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[100px]">Date & Time</th>
+                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[80px] truncate">Product</th>
+                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[60px]">Action</th>
+                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[60px]">Quantity</th>
+                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[80px] truncate">Notes</th>
+                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[80px] truncate">Updated By</th>
+                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[60px]">Actions</th>
               </tr>
             </thead>
             <tbody>
               <% history.forEach(entry => { %>
                 <tr class="border-b hover:bg-gray-50">
-                  <td class="p-4">
-                    <%= new Date(entry.timestamp).toLocaleString('en-US', { 
+                  <td class="p-2 md:p-3">
+                    <%= new Date(entry.updatedAt || entry.timestamp).toLocaleString('en-US', { 
                       year: 'numeric', month: '2-digit', day: '2-digit', 
                       hour: '2-digit', minute: '2-digit', hour12: false 
                     }) %>
                   </td>
-                  <td class="p-4"><%= products.find(p => p.id === entry.productId)?.name || 'Unknown' %></td>
-                  <td class="p-4 capitalize <%= entry.action === 'sold' ? 'text-red-600' : 'text-green-600' %>"><%= entry.action %></td>
-                  <td class="p-4"><%= entry.quantity %></td>
-                  <td class="p-4"><%= entry.notes || '-' %></td>
-                  <td class="p-4"><%= users.find(u => u.id === entry.updatedBy)?.displayName || 'Unknown' %></td>
-                  <td class="p-4 flex gap-2">
+                  <td class="p-2 md:p-3 truncate max-w-[80px]"><%= products.find(p => p.id === entry.productId)?.name || 'Unknown' %></td>
+                  <td class="p-2 md:p-3 capitalize <%= entry.action === 'sold' ? 'text-red-600' : 'text-green-600' %>"><%= entry.action %></td>
+                  <td class="p-2 md:p-3"><%= entry.quantity %></td>
+                  <td class="p-2 md:p-3 truncate max-w-[80px]"><%= entry.notes || '-' %></td>
+                  <td class="p-2 md:p-3 truncate max-w-[80px]"><%= users.find(u => u.id === entry.updatedBy)?.displayName || 'Unknown' %></td>
+                  <td class="p-2 md:p-3 flex gap-1 md:gap-2">
                     <button onclick="showEditModal('<%= entry.id %>', '<%= entry.action %>', <%= entry.quantity %>, '<%= entry.notes || '' %>', '<%= entry.productId %>')" class="text-blue-500 hover:text-blue-600">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.828l-2.828.586.586-2.828L16.414 6.586z" />
                       </svg>
                     </button>
                     <button onclick="showWarning('<%= entry.id %>', '<%= entry.action %>', <%= entry.quantity %>, '<%= entry.productId %>')" class="text-red-500 hover:text-red-600">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
@@ -124,25 +127,25 @@
 
 <!-- Warning Modal (Delete) -->
 <div id="warning-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-  <div class="bg-white rounded-xl p-6 max-w-md w-full">
-    <h2 class="text-lg font-bold text-gray-800 mb-4">Warning: Deleting History</h2>
-    <p class="text-sm text-gray-600 mb-4">
+  <div class="bg-white rounded-xl p-3 w-11/12">
+    <h2 class="text-sm md:text-base font-bold text-gray-800 mb-2">Warning: Deleting History</h2>
+    <p class="text-xs text-gray-600 mb-2">
       Deleting this history entry will also reverse its effect on the stock. For example:
-      <ul class="list-disc pl-5 mt-2">
+      <ul class="list-disc pl-4 mt-1">
         <li>If this was a <strong>sale</strong>, the stock will <strong>increase</strong> by the sold quantity.</li>
         <li>If this was a <strong>purchase</strong>, the stock will <strong>decrease</strong> by the bought quantity.</li>
       </ul>
       Are you sure you want to proceed?
     </p>
-    <p class="text-sm text-red-500 mb-4">This action cannot be undone.</p>
+    <p class="text-xs text-red-500 mb-2">This action cannot be undone.</p>
     <form id="delete-form" action="/admin/stock/history/delete" method="POST">
       <input type="hidden" name="id" id="delete-id">
       <input type="hidden" name="action" id="delete-action">
       <input type="hidden" name="quantity" id="delete-quantity">
       <input type="hidden" name="productId" id="delete-productId">
-      <div class="flex gap-4">
-        <button type="submit" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors">Yes, Delete</button>
-        <button type="button" onclick="closeWarning()" class="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">Cancel</button>
+      <div class="flex gap-2">
+        <button type="submit" class="bg-red-600 text-white py-1.5 px-3 rounded-lg text-xs hover:bg-red-700 transition-colors">Yes, Delete</button>
+        <button type="button" onclick="closeWarning()" class="bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg text-xs hover:bg-gray-300 transition-colors">Cancel</button>
       </div>
     </form>
   </div>
@@ -150,29 +153,29 @@
 
 <!-- Edit Modal -->
 <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-  <div class="bg-white rounded-xl p-6 max-w-md w-full">
-    <h2 class="text-lg font-bold text-gray-800 mb-4">Edit Stock History Entry</h2>
+  <div class="bg-white rounded-xl p-3 w-11/12">
+    <h2 class="text-sm md:text-base font-bold text-gray-800 mb-2">Edit Stock History Entry</h2>
     <form id="edit-form" action="/admin/stock/history/edit" method="POST">
       <input type="hidden" name="id" id="edit-id">
       <input type="hidden" name="productId" id="edit-productId">
-      <div class="mb-4">
-        <label for="edit-action" class="block text-sm font-medium text-gray-700">Action</label>
-        <select name="action" id="edit-action" class="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <div class="mb-2">
+        <label for="edit-action" class="block text-xs font-medium text-gray-700">Action</label>
+        <select name="action" id="edit-action" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="sold">Sold</option>
           <option value="bought">Bought</option>
         </select>
       </div>
-      <div class="mb-4">
-        <label for="edit-quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
-        <input type="number" name="quantity" id="edit-quantity" min="1" required class="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <div class="mb-2">
+        <label for="edit-quantity" class="block text-xs font-medium text-gray-700">Quantity</label>
+        <input type="number" name="quantity" id="edit-quantity" min="1" required class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
       </div>
-      <div class="mb-4">
-        <label for="edit-notes" class="block text-sm font-medium text-gray-700">Notes</label>
-        <textarea name="notes" id="edit-notes" class="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4"></textarea>
+      <div class="mb-2">
+        <label for="edit-notes" class="block text-xs font-medium text-gray-700">Notes</label>
+        <textarea name="notes" id="edit-notes" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
       </div>
-      <div class="flex gap-4">
-        <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Save Changes</button>
-        <button type="button" onclick="closeEditModal()" class="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">Cancel</button>
+      <div class="flex gap-2">
+        <button type="submit" class="bg-blue-600 text-white py-1.5 px-3 rounded-lg text-xs hover:bg-blue-700 transition-colors">Save Changes</button>
+        <button type="button" onclick="closeEditModal()" class="bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg text-xs hover:bg-gray-300 transition-colors">Cancel</button>
       </div>
     </form>
   </div>
@@ -219,21 +222,4 @@
     document.getElementById('edit-modal').classList.add('hidden');
   }
 </script>
-
-<style>
-  @media (max-width: 640px) {
-    .text-3xl {
-      font-size: 1.5rem;
-    }
-    .p-8 {
-      padding: 1rem;
-    }
-    table {
-      font-size: 0.75rem;
-    }
-    th, td {
-      padding: 0.4rem;
-    }
-  }
-</style>
 <%- include('../partials/footer') %>

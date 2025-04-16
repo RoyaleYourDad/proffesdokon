@@ -14,11 +14,14 @@ const loadDB = () => {
   }
 };
 
+// Update saveDB for better error handling (replace lines 16–22)
 const saveDB = (data) => {
   try {
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+    console.log("Database written successfully");
   } catch (err) {
     console.error("Error saving database:", err);
+    throw err; // Propagate error to caller
   }
 };
 
@@ -363,32 +366,39 @@ router.post("/stock/update", async (req, res) => {
   try {
     const db = loadDB();
     const { productId, action, quantity, notes } = req.body;
+    console.log("Stock update request:", { productId, action, quantity, notes, userId: req.user.id });
     const product = db.products.find((p) => p.id === productId);
     if (!product) {
-      return res.render("stock", {
+      console.log("Product not found:", productId);
+      return res.render("admin/stock", {
         products: db.products,
         user: req.user,
+        categories: db.categories || [],
         error: "Product not found",
       });
     }
-    const qty = parseInt(quantity);
+    const qty = Number(quantity); // Robust parsing
     if (isNaN(qty) || qty <= 0) {
-      return res.render("stock", {
+      console.log("Invalid quantity:", quantity);
+      return res.render("admin/stock", {
         products: db.products,
         user: req.user,
+        categories: db.categories || [],
         error: "Invalid quantity",
       });
     }
     if (action === "sold" && qty > product.stock) {
-      return res.render("stock", {
+      console.log("Insufficient stock:", { qty, stock: product.stock });
+      return res.render("admin/stock", {
         products: db.products,
         user: req.user,
+        categories: db.categories || [],
         error: `Cannot sell ${qty}. Available stock: ${product.stock}`,
       });
     }
     product.stock = action === "sold" ? product.stock - qty : product.stock + qty;
     db.stockHistory = db.stockHistory || [];
-    db.stockHistory.push({
+    const historyEntry = {
       id: Date.now().toString(),
       productId,
       action,
@@ -396,20 +406,34 @@ router.post("/stock/update", async (req, res) => {
       notes: notes || "",
       updatedBy: req.user.id,
       updatedAt: new Date().toISOString(),
-    });
-    saveDB(db);
+    };
+    db.stockHistory.push(historyEntry);
+    try {
+      saveDB(db);
+      console.log("Database saved successfully:", { productId, stock: product.stock, historyLength: db.stockHistory.length });
+    } catch (saveErr) {
+      console.error("Failed to save database:", saveErr);
+      return res.render("admin/stock", {
+        products: db.products,
+        user: req.user,
+        categories: db.categories || [],
+        error: "Failed to save stock update: Database error",
+      });
+    }
     console.log("Stock updated:", { productId, action, quantity: qty, userId: req.user.id });
-    res.render("stock", {
+    res.render("admin/stock", {
       products: db.products,
       user: req.user,
+      categories: db.categories || [],
       success: `Stock updated: ${action === "sold" ? "Sold" : "Added"} ${qty} of ${product.name}`,
     });
   } catch (err) {
     console.error("Stock update error:", err);
-    res.render("stock", {
-      products: db.products,
+    res.render("admin/stock", {
+      products: db.products || [],
       user: req.user,
-      error: "Failed to update stock",
+      categories: db.categories || [],
+      error: "Failed to update stock: Server error",
     });
   }
 });
@@ -419,29 +443,29 @@ router.get("/stock/history", (req, res) => {
   const db = loadDB();
   let { dateRange, startDate, endDate, productId, action } = req.query;
 
-  // Default to last day
-  if (!dateRange) dateRange = "lastDay";
-
-  let filteredHistory = db.stockHistory || [];
+  let filteredHistory = (db.stockHistory || []).map(entry => ({
+    ...entry,
+    updatedAt: entry.updatedAt || entry.timestamp || new Date().toISOString() // Normalize dates
+  }));
+  console.log("Stock history raw:", filteredHistory.length, filteredHistory);
 
   // Date filtering
+  if (!dateRange) dateRange = "all"; // Show all by default for debugging
   const now = new Date();
   if (dateRange === "lastDay") {
     const lastDay = new Date(now.setDate(now.getDate() - 1));
-    filteredHistory = filteredHistory.filter((entry) => new Date(entry.timestamp) >= lastDay);
+    filteredHistory = filteredHistory.filter((entry) => new Date(entry.updatedAt) >= lastDay);
   } else if (dateRange === "lastWeek") {
     const lastWeek = new Date(now.setDate(now.getDate() - 7));
-    filteredHistory = filteredHistory.filter((entry) => new Date(entry.timestamp) >= lastWeek);
+    filteredHistory = filteredHistory.filter((entry) => new Date(entry.updatedAt) >= lastWeek);
   } else if (dateRange === "lastMonth") {
     const lastMonth = new Date(now.setDate(now.getDate() - 30));
-    filteredHistory = filteredHistory.filter((entry) => new Date(entry.timestamp) >= lastMonth);
+    filteredHistory = filteredHistory.filter((entry) => new Date(entry.updatedAt) >= lastMonth);
   } else if (dateRange === "custom" && startDate && endDate) {
     const start = new Date(startDate);
     const end = new Date(endDate);
     filteredHistory = filteredHistory.filter(
-      (entry) =>
-        new Date(entry.timestamp) >= start &&
-        new Date(entry.timestamp) <= end
+      (entry) => new Date(entry.updatedAt) >= start && new Date(entry.updatedAt) <= end
     );
   }
 
@@ -454,6 +478,8 @@ router.get("/stock/history", (req, res) => {
   if (action) {
     filteredHistory = filteredHistory.filter((entry) => entry.action === action);
   }
+
+  console.log("Stock history filtered:", filteredHistory.length, filteredHistory);
 
   res.render("admin/stock-history", {
     history: filteredHistory,
@@ -599,148 +625,100 @@ router.get("/stock/history/export", async (req, res) => {
     const db = loadDB();
     let { dateRange, startDate, endDate, productId, action } = req.query;
 
-    // Default to last day
-    if (!dateRange) dateRange = "lastDay";
+    // Normalize dates (same as /admin/stock/history)
+    let filteredHistory = (db.stockHistory || []).map(entry => ({
+      ...entry,
+      updatedAt: entry.updatedAt || entry.timestamp || new Date().toISOString(),
+    }));
+    console.log("Export raw history:", filteredHistory.length);
 
-    let filteredHistory = db.stockHistory || [];
-
-    // Date filtering
+    // Apply filters (same logic as /admin/stock/history)
+    if (!dateRange) dateRange = "all";
     const now = new Date();
     if (dateRange === "lastDay") {
       const lastDay = new Date(now.setDate(now.getDate() - 1));
-      filteredHistory = filteredHistory.filter((entry) => new Date(entry.timestamp) >= lastDay);
+      filteredHistory = filteredHistory.filter((entry) => new Date(entry.updatedAt) >= lastDay);
     } else if (dateRange === "lastWeek") {
       const lastWeek = new Date(now.setDate(now.getDate() - 7));
-      filteredHistory = filteredHistory.filter((entry) => new Date(entry.timestamp) >= lastWeek);
+      filteredHistory = filteredHistory.filter((entry) => new Date(entry.updatedAt) >= lastWeek);
     } else if (dateRange === "lastMonth") {
       const lastMonth = new Date(now.setDate(now.getDate() - 30));
-      filteredHistory = filteredHistory.filter((entry) => new Date(entry.timestamp) >= lastMonth);
+      filteredHistory = filteredHistory.filter((entry) => new Date(entry.updatedAt) >= lastMonth);
     } else if (dateRange === "custom" && startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
       filteredHistory = filteredHistory.filter(
-        (entry) =>
-          new Date(entry.timestamp) >= start &&
-          new Date(entry.timestamp) <= end
+        (entry) => new Date(entry.updatedAt) >= start && new Date(entry.updatedAt) <= end
       );
     }
 
-    // Product filtering
     if (productId) {
       filteredHistory = filteredHistory.filter((entry) => entry.productId === productId);
     }
 
-    // Action filtering
     if (action) {
       filteredHistory = filteredHistory.filter((entry) => entry.action === action);
     }
 
-    // Create Excel workbook
+    console.log("Export filtered history:", filteredHistory.length, filteredHistory);
+
+    // Create Excel file
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Stock History");
-
-    // Define columns
     worksheet.columns = [
-      { header: "Date & Time", key: "timestamp", width: 20 },
-      { header: "Product", key: "product", width: 30 },
+      { header: "Date & Time", key: "updatedAt", width: 20 },
+      { header: "Product", key: "productName", width: 20 },
       { header: "Action", key: "action", width: 10 },
       { header: "Quantity", key: "quantity", width: 10 },
-      { header: "Notes", key: "notes", width: 40 },
+      { header: "Notes", key: "notes", width: 30 },
       { header: "Updated By", key: "updatedBy", width: 20 },
     ];
 
-    // Add rows
-    filteredHistory.forEach((entry) => {
+    filteredHistory.forEach(entry => {
+      const product = db.products.find(p => p.id === entry.productId);
+      const user = db.users.find(u => u.id === entry.updatedBy);
       worksheet.addRow({
-        timestamp: new Date(entry.timestamp).toLocaleString('en-US', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
+        updatedAt: new Date(entry.updatedAt).toLocaleString("en-US", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
           hour12: false,
         }),
-        product: db.products.find((p) => p.id === entry.productId)?.name || "Unknown",
-        action: entry.action.charAt(0).toUpperCase() + entry.action.slice(1),
+        productName: product ? product.name : "Unknown",
+        action: entry.action,
         quantity: entry.quantity,
         notes: entry.notes || "-",
-        updatedBy: db.users.find((u) => u.id === entry.updatedBy)?.displayName || "Unknown",
+        updatedBy: user ? user.displayName : "Unknown",
       });
     });
 
     // Style header
-    worksheet.getRow(1).font = { bold: true };
-    worksheet.getRow(1).fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFE5E7EA" },
-    };
-
-    // Generate buffer
-    const buffer = await workbook.xlsx.writeBuffer();
-
-    // Set headers for download
-    res.setHeader("Content-Disposition", "attachment; filename=stock_history.xlsx");
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    res.send(buffer);
-
-    console.log("Stock history exported:", { entries: filteredHistory.length });
-  } catch (err) {
-    console.error("Stock history export error:", err);
-    res.status(500).render("error", {
-      message: "Failed to export stock history",
-      user: req.user,
+    worksheet.getRow(1).eachCell(cell => {
+      cell.font = { bold: true };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEFEFEF" } };
     });
-  }
-});
 
-// Admin Review Management
-router.post("/review/edit/:productId", (req, res) => {
-  try {
-    const db = loadDB();
-    const product = db.products.find((p) => p.id === req.params.productId);
-    if (!product) {
-      return res.status(404).render("error", {
-        message: "Product not found",
-        user: req.user,
-      });
-    }
-
-    const { reviewId, rating, comment } = req.body;
-    const review = product.reviews.find((r) => r.id === reviewId);
-    if (!review) {
-      return res.render("admin/edit", {
-        product,
-        categories: db.categories || [],
-        users: db.users || [],
-        user: req.user,
-        error: "Review not found",
-      });
-    }
-
-    if (!rating || rating < 1 || rating > 5 || !comment) {
-      return res.render("admin/edit", {
-        product,
-        categories: db.categories || [],
-        users: db.users || [],
-        user: req.user,
-        error: "Please provide a valid rating (1-5) and comment",
-      });
-    }
-
-    review.rating = parseInt(rating);
-    review.comment = comment;
-    review.edited = true;
-    review.timestamp = new Date().toISOString();
-
-    saveDB(db);
-    console.log("Review edited:", reviewId);
-    res.redirect(`/admin/edit/${req.params.productId}`);
+    // Send file
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", "attachment; filename=stock_history.xlsx");
+    await workbook.xlsx.write(res);
+    res.end();
   } catch (err) {
-    console.error("Review edit error:", err);
-    res.status(500).render("error", {
-      message: "Failed to edit review",
+    console.error("Export error:", err);
+    res.status(500).render("admin/stock-history", {
+      history: [],
+      products: db.products || [],
+      users: db.users || [],
       user: req.user,
+      categories: db.categories || [],
+      dateRange,
+      startDate,
+      endDate,
+      productId,
+      action,
+      error: "Failed to export stock history",
     });
   }
 });
