@@ -1,0 +1,38 @@
+<%- include('partials/header') %>
+<div class="py-8">
+  <div class="container mx-auto px-4">
+    <div class="max-w-md mx-auto bg-white shadow rounded-lg p-6">
+      <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Login</h1>
+      <p class="text-gray-600 text-center mb-4">
+        Sign in to access your account.
+      </p>
+      <div class="flex justify-center">
+        <a
+          href="/auth/google"
+          class="bg-blue-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 flex items-center"
+        >
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M12.48 10.92v2.94h4.92c-.21 1.26-.99 2.34-2.07 3.06v2.55h3.36c1.98-1.83 3.12-4.53 3.12-7.68 0-.75-.09-1.47-.24-2.16h-9.09z"
+              fill="#4285F4"
+            />
+            <path
+              d="M12 21c2.7 0 4.95-.9 6.6-2.46l-3.36-2.55c-.9.63-2.07 1.02-3.24 1.02-2.49 0-4.59-1.68-5.34-3.96H3.18v2.49C4.83 19.14 8.16 21 12 21z"
+              fill="#34A853"
+            />
+            <path
+              d="M6.66 13.02c-.18-.54-.27-1.11-.27-1.68s.09-1.14.27-1.68V7.17H3.18C2.43 8.64 2 10.26 2 12s.43 3.36 1.18 4.83l3.48-2.81z"
+              fill="#FBBC05"
+            />
+            <path
+              d="M12 5.94c1.44 0 2.73.54 3.75 1.59l2.82-2.82C16.95 3.15 14.7 2.25 12 2.25c-3.84 0-7.17 1.86-8.82 5.49l3.48 2.81c.75-2.28 2.85-3.96 5.34-3.96z"
+              fill="#EA4335"
+            />
+          </svg>
+          Sign in with Google
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+<%- include('partials/footer') %>

@@ -1,0 +1,292 @@
+<%- include('../partials/header') %>
+<div class="py-8">
+    <div class="container mx-auto px-4">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9.586 13.586a2 2 0 002.828 0l4-4z" /></svg>
+            <%= product ? 'Edit Product' : 'Add Product' %>
+        </h1>
+        <div class="bg-white shadow rounded-lg p-6">
+            <form action="<%= product ? '/admin/edit/' + product.id : '/admin/add' %>" method="POST" enctype="multipart/form-data" id="product-form">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left Column: Basic Info -->
+                    <div class="space-y-4">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700">Product Name</label>
+                            <input type="text" name="name" id="name" value="<%= product ? product.name : '' %>" class="mt-1 w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+                            <div class="flex gap-2">
+                                <select name="category" id="category" class="mt-1 w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">Select Category</option>
+                                    <% categories.forEach(category => { %>
+                                        <option value="<%= category %>" <%= product && product.category === category ? 'selected' : '' %>><%= category %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                            <div class="mt-2">
+                                <label for="new-category" class="block text-sm font-medium text-gray-700">Add New Category</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="new-category" placeholder="New category..." class="mt-1 w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <button type="button" id="add-category-btn" class="mt-1 bg-blue-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700">Add</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="price" class="block text-sm font-medium text-gray-700">Price (USD)</label>
+                            <input type="number" name="price" id="price" step="0.01" value="<%= product ? product.price : '' %>" class="mt-1 w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label for="discountPrice" class="block text-sm font-medium text-gray-700">Discount Price (Optional)</label>
+                            <input type="number" name="discountPrice" id="discountPrice" step="0.01" value="<%= product && product.discountPrice ? product.discountPrice : '' %>" class="mt-1 w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="discountExpiry" class="block text-sm font-medium text-gray-700">Discount Expiry (Optional)</label>
+                            <input type="date" name="discountExpiry" id="discountExpiry" value="<%= product && product.discountExpiry ? product.discountExpiry : '' %>" class="mt-1 w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="origin" class="block text-sm font-medium text-gray-700">Origin (Optional)</label>
+                            <input type="text" name="origin" id="origin" value="<%= product && product.origin ? product.origin : '' %>" class="mt-1 w-full p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <!-- Right Column: Images -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Thumbnail</label>
+                            <div class="mt-1 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer" id="thumbnail-dropzone">
+                                <input type="file" name="thumbnail" id="thumbnail-input" accept="image/*" class="hidden">
+                                <p class="text-sm text-gray-500">Drag & drop or click to upload</p>
+                            </div>
+                            <div id="thumbnail-preview" class="mt-2 flex flex-wrap gap-2">
+                                <% if (product && product.thumbnail && product.thumbnail.url) { %>
+                                    <div class="relative w-24 h-24">
+                                        <img src="<%= product.thumbnail.url %>" alt="Thumbnail" class="w-full h-full object-cover rounded-lg cursor-pointer" data-url="<%= product.thumbnail.url %>">
+                                        <button type="button" class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs delete-image" data-delete-url="<%= product.thumbnail.delete_url %>">×</button>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Preview Images</label>
+                            <div class="mt-1 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer" id="preview-dropzone">
+                                <input type="file" name="previewImages" id="preview-input" accept="image/*" multiple class="hidden">
+                                <p class="text-sm text-gray-500">Drag & drop or click to upload (max 10)</p>
+                            </div>
+                            <div id="preview-images" class="mt-2 flex flex-wrap gap-2">
+                                <% if (product && product.previewImages && product.previewImages.length > 0) { %>
+                                    <% product.previewImages.forEach(img => { %>
+                                        <div class="relative w-24 h-24">
+                                            <img src="<%= img.url %>" alt="Preview" class="w-full h-full object-cover rounded-lg cursor-pointer" data-url="<%= img.url %>">
+                                            <button type="button" class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs delete-image" data-delete-url="<%= img.delete_url %>">×</button>
+                                        </div>
+                                    <% }) %>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Details -->
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-gray-700">Details</label>
+                    <div id="details-container" class="mt-2 space-y-2">
+                        <% if (product && product.details) { %>
+                            <% product.details.forEach(detail => { %>
+                                <div class="flex gap-2 detail-entry">
+                                    <input type="text" name="details[key][]" value="<%= detail.key %>" placeholder="Key" class="w-1/2 p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <input type="text" name="details[value][]" value="<%= detail.value %>" placeholder="Value" class="w-1/2 p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <button type="button" class="text-gray-400 hover:text-red-500 remove-detail">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </button>
+                                </div>
+                            <% }) %>
+                        <% } %>
+                    </div>
+                    <button type="button" id="add-detail" class="mt-2 text-blue-600 hover:text-blue-700 flex items-center">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                        Add Detail
+                    </button>
+                </div>
+                <div class="mt-6 flex gap-4">
+                    <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 flex items-center">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                        <%= product ? 'Update Product' : 'Add Product' %>
+                    </button>
+                    <a href="/admin" class="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg text-sm hover:bg-gray-300 flex items-center">
+                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Image Zoom Modal -->
+<div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50">
+    <div class="relative max-w-4xl w-full">
+        <img id="modal-image" src="" alt="Zoomed Image" class="w-full h-auto rounded-lg">
+        <button id="close-modal" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 text-lg">×</button>
+    </div>
+</div>
+<%- include('../partials/footer') %>
+<script>
+// Add New Category
+const addCategoryBtn = document.getElementById('add-category-btn');
+const newCategoryInput = document.getElementById('new-category');
+const categorySelect = document.getElementById('category');
+const categories = <%- JSON.stringify(categories || []) %>;
+
+addCategoryBtn.addEventListener('click', async () => {
+    const newCategory = newCategoryInput.value.trim();
+    if (newCategory && !categories.includes(newCategory)) {
+        try {
+            const response = await fetch('/admin/category/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: newCategory })
+            });
+            if (response.ok) {
+                categories.push(newCategory);
+                const option = document.createElement('option');
+                option.value = newCategory;
+                option.textContent = newCategory;
+                option.selected = true;
+                categorySelect.appendChild(option);
+                newCategoryInput.value = '';
+            } else {
+                console.error('Failed to add category:', response.status);
+            }
+        } catch (err) {
+            console.error('Error adding category:', err);
+        }
+    }
+});
+
+// Image Upload Drag-and-Drop
+const thumbnailDropzone = document.getElementById('thumbnail-dropzone');
+const thumbnailInput = document.getElementById('thumbnail-input');
+const thumbnailPreview = document.getElementById('thumbnail-preview');
+const previewDropzone = document.getElementById('preview-dropzone');
+const previewInput = document.getElementById('preview-input');
+const previewImages = document.getElementById('preview-images');
+
+function handleDropzone(dropzone, input, previewDiv, isMultiple) {
+    // Click to upload
+    dropzone.addEventListener('click', () => input.click());
+
+    // Drag-and-drop events
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('border-blue-500', 'bg-blue-50');
+    });
+
+    dropzone.addEventListener('dragleave', (e) => {
+        dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('border-blue-500', 'bg-blue-50');
+        const files = e.dataTransfer.files;
+        const dt = new DataTransfer();
+        Array.from(files).forEach(file => {
+            if (file.type.startsWith('image/')) dt.items.add(file);
+        });
+        input.files = dt.files;
+        updatePreview(input, previewDiv, isMultiple);
+    });
+
+    input.addEventListener('change', () => updatePreview(input, previewDiv, isMultiple));
+}
+
+function updatePreview(input, previewDiv, isMultiple) {
+    if (!isMultiple) previewDiv.innerHTML = '';
+    const files = Array.from(input.files);
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const div = document.createElement('div');
+            div.className = 'relative w-24 h-24';
+            div.innerHTML = `
+                <img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover rounded-lg cursor-pointer" data-url="${e.target.result}">
+                <button type="button" class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1 text-xs temp-delete">×</button>
+            `;
+            previewDiv.appendChild(div);
+            div.querySelector('.temp-delete').addEventListener('click', () => {
+                div.remove();
+                const dt = new DataTransfer();
+                Array.from(input.files).forEach(f => {
+                    if (f !== file) dt.items.add(f);
+                });
+                input.files = dt.files;
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+handleDropzone(thumbnailDropzone, thumbnailInput, thumbnailPreview, false);
+handleDropzone(previewDropzone, previewInput, previewImages, true);
+
+// Image Deletion
+document.querySelectorAll('.delete-image').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const deleteUrl = btn.dataset.deleteUrl;
+        try {
+            const response = await fetch('/admin/image/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ delete_url: deleteUrl })
+            });
+            if (response.ok) {
+                btn.parentElement.remove();
+                const form = document.getElementById('product-form');
+                const formData = new FormData(form);
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
+            }
+        } catch (err) {
+            console.error('Error deleting image:', err);
+        }
+    });
+});
+
+// Image Zoom Modal
+const modal = document.getElementById('image-modal');
+const modalImage = document.getElementById('modal-image');
+const closeModal = document.getElementById('close-modal');
+
+document.addEventListener('click', (e) => {
+    if (e.target.tagName === 'IMG' && e.target.dataset.url) {
+        modalImage.src = e.target.dataset.url;
+        modal.classList.remove('hidden');
+    }
+});
+
+closeModal.addEventListener('click', () => {
+    modal.classList.add('hidden');
+    modalImage.src = '';
+});
+
+// Add/Remove Details
+document.getElementById('add-detail').addEventListener('click', () => {
+    const container = document.getElementById('details-container');
+    const div = document.createElement('div');
+    div.className = 'flex gap-2 detail-entry';
+    div.innerHTML = `
+        <input type="text" name="details[key][]" placeholder="Key" class="w-1/2 p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input type="text" name="details[value][]" placeholder="Value" class="w-1/2 p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <button type="button" class="text-gray-400 hover:text-red-500 remove-detail">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+    `;
+    container.appendChild(div);
+    div.querySelector('.remove-detail').addEventListener('click', () => div.remove());
+});
+
+document.querySelectorAll('.remove-detail').forEach(btn => {
+    btn.addEventListener('click', () => btn.parentElement.remove());
+});
+</script>
+<%- include('../partials/footer') %>

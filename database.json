@@ -1,0 +1,180 @@
+{
+  "products": [
+    {
+      "id": "1744739166453",
+      "name": "Test Product 1",
+      "category": "Grillar",
+      "price": 540,
+      "discountPrice": 425,
+      "discountExpiry": "2025-04-17",
+      "origin": "China",
+      "thumbnail": {
+        "url": "https://i.ibb.co/Sw8p6FGG/21588122bc45.jpg",
+        "delete_url": "https://ibb.co/k2fFGNvv/1b9b141d96de9bed3a4fa03d2d219446"
+      },
+      "previewImages": [
+        {
+          "url": "https://i.ibb.co/Ldm1sT39/88561e9fd3d0.jpg",
+          "delete_url": "https://ibb.co/KxdW8tJV/5d6b77cfe2e6fbcad347bb7e4400c1fb"
+        }
+      ],
+      "details": [
+        {
+          "key": "Key1",
+          "value": "Value1"
+        },
+        {
+          "key": "Key2",
+          "value": "Value2"
+        },
+        {
+          "key": "Key3",
+          "value": "Value3"
+        },
+        {
+          "key": "Key4",
+          "value": "Value4"
+        }
+      ],
+      "reviews": [
+        {
+          "userId": "1744729926566",
+          "rating": 5,
+          "comment": "gdfgsdffg",
+          "timestamp": "2025-04-15T18:10:24.544Z"
+        },
+        {
+          "userId": "1744729926566",
+          "rating": 3,
+          "comment": "2nd Review test",
+          "timestamp": "2025-04-16T10:36:10.853Z"
+        },
+        {
+          "userId": "1744729926566",
+          "rating": 1,
+          "comment": ".",
+          "timestamp": "2025-04-16T12:01:20.037Z"
+        }
+      ]
+    },
+    {
+      "id": "1744804812036",
+      "name": "Test Product 2",
+      "category": "Gaz Plitalari",
+      "price": 220,
+      "discountPrice": 178,
+      "discountExpiry": "2025-04-17",
+      "origin": "China",
+      "details": [
+        {
+          "key": "Key1asdfcasdf",
+          "value": "sdcf"
+        },
+        {
+          "key": "Key1asdf",
+          "value": "asdcf"
+        },
+        {
+          "key": "Key1acsdf",
+          "value": "sadcf"
+        }
+      ],
+      "reviews": [
+        {
+          "userId": "1744729926566",
+          "rating": 4,
+          "comment": "Feedback test product2 1\r\n",
+          "timestamp": "2025-04-16T12:00:52.151Z"
+        }
+      ],
+      "thumbnail": {
+        "url": "https://i.ibb.co/1GKrgrBm/bc561e73a4d2.jpg",
+        "delete_url": "https://ibb.co/Kx72P2Br/3520594a27f796bcc1284f602f362a68"
+      },
+      "previewImages": [
+        {
+          "url": "https://i.ibb.co/Hf6kcnj0/b3fbdb931835.jpg",
+          "delete_url": "https://ibb.co/G4ybZcqX/8eaeadeea935de54b300cbea8dc84b41"
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "1744729186213",
+      "googleId": "112865287677704924287",
+      "displayName": "Royale",
+      "email": "royalepubgacc@gmail.com",
+      "cart": [],
+      "role": "user",
+      "cartCount": 0,
+      "isAdmin": false
+    },
+    {
+      "id": "1744729926566",
+      "googleId": "111987115029041087440",
+      "displayName": "Ubaydulloh Sayfullayev",
+      "email": "royaleyourdad@gmail.com",
+      "cart": [],
+      "role": "admin",
+      "cartCount": 0,
+      "isAdmin": true
+    },
+    {
+      "id": "1744739267240",
+      "googleId": "107497949822712008036",
+      "displayName": "Public Store",
+      "email": "spublic598@gmail.com",
+      "role": "user",
+      "cart": [],
+      "cartCount": 0,
+      "isAdmin": false
+    },
+    {
+      "id": "1744798240414",
+      "googleId": "108976430254645774363",
+      "email": "someecommercialshop@gmail.com",
+      "displayName": "Shop Only",
+      "role": "user",
+      "cart": [],
+      "cartCount": 0
+    }
+  ],
+  "categories": [
+    "Gaz Plitalari",
+    "Elektr Plitalari",
+    "Muzlatgichlar",
+    "sovutgich",
+    "Mikroto'lqinli Pechlar",
+    "Duxovkalar",
+    "Non Pishirgichlar",
+    "Tosterlar",
+    "Popkorn Mashinalari",
+    "Lavash Pishirgichlar",
+    "Ugra Pishirgichlar",
+    "Grillar",
+    "Qovurish Moslamalari",
+    "Blenderlar",
+    "Mikserlar",
+    "Qahva Mashinalari",
+    "Espresso Mashinalari",
+    "Sharbat Chiqargichlar",
+    "Oziq-ovqat Protsessorlari",
+    "Idish Yuvgichlar",
+    "Suv Isitgichlari",
+    "Guruch Pishirgichlar",
+    "Rakovinalar",
+    "Kranlar",
+    "Oshxona uchun kesish mashinalari",
+    "Go'sht Maydalagichlar",
+    "Muz Tayyorlagichlar",
+    "Pitsa Duxovkalari",
+    "Makaron Tayyorlagichlar",
+    "Vafli Pishirgichlar",
+    "Krep Pishirgichlar",
+    "Sendvich Pishirgichlar",
+    "Bug'lash Moslamalari",
+    "Vakuum Muhrlagichlar",
+    "Oziq-ovqat Yuk Mashinalari"
+  ]
+}
