@@ -53,8 +53,8 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: "auto", // Auto-detect HTTP/HTTPS
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      secure: "auto",
+      maxAge: 24 * 60 * 60 * 1000,
       sameSite: "lax",
     },
   })
@@ -72,10 +72,7 @@ const loadDB = () => {
     dbCache = {
       products: (data.products || []).map((p) => ({
         ...p,
-        reviews: (p.reviews || []).map((r) => ({
-          ...r,
-          edited: r.edited || false,
-        })),
+        reviews: (p.reviews || []).map((r) => ({ ...r, edited: r.edited || false })),
       })),
       categories: data.categories || [],
       users: (data.users || []).map((user) => ({
@@ -91,13 +88,7 @@ const loadDB = () => {
     return dbCache;
   } catch (err) {
     console.error("Error loading database:", err);
-    dbCache = {
-      products: [],
-      categories: [],
-      users: [],
-      admins: [],
-      stockHistory: [],
-    };
+    dbCache = { products: [], categories: [], users: [], admins: [], stockHistory: [] };
     return dbCache;
   }
 };
@@ -250,9 +241,9 @@ app.use((req, res, next) => {
     req.user
       ? {
           id: req.user.id,
-          email: user.email,
-          role: user.role,
-          isAdmin: user.isAdmin,
+          email: req.user.email,
+          role: req.user.role,
+          isAdmin: req.user.isAdmin,
         }
       : "No user"
   );
@@ -274,9 +265,7 @@ app.get("/product/:id", (req, res, next) => {
   const db = loadDB();
   const product = db.products.find((p) => p.id === req.params.id);
   if (!product) {
-    return res
-      .status(404)
-      .render("error", { message: "Product not found", user: req.user });
+    return res.status(404).render("error", { message: "Product not found", user: req.user });
   }
   res.render("product", {
     product,
@@ -295,13 +284,9 @@ app.use((err, req, res, next) => {
     method: req.method,
   });
   if (err instanceof multer.MulterError) {
-    return res
-      .status(400)
-      .render("error", { message: "File upload error", user: req.user });
+    return res.status(400).render("error", { message: "File upload error", user: req.user });
   }
-  res
-    .status(500)
-    .render("error", { message: "Something went wrong!", user: req.user });
+  res.status(500).render("error", { message: "Something went wrong!", user: req.user });
 });
 
 const PORT = process.env.PORT || 3000;

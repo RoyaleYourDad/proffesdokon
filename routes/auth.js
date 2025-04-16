@@ -30,9 +30,7 @@ router.get("/login", (req, res) => {
     user: req.user ? req.user.email : "No user",
   });
   if (req.user) {
-    console.log(
-      `Login page: User ${req.user.email} already logged in, redirecting to /`
-    );
+    console.log(`Login page: User ${req.user.email} already logged in, redirecting to /`);
     return res.redirect("/");
   }
   res.render("login", { user: null });
@@ -41,7 +39,10 @@ router.get("/login", (req, res) => {
 // GET /auth/google
 router.get(
   "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
+  (req, res, next) => {
+    console.log("Initiating Google auth", { sessionID: req.sessionID });
+    passport.authenticate("google", { scope: ["profile", "email"] })(req, res, next);
+  }
 );
 
 // GET /auth/google/callback
@@ -53,12 +54,12 @@ router.get(
       sessionID: req.sessionID,
       userID: req.user.id,
     });
-    // Ensure session is saved before redirect
     req.session.save((err) => {
       if (err) {
         console.error("Session save failed:", err);
         return next(err);
       }
+      console.log("Session saved, redirecting to /");
       res.redirect("/");
     });
   }
@@ -80,6 +81,7 @@ router.get("/logout", (req, res, next) => {
         console.error("Session destroy failed:", err);
         return next(err);
       }
+      console.log("Session destroyed, redirecting to /");
       res.redirect("/");
     });
   });
