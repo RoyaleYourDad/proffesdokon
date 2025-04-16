@@ -115,9 +115,18 @@
       "googleId": "111987115029041087440",
       "displayName": "Ubaydulloh Sayfullayev",
       "email": "royaleyourdad@gmail.com",
-      "cart": [],
+      "cart": [
+        {
+          "productId": "1744804812036",
+          "quantity": 5
+        },
+        {
+          "productId": "1744739166453",
+          "quantity": 7
+        }
+      ],
       "role": "admin",
-      "cartCount": 0,
+      "cartCount": 12,
       "isAdmin": true
     },
     {

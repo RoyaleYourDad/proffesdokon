@@ -84,39 +84,6 @@ router.get("/", (req, res) => {
   });
 });
 
-// Sort filter
-if (query.sort) {
-  if (query.sort === "price-asc") {
-    products.sort((a, b) => {
-      const priceA = a.discountPrice && new Date(a.discountExpiry) > new Date() ? a.discountPrice : a.price;
-      const priceB = b.discountPrice && new Date(b.discountExpiry) > new Date() ? b.discountPrice : b.price;
-      return priceA - priceB;
-    });
-  } else if (query.sort === "price-desc") {
-    products.sort((a, b) => {
-      const priceA = a.discountPrice && new Date(a.discountExpiry) > new Date() ? a.discountPrice : a.price;
-      const priceB = b.discountPrice && new Date(b.discountExpiry) > new Date() ? b.discountPrice : b.price;
-      return priceB - priceA;
-    });
-  } else if (query.sort === "name-asc") {
-    products.sort((a, b) => a.name.localeCompare(b.name));
-  } else if (query.sort === "rating-desc") {
-    products.sort((a, b) => {
-      const ratingA = a.reviews && a.reviews.length > 0 ? a.reviews.reduce((sum, r) => sum + r.rating, 0) / a.reviews.length : 0;
-      const ratingB = b.reviews && b.reviews.length > 0 ? b.reviews.reduce((sum, r) => sum + r.rating, 0) / b.reviews.length : 0;
-      return ratingB - ratingA;
-    });
-  }
-}
-
-res.render("index", {
-  products,
-  categories: db.categories,
-  query,
-  user: req.user,
-  error: null,
-});
-
 // GET /product/:id
 router.get("/product/:id", (req, res) => {
   const db = loadDB();
@@ -134,7 +101,7 @@ router.get("/product/:id", (req, res) => {
 
   res.render("product", {
     product,
-    users: db.users,
+     users: db.users,
     user: req.user,
     error: null,
   });
@@ -174,16 +141,5 @@ router.post("/product/:id/review", (req, res) => {
   saveDB(db);
   res.redirect(`/product/${req.params.id}`);
 });
-
-product.reviews = product.reviews || [];
-product.reviews.push({
-  userId: req.user.id,
-  rating: parseInt(rating),
-  comment,
-  timestamp: new Date(),
-});
-
-saveDB(db);
-res.redirect(`/product/${req.params.id}`);
 
 module.exports = router;
