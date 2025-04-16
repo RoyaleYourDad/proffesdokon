@@ -1,5 +1,6 @@
 const express = require("express");
 const session = require("express-session");
+const FileStore = require("session-file-store")(session);
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const fs = require("fs");
@@ -14,6 +15,12 @@ dotenv.config();
 
 const app = express();
 const dbPath = path.join(__dirname, "database.json");
+const sessionPath = path.join(__dirname, "sessions");
+
+// Ensure sessions directory exists
+if (!fs.existsSync(sessionPath)) {
+  fs.mkdirSync(sessionPath, { recursive: true });
+}
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -36,10 +43,20 @@ app.use("/uploads", express.static("public/uploads"));
 
 app.use(
   session({
+    store: new FileStore({
+      path: sessionPath,
+      ttl: 24 * 60 * 60, // 1 day
+      retries: 2,
+      logFn: console.error,
+    }),
     secret: process.env.SESSION_SECRET || "fallback-secret",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: process.env.NODE_ENV === "production" },
+    cookie: {
+      secure: "auto", // Auto-detect HTTP/HTTPS
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      sameSite: "lax",
+    },
   })
 );
 app.use(passport.initialize());
@@ -55,7 +72,10 @@ const loadDB = () => {
     dbCache = {
       products: (data.products || []).map((p) => ({
         ...p,
-        reviews: (p.reviews || []).map((r) => ({ ...r, edited: r.edited || false })),
+        reviews: (p.reviews || []).map((r) => ({
+          ...r,
+          edited: r.edited || false,
+        })),
       })),
       categories: data.categories || [],
       users: (data.users || []).map((user) => ({
@@ -71,7 +91,13 @@ const loadDB = () => {
     return dbCache;
   } catch (err) {
     console.error("Error loading database:", err);
-    dbCache = { products: [], categories: [], users: [], admins: [], stockHistory: [] };
+    dbCache = {
+      products: [],
+      categories: [],
+      users: [],
+      admins: [],
+      stockHistory: [],
+    };
     return dbCache;
   }
 };
@@ -93,7 +119,6 @@ const imgbbApiKeys = [
 
 async function uploadToImgBB(file) {
   try {
-    // Validate image dimensions
     const dimensions = sizeOf(file.buffer);
     if (dimensions.width < 512 || dimensions.height < 512) {
       throw new Error("Image must be at least 512x512 pixels");
@@ -149,9 +174,17 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL || "http://localhost:3000/auth/google/callback",
+      callbackURL:
+        process.env.NODE_ENV === "production"
+          ? process.env.GOOGLE_CALLBACK_URL
+          : "http://localhost:3000/auth/google/callback",
     },
     (accessToken, refreshToken, profile, done) => {
+      console.log("Google auth callback:", {
+        googleId: profile.id,
+        email: profile.emails[0].value,
+        displayName: profile.displayName,
+      });
       const db = loadDB();
       let user = db.users.find((u) => u.googleId === profile.id);
 
@@ -171,7 +204,7 @@ passport.use(
       }
 
       user.isAdmin = user.role === "admin";
-      console.log("Google auth user:", {
+      console.log("Auth user:", {
         id: user.id,
         email: user.email,
         role: user.role,
@@ -188,6 +221,7 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser((id, done) => {
+  console.log("Deserializing user ID:", id);
   const db = loadDB();
   const user = db.users.find((u) => u.id === id);
   if (user) {
@@ -200,12 +234,13 @@ passport.deserializeUser((id, done) => {
     });
     done(null, user);
   } else {
-    console.log("Deserialize failed: User not found", id);
-    done(null, null);
+    console.error("Deserialize failed: User not found", id);
+    done(null, false);
   }
 });
 
 app.use((req, res, next) => {
+  console.log("Session ID:", req.sessionID);
   req.upload = upload.fields([
     { name: "thumbnail", maxCount: 1 },
     { name: "previewImages", maxCount: 8 },
@@ -215,9 +250,9 @@ app.use((req, res, next) => {
     req.user
       ? {
           id: req.user.id,
-          email: req.user.email,
-          role: req.user.role,
-          isAdmin: req.user.isAdmin,
+          email: user.email,
+          role: user.role,
+          isAdmin: user.isAdmin,
         }
       : "No user"
   );
@@ -239,7 +274,9 @@ app.get("/product/:id", (req, res, next) => {
   const db = loadDB();
   const product = db.products.find((p) => p.id === req.params.id);
   if (!product) {
-    return res.status(404).render("error", { message: "Product not found", user: req.user });
+    return res
+      .status(404)
+      .render("error", { message: "Product not found", user: req.user });
   }
   res.render("product", {
     product,
@@ -258,9 +295,13 @@ app.use((err, req, res, next) => {
     method: req.method,
   });
   if (err instanceof multer.MulterError) {
-    return res.status(400).render("error", { message: "File upload error", user: req.user });
+    return res
+      .status(400)
+      .render("error", { message: "File upload error", user: req.user });
   }
-  res.status(500).render("error", { message: "Something went wrong!", user: req.user });
+  res
+    .status(500)
+    .render("error", { message: "Something went wrong!", user: req.user });
 });
 
 const PORT = process.env.PORT || 3000;

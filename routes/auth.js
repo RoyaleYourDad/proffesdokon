@@ -25,8 +25,14 @@ const saveDB = (data) => {
 
 // GET /auth/login
 router.get("/login", (req, res) => {
+  console.log("Accessing /auth/login", {
+    sessionID: req.sessionID,
+    user: req.user ? req.user.email : "No user",
+  });
   if (req.user) {
-    console.log(`Login page: User ${req.user.email} already logged in, redirecting to /`);
+    console.log(
+      `Login page: User ${req.user.email} already logged in, redirecting to /`
+    );
     return res.redirect("/");
   }
   res.render("login", { user: null });
@@ -42,17 +48,40 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", { failureRedirect: "/auth/login" }),
-  (req, res) => {
-    console.log(`Google callback: Redirecting user ${req.user.email} to /`);
-    res.redirect("/");
+  (req, res, next) => {
+    console.log(`Google callback: User ${req.user.email}`, {
+      sessionID: req.sessionID,
+      userID: req.user.id,
+    });
+    // Ensure session is saved before redirect
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save failed:", err);
+        return next(err);
+      }
+      res.redirect("/");
+    });
   }
 );
 
 // GET /auth/logout
 router.get("/logout", (req, res, next) => {
+  console.log("Logging out", {
+    sessionID: req.sessionID,
+    user: req.user ? req.user.email : "No user",
+  });
   req.logout((err) => {
-    if (err) return next(err);
-    res.redirect("/");
+    if (err) {
+      console.error("Logout error:", err);
+      return next(err);
+    }
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Session destroy failed:", err);
+        return next(err);
+      }
+      res.redirect("/");
+    });
   });
 });
 
