@@ -1,263 +1,325 @@
 <%- include('partials/header') %>
-  <div class="py-8 bg-gray-100">
-    <div class="container mx-auto px-4 max-w-7xl">
-      <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-        <!-- Breadcrumb -->
-        <div class="px-6 py-4 border-b">
-          <nav class="text-sm text-gray-600">
-            <a href="/" class="hover:text-blue-600">Home</a> >
-            <a href="/#<%= product.category %>" class="hover:text-blue-600">
-              <%= product.category || 'Products' %>
-            </a> >
-            <span class="text-gray-800">
-              <%= product.name %>
-            </span>
-          </nav>
-        </div>
+<div class="py-8 bg-gray-100">
+  <div class="container mx-auto px-4 max-w-7xl">
+    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+      <!-- Breadcrumb -->
+      <div class="px-6 py-4 border-b">
+        <nav class="text-sm text-gray-600">
+          <a href="/" class="hover:text-blue-600">Home</a> >
+          <a href="/#<%= product.category %>" class="hover:text-blue-600">
+            <%= product.category || 'Products' %>
+          </a> >
+          <span class="text-gray-800">
+            <%= product.name %>
+          </span>
+        </nav>
+      </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
-          <!-- Image Gallery -->
-          <div class="relative">
-            <!-- Main Image -->
-            <div class="w-full h-96 bg-gray-200 rounded-lg overflow-hidden">
-              <img id="main-image" src="<%= product.thumbnail.url %>" alt="<%= product.name %>"
-                class="w-full h-full object-contain transition-transform duration-300 hover:scale-105" />
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+        <!-- Image Gallery -->
+        <div class="relative">
+          <!-- Main Image Carousel -->
+          <div class="w-full h-96 bg-gray-200 rounded-lg overflow-hidden relative">
+            <div id="image-carousel" class="carousel w-full h-full">
+              <div class="carousel-item w-full h-full">
+                <img id="main-image-0" src="<%= product.thumbnail.url %>" alt="<%= product.name %>"
+                  class="w-full h-full object-contain transition-transform duration-300 hover:scale-105" />
+              </div>
+              <% product.previewImages && product.previewImages.forEach((img, index) => { %>
+                <div class="carousel-item w-full h-full">
+                  <img id="main-image-<%= index + 1 %>" src="<%= img.url %>" alt="Preview <%= index + 1 %>"
+                    class="w-full h-full object-contain transition-transform duration-300 hover:scale-105" />
+                </div>
+              <% }) %>
             </div>
-            <!-- Thumbnail Carousel -->
-            <% if (product.previewImages && product.previewImages.length> 0) { %>
-              <div
-                class="mt-4 flex gap-2 overflow-x-auto snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
-                <img src="<%= product.thumbnail.url %>" alt="Thumbnail"
+            <!-- Carousel Controls -->
+            <button class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
+              onclick="moveCarousel(-1)">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white p-2 rounded-full shadow"
+              onclick="moveCarousel(1)">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+          <!-- Thumbnail Gallery -->
+          <% if (product.previewImages && product.previewImages.length > 0) { %>
+            <div
+              class="mt-4 flex gap-2 overflow-x-auto snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
+              <img src="<%= product.thumbnail.url %>" alt="Thumbnail"
+                class="w-20 h-20 object-cover rounded-lg cursor-pointer snap-start border-2 border-transparent hover:border-blue-500 transition-all"
+                onclick="setCarousel(0)" />
+              <% product.previewImages.forEach((img, index) => { %>
+                <img src="<%= img.url %>" alt="Preview <%= index + 1 %>"
                   class="w-20 h-20 object-cover rounded-lg cursor-pointer snap-start border-2 border-transparent hover:border-blue-500 transition-all"
-                  onclick="document.getElementById('main-image').src = this.src" />
-                <% product.previewImages.forEach(img=> { %>
-                  <img src="<%= img.url %>" alt="Preview"
-                    class="w-20 h-20 object-cover rounded-lg cursor-pointer snap-start border-2 border-transparent hover:border-blue-500 transition-all"
-                    onclick="document.getElementById('main-image').src = this.src" />
-                  <% }) %>
-              </div>
-              <% } %>
-                <!-- Zoom Button -->
-                <button onclick="openFullScreen('<%= product.thumbnail.url %>')"
-                  class="absolute top-4 right-4 bg-white p-2 rounded-full shadow hover:bg-gray-100">
-                  <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </button>
-          </div>
-
-          <!-- Product Details -->
-          <div class="flex flex-col gap-4">
-            <h1 class="text-3xl font-bold text-gray-800">
-              <%= product.name %>
-            </h1>
-            <!-- Price Section -->
-            <% if (product.discountPrice && product.discountPrice <=product.price && (!product.discountExpiry || new
-              Date(product.discountExpiry)> new Date())) { %>
-              <div class="flex items-center gap-2">
-                <span class="text-2xl font-semibold text-blue-600">$<%= product.discountPrice.toFixed(2) %></span>
-                <span class="text-lg text-gray-500 line-through">$<%= product.price.toFixed(2) %></span>
-                <span class="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                  Save <%= (((product.price - product.discountPrice) / product.price) * 100).toFixed(0) %>%
-                </span>
-              </div>
-              <p class="text-sm text-gray-500 flex items-center">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Offer ends <%= new Date(product.discountExpiry).toLocaleDateString() %>
-              </p>
-              <% } else { %>
-                <div class="flex items-center gap-2">
-                  <span class="text-2xl font-semibold text-blue-600">$<%= product.price.toFixed(2) %></span>
-                </div>
-                <% } %>
-
-                  <!-- Category and Origin -->
-                  <div class="text-sm text-gray-600">
-                    <p><span class="font-medium">Category:</span>
-                      <%= product.category || 'N/A' %>
-                    </p>
-                    <p><span class="font-medium">Origin:</span>
-                      <%= product.origin || 'N/A' %>
-                    </p>
-                  </div>
-
-                  <!-- Details -->
-                  <% if (product.details && product.details.length> 0) { %>
-                    <div>
-                      <h2 class="text-lg font-semibold text-gray-700">Specifications</h2>
-                      <dl class="grid grid-cols-1 gap-2 mt-2 text-sm text-gray-600">
-                        <% product.details.forEach(detail=> { %>
-                          <div class="flex">
-                            <dt class="font-medium w-1/3">
-                              <%= detail.key %>:
-                            </dt>
-                            <dd class="w-2/3">
-                              <%= detail.value %>
-                            </dd>
-                          </div>
-                          <% }) %>
-                      </dl>
-                    </div>
-                    <% } %>
-
-                      <!-- Add to Cart -->
-                      <form action="/cart/add" method="POST" class="mt-4">
-                        <input type="hidden" name="productId" value="<%= product.id %>" />
-                        <div class="flex items-center gap-4">
-                          <div class="flex items-center border rounded-lg">
-                            <button type="button" onclick="updateQuantity(-1)"
-                              class="px-3 py-2 text-gray-600 hover:bg-gray-100">
-                              -
-                            </button>
-                            <input type="number" name="quantity" id="quantity" value="1" min="1"
-                              class="w-16 p-2 text-center border-none focus:outline-none" />
-                            <button type="button" onclick="updateQuantity(1)"
-                              class="px-3 py-2 text-gray-600 hover:bg-gray-100">
-                              +
-                            </button>
-                          </div>
-                          <button type="submit"
-                            class="flex items-center bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            Add to Cart
-                          </button>
-                        </div>
-                      </form>
-          </div>
+                  onclick="setCarousel(<%= index + 1 %>)" />
+              <% }) %>
+            </div>
+          <% } %>
+          <!-- Zoom Button -->
+          <button onclick="openFullScreen(getCurrentImage())"
+            class="absolute top-4 right-4 bg-white p-2 rounded-full shadow hover:bg-gray-100">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
         </div>
 
-        <!-- Reviews Section -->
-        <div class="px-6 py-8 bg-gray-50 border-t">
-          <h2 class="text-xl font-semibold text-gray-800 mb-4">Customer Reviews</h2>
-          <% if (typeof error !=='undefined' && error) { %>
-            <p class="text-red-500 text-sm mb-4">
-              <%= error %>
-            </p>
+        <!-- Product Details -->
+        <div class="flex flex-col gap-4">
+          <h1 class="text-3xl font-bold text-gray-800">
+            <%= product.name %>
+          </h1>
+          <!-- Stock Status -->
+          <div class="text-sm">
+            <% if (product.stock > 0) { %>
+              <span class="text-green-600">In Stock: <%= product.stock %> available</span>
+            <% } else { %>
+              <span class="text-red-600">Out of Stock</span>
             <% } %>
-              <% if (product.reviews && product.reviews.length> 0) { %>
-                <div class="space-y-6">
-                  <% product.reviews.forEach(review=> { %>
-                    <div class="border-b pb-4">
-                      <div class="flex items-center justify-between mb-2">
-                        <div class="flex items-center">
-                          <span class="text-sm font-medium text-gray-800">
-                            <%= users.find(u=> u.id === review.userId)?.displayName || 'Anonymous' %>
-                          </span>
-                          <span class="ml-2 text-xs text-gray-500">
-                            <%= new Date(review.timestamp).toLocaleDateString() %>
-                          </span>
-                        </div>
-                        <div class="flex">
-                          <% for (let i=1; i <=5; i++) { %>
-                            <svg class="w-4 h-4 <%= i <= review.rating ? 'text-yellow-400' : 'text-gray-300' %>"
-                              fill="currentColor" viewBox="0 0 20 20">
-                              <path
-                                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <% } %>
-                        </div>
-                      </div>
-                      <p class="text-sm text-gray-600">
-                        <%= review.comment %>
-                      </p>
-                    </div>
-                    <% }) %>
-                </div>
-                <% } else { %>
-                  <p class="text-gray-500">No reviews yet. Be the first to share your experience!</p>
-                  <% } %>
+          </div>
+          <!-- Price Section -->
+          <% if (product.discountPrice && product.discountPrice <= product.price && (!product.discountExpiry || new Date(product.discountExpiry) > new Date())) { %>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl font-semibold text-blue-600">$<%= product.discountPrice.toFixed(2) %></span>
+              <span class="text-lg text-gray-500 line-through">$<%= product.price.toFixed(2) %></span>
+              <span class="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                Save <%= (((product.price - product.discountPrice) / product.price) * 100).toFixed(0) %>%
+              </span>
+            </div>
+            <p class="text-sm text-gray-500 flex items-center">
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              Offer ends <%= new Date(product.discountExpiry).toLocaleDateString() %>
+            </p>
+          <% } else { %>
+            <div class="flex items-center gap-2">
+              <span class="text-2xl font-semibold text-blue-600">$<%= product.price.toFixed(2) %></span>
+            </div>
+          <% } %>
 
-                    <!-- Review Form -->
-                    <% if (user) { %>
-                      <div class="mt-8">
-                        <h3 class="text-lg font-medium text-gray-700">Write a Review</h3>
-                        <form action="/product/<%= product.id %>/review" method="POST" class="mt-4 space-y-4">
-                          <div>
-                            <label class="text-sm text-gray-600">Rating:</label>
-                            <div class="flex gap-1 mt-1">
-                              <% for (let i=5; i>= 1; i--) { %>
-                                <input type="radio" name="rating" value="<%= i %>" id="rating-<%= i %>" required
-                                  class="hidden" />
-                                <label for="rating-<%= i %>"
-                                  class="cursor-pointer text-gray-300 hover:text-yellow-400 <%= i <= 5 ? 'text-yellow-400' : '' %>">
-                                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                    <path
-                                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                  </svg>
-                                </label>
-                                <% } %>
-                            </div>
-                          </div>
-                          <div>
-                            <label for="comment" class="block text-sm text-gray-600">Your Review:</label>
-                            <textarea name="comment" id="comment" rows="4"
-                              class="w-full p-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              placeholder="Share your thoughts about this product..."></textarea>
-                          </div>
-                          <button type="submit"
-                            class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                            Submit Review
-                          </button>
-                        </form>
-                      </div>
-                      <% } else { %>
-                        <p class="text-gray-500 mt-4">Please <a href="/auth/login"
-                            class="text-blue-600 hover:underline">log in</a> to leave a review.</p>
-                        <% } %>
+          <!-- Category and Origin -->
+          <div class="text-sm text-gray-600">
+            <p><span class="font-medium">Category:</span> <%= product.category || 'N/A' %></p>
+            <p><span class="font-medium">Origin:</span> <%= product.origin || 'N/A' %></p>
+          </div>
+
+          <!-- Details -->
+          <% if (product.details && product.details.length > 0) { %>
+            <div>
+              <h2 class="text-lg font-semibold text-gray-700">Specifications</h2>
+              <dl class="grid grid-cols-1 gap-2 mt-2 text-sm text-gray-600">
+                <% product.details.forEach(detail => { %>
+                  <div class="flex">
+                    <dt class="font-medium w-1/3"><%= detail.key %>:</dt>
+                    <dd class="w-2/3"><%= detail.value %></dd>
+                  </div>
+                <% }) %>
+              </dl>
+            </div>
+          <% } %>
+
+          <!-- Add to Cart -->
+          <form action="/cart/add" method="POST" class="mt-4">
+            <input type="hidden" name="productId" value="<%= product.id %>" />
+            <div class="flex items-center gap-4">
+              <div class="flex items-center border rounded-lg">
+                <button type="button" onclick="updateQuantity(-1)"
+                  class="px-3 py-2 text-gray-600 hover:bg-gray-100">
+                  -
+                </button>
+                <input type="number" name="quantity" id="quantity" value="1" min="1"
+                  max="<%= product.stock %>" class="w-16 p-2 text-center border-none focus:outline-none" />
+                <button type="button" onclick="updateQuantity(1)"
+                  class="px-3 py-2 text-gray-600 hover:bg-gray-100">
+                  +
+                </button>
+              </div>
+              <button type="submit" <%= product.stock === 0 ? 'disabled' : '' %>
+                class="flex items-center bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                Add to Cart
+              </button>
+            </div>
+          </form>
+          <% if (typeof error !== 'undefined' && error) { %>
+            <p class="text-red-500 text-sm mt-2"><%= error %></p>
+          <% } %>
         </div>
+      </div>
+
+      <!-- Reviews Section -->
+      <div class="px-6 py-8 bg-gray-50 border-t">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Customer Reviews</h2>
+        <% if (typeof error !== 'undefined' && error && error.includes('Rating')) { %>
+          <p class="text-red-500 text-sm mb-4"><%= error %></p>
+        <% } %>
+        <% if (product.reviews && product.reviews.length > 0) { %>
+          <div class="space-y-6">
+            <% product.reviews.forEach(review => { %>
+              <div class="border-b pb-4">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center">
+                    <span class="text-sm font-medium text-gray-800">
+                      <%= users.find(u => u.id === review.userId)?.displayName || 'Anonymous' %>
+                    </span>
+                    <span class="ml-2 text-xs text-gray-500">
+                      <%= new Date(review.timestamp).toLocaleDateString() %>
+                    </span>
+                  </div>
+                  <div class="flex">
+                    <% for (let i = 1; i <= 5; i++) { %>
+                      <svg class="w-4 h-4 <%= i <= review.rating ? 'text-yellow-400' : 'text-gray-300' %>"
+                        fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    <% } %>
+                  </div>
+                </div>
+                <p class="text-sm text-gray-600"><%= review.comment %></p>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <p class="text-gray-500">No reviews yet. Be the first to share your experience!</p>
+        <% } %>
+
+        <!-- Review Form -->
+        <% if (user) { %>
+          <div class="mt-8">
+            <h3 class="text-lg font-medium text-gray-700">Write a Review</h3>
+            <form action="/product/<%= product.id %>/review" method="POST" class="mt-4 space-y-4">
+              <div>
+                <label class="text-sm text-gray-600">Rating:</label>
+                <div class="flex gap-1 mt-1">
+                  <% for (let i = 5; i >= 1; i--) { %>
+                    <input type="radio" name="rating" value="<%= i %>" id="rating-<%= i %>" required
+                      class="hidden" />
+                    <label for="rating-<%= i %>"
+                      class="cursor-pointer text-gray-300 hover:text-yellow-400 <%= i <= 5 ? 'text-yellow-400' : '' %>">
+                      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    </label>
+                  <% } %>
+                </div>
+              </div>
+              <div>
+                <label for="comment" class="block text-sm text-gray-600">Your Review:</label>
+                <textarea name="comment" id="comment" rows="4"
+                  class="w-full p-3 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Share your thoughts about this product..."></textarea>
+              </div>
+              <button type="submit"
+                class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                Submit Review
+              </button>
+            </form>
+          </div>
+        <% } else { %>
+          <p class="text-gray-500 mt-4">Please <a href="/auth/login"
+              class="text-blue-600 hover:underline">log in</a> to leave a review.</p>
+        <% } %>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Full-Screen Image Modal -->
-  <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-50">
-    <button onclick="closeFullScreen()" class="absolute top-4 right-4 text-white">
-      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </button>
-    <img id="modal-image" src="" alt="Full-screen image" class="max-w-full max-h-full" />
-  </div>
+<!-- Full-Screen Image Modal -->
+<div id="image-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden flex items-center justify-center z-50">
+  <button onclick="closeFullScreen()" class="absolute top-4 right-4 text-white">
+    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  </button>
+  <img id="modal-image" src="" alt="Full-screen image" class="max-w-full max-h-full" />
+</div>
 
-  <script>
-    // Update quantity input
-    function updateQuantity(change) {
-      const input = document.getElementById('quantity');
-      let value = parseInt(input.value) + change;
-      if (value < 1) value = 1;
-      input.value = value;
-    }
+<script>
+  let currentIndex = 0;
+  const carouselItems = document.querySelectorAll('.carousel-item');
 
-    // Full-screen image modal
-    function openFullScreen(src) {
-      const modal = document.getElementById('image-modal');
-      const modalImage = document.getElementById('modal-image');
-      modalImage.src = src;
-      modal.classList.remove('hidden');
-    }
+  function updateQuantity(change) {
+    const input = document.getElementById('quantity');
+    let value = parseInt(input.value) + change;
+    if (value < 1) value = 1;
+    if (value > parseInt(input.max)) value = parseInt(input.max);
+    input.value = value;
+  }
 
-    function closeFullScreen() {
-      const modal = document.getElementById('image-modal');
-      modal.classList.add('hidden');
-    }
+  function getCurrentImage() {
+    return carouselItems[currentIndex].querySelector('img').src;
+  }
 
-    // Dynamic star rating selection
-    document.querySelectorAll('input[name="rating"]').forEach(input => {
-      input.addEventListener('change', () => {
-        const rating = parseInt(input.value);
-        document.querySelectorAll('label[for^="rating-"]').forEach((label, index) => {
-          label.querySelector('svg').classList.toggle('text-yellow-400', 5 - index <= rating);
-          label.querySelector('svg').classList.toggle('text-gray-300', 5 - index > rating);
-        });
+  function openFullScreen(src) {
+    const modal = document.getElementById('image-modal');
+    const modalImage = document.getElementById('modal-image');
+    modalImage.src = src;
+    modal.classList.remove('hidden');
+  }
+
+  function closeFullScreen() {
+    const modal = document.getElementById('image-modal');
+    modal.classList.add('hidden');
+  }
+
+  function moveCarousel(direction) {
+    currentIndex = (currentIndex + direction + carouselItems.length) % carouselItems.length;
+    updateCarousel();
+  }
+
+  function setCarousel(index) {
+    currentIndex = index;
+    updateCarousel();
+  }
+
+  function updateCarousel() {
+    carouselItems.forEach((item, index) => {
+      item.style.transform = `translateX(${(index - currentIndex) * 100}%)`;
+    });
+  }
+
+  // Initialize carousel
+  updateCarousel();
+
+  // Dynamic star rating selection
+  document.querySelectorAll('input[name="rating"]').forEach(input => {
+    input.addEventListener('change', () => {
+      const rating = parseInt(input.value);
+      document.querySelectorAll('label[for^="rating-"]').forEach((label, index) => {
+        label.querySelector('svg').classList.toggle('text-yellow-400', 5 - index <= rating);
+        label.querySelector('svg').classList.toggle('text-gray-300', 5 - index > rating);
       });
     });
-  </script>
+  });
+</script>
 
-  <%- include('partials/footer') %>
+<style>
+  .carousel {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .carousel-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s ease;
+  }
+</style>
+
+<%- include('partials/footer') %>

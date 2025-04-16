@@ -8,6 +8,7 @@
       "discountPrice": 425,
       "discountExpiry": "2025-04-17",
       "origin": "China",
+      "stock": 10,
       "thumbnail": {
         "url": "https://i.ibb.co/Sw8p6FGG/21588122bc45.jpg",
         "delete_url": "https://ibb.co/k2fFGNvv/1b9b141d96de9bed3a4fa03d2d219446"
@@ -38,22 +39,28 @@
       ],
       "reviews": [
         {
+          "id": "r_1744739166453_1",
           "userId": "1744729926566",
           "rating": 5,
           "comment": "gdfgsdffg",
-          "timestamp": "2025-04-15T18:10:24.544Z"
+          "timestamp": "2025-04-15T18:10:24.544Z",
+          "edited": false
         },
         {
+          "id": "r_1744739166453_2",
           "userId": "1744729926566",
           "rating": 3,
           "comment": "2nd Review test",
-          "timestamp": "2025-04-16T10:36:10.853Z"
+          "timestamp": "2025-04-16T10:36:10.853Z",
+          "edited": false
         },
         {
+          "id": "r_1744739166453_3",
           "userId": "1744729926566",
           "rating": 1,
           "comment": ".",
-          "timestamp": "2025-04-16T12:01:20.037Z"
+          "timestamp": "2025-04-16T12:01:20.037Z",
+          "edited": false
         }
       ]
     },
@@ -65,6 +72,7 @@
       "discountPrice": 178,
       "discountExpiry": "2025-04-17",
       "origin": "China",
+      "stock": 14,
       "details": [
         {
           "key": "Key1asdfcasdf",
@@ -81,10 +89,12 @@
       ],
       "reviews": [
         {
+          "id": "r_1744804812036_1",
           "userId": "1744729926566",
           "rating": 4,
           "comment": "Feedback test product2 1\r\n",
-          "timestamp": "2025-04-16T12:00:52.151Z"
+          "timestamp": "2025-04-16T12:00:52.151Z",
+          "edited": false
         }
       ],
       "thumbnail": {
@@ -95,6 +105,45 @@
         {
           "url": "https://i.ibb.co/Hf6kcnj0/b3fbdb931835.jpg",
           "delete_url": "https://ibb.co/G4ybZcqX/8eaeadeea935de54b300cbea8dc84b41"
+        }
+      ]
+    },
+    {
+      "id": "1744813498742",
+      "name": "Jdjd",
+      "category": "Tosterlar",
+      "price": 3565,
+      "discountPrice": 1000,
+      "discountExpiry": "2025-06-01",
+      "origin": "Taiwan",
+      "stock": 5,
+      "details": [
+        {
+          "key": "Watt",
+          "value": "590"
+        },
+        {
+          "key": "Mass",
+          "value": "1tonn"
+        }
+      ],
+      "reviews": [],
+      "thumbnail": {
+        "url": "https://i.ibb.co/BV7L4M1C/2a7f6483614a.jpg",
+        "delete_url": "https://ibb.co/JRbnxJhs/fe51b76cf34cb5c599132201d595da4f"
+      },
+      "previewImages": [
+        {
+          "url": "https://i.ibb.co/BV7L4M1C/2a7f6483614a.jpg",
+          "delete_url": "https://ibb.co/JRbnxJhs/fe51b76cf34cb5c599132201d595da4f"
+        },
+        {
+          "url": "https://i.ibb.co/5hHXkWhf/7575ffb3af2c.jpg",
+          "delete_url": "https://ibb.co/F4TkXb4j/f5706892fbd47019d501353b9aacc339"
+        },
+        {
+          "url": "https://i.ibb.co/TMZzJ7vT/01003c71b7a2.jpg",
+          "delete_url": "https://ibb.co/Zz3yvFLJ/82ee40e5501b8bf2e8c89c99b92eca6f"
         }
       ]
     }
@@ -117,16 +166,16 @@
       "email": "royaleyourdad@gmail.com",
       "cart": [
         {
-          "productId": "1744804812036",
-          "quantity": 5
+          "productId": "1744739166453",
+          "quantity": 3
         },
         {
-          "productId": "1744739166453",
-          "quantity": 7
+          "productId": "1744813498742",
+          "quantity": 4
         }
       ],
       "role": "admin",
-      "cartCount": 12,
+      "cartCount": 7,
       "isAdmin": true
     },
     {
@@ -146,7 +195,8 @@
       "displayName": "Shop Only",
       "role": "user",
       "cart": [],
-      "cartCount": 0
+      "cartCount": 0,
+      "isAdmin": false
     }
   ],
   "categories": [
@@ -185,5 +235,19 @@
     "Bug'lash Moslamalari",
     "Vakuum Muhrlagichlar",
     "Oziq-ovqat Yuk Mashinalari"
+  ],
+  "stockHistory": [
+    {
+      "id": "1744830540708",
+      "productId": "1744804812036",
+      "action": "sold",
+      "quantity": 1,
+      "notes": "test sell 1, 1, from test product 2",
+      "timestamp": "2025-04-16T19:09:00.708Z",
+      "updatedBy": "1744729926566"
+    }
+  ],
+  "admins": [
+    "royaleyourdad@gmail.com"
   ]
 }

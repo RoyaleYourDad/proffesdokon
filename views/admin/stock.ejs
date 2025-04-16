@@ -1,0 +1,74 @@
+<%- include('../partials/header') %>
+<div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-8 flex items-center">
+      <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-3 0v6m-9 5h18M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
+      </svg>
+      Manage Stock
+    </h1>
+    <div class="bg-white shadow-xl rounded-2xl p-6 sm:p-8">
+      <% if (typeof error !== 'undefined' && error) { %>
+        <p class="text-red-500 text-sm mb-6 bg-red-50 p-4 rounded-lg"><%= error %></p>
+      <% } %>
+      <% if (typeof success !== 'undefined' && success) { %>
+        <p class="text-green-500 text-sm mb-6 bg-green-50 p-4 rounded-lg"><%= success %></p>
+      <% } %>
+      <form action="/admin/stock/update" method="POST" class="space-y-6">
+        <div>
+          <label for="productId" class="block text-sm font-medium text-gray-700">Select Product</label>
+          <select name="productId" id="productId" class="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            <option value="">Choose a product</option>
+            <% products.forEach(product => { %>
+              <option value="<%= product.id %>"><%= product.name %> (Stock: <%= product.stock %>)</option>
+            <% }) %>
+          </select>
+        </div>
+        <div>
+          <label for="action" class="block text-sm font-medium text-gray-700">Action</label>
+          <select name="action" id="action" class="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            <option value="sold">Sold (Decrease Stock)</option>
+            <option value="bought">Bought (Increase Stock)</option>
+          </select>
+        </div>
+        <div>
+          <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
+          <input type="number" name="quantity" id="quantity" min="1" value="1" class="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+        </div>
+        <div>
+          <label for="notes" class="block text-sm font-medium text-gray-700">Notes (Optional)</label>
+          <textarea name="notes" id="notes" rows="4" class="mt-1 w-full p-3 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="E.g., Sold to customer X or Restocked from supplier Y"></textarea>
+        </div>
+        <div class="flex gap-4">
+          <button type="submit" class="bg-blue-600 text-white py-3 px-6 rounded-lg text-sm hover:bg-blue-700 flex items-center transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Update Stock
+          </button>
+          <a href="/admin" class="bg-gray-200 text-gray-700 py-3 px-6 rounded-lg text-sm hover:bg-gray-300 flex items-center transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+  document.querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const response = await fetch('/admin/stock/update', {
+      method: 'POST',
+      body: formData,
+    });
+    const html = await response.text();
+    document.querySelector('.container').innerHTML = new DOMParser()
+      .parseFromString(html, 'text/html')
+      .querySelector('.container').innerHTML;
+  });
+</script>
+<%- include('../partials/footer') %>

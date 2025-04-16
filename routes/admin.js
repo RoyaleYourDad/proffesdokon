@@ -2,6 +2,7 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const router = express.Router();
+const ExcelJS = require("exceljs");
 const dbPath = path.join(__dirname, "../database.json");
 
 const loadDB = () => {
@@ -9,7 +10,7 @@ const loadDB = () => {
     return JSON.parse(fs.readFileSync(dbPath, "utf8"));
   } catch (err) {
     console.error("Error loading database:", err);
-    return { products: [], categories: [], users: [] };
+    return { products: [], categories: [], users: [], stockHistory: [], admins: [] };
   }
 };
 
@@ -40,10 +41,16 @@ router.use((req, res, next) => {
 // Admin Dashboard
 router.get("/", (req, res) => {
   const db = loadDB();
+  console.log("Rendering admin/index with:", {
+    userId: req.user.id,
+    productCount: db.products.length,
+    userCount: db.users.length,
+  });
   res.render("admin/index", {
     products: db.products || [],
     user: req.user,
     categories: db.categories || [],
+    users: db.users || [],
   });
 });
 
@@ -54,6 +61,7 @@ router.get("/add", (req, res) => {
     product: null,
     categories: db.categories || [],
     user: req.user,
+    error: null,
   });
 });
 
@@ -66,58 +74,70 @@ router.get("/create", (req, res) => {
 // Add Product
 router.post("/add", (req, res) => {
   req.upload(req, res, async (err) => {
-    if (err) return res.status(400).send("Upload error");
-    const db = loadDB();
-    const { name, category, price, discountPrice, discountExpiry, origin } =
-      req.body;
-    const details = req.body.details
-      ? req.body.details.key
-          .map((key, i) => ({
-            key,
-            value: req.body.details.value[i],
-          }))
-          .filter((d) => d.key && d.value)
-      : [];
-
-    const product = {
-      id: Date.now().toString(),
-      name,
-      category,
-      price: parseFloat(price),
-      discountPrice: discountPrice ? parseFloat(discountPrice) : null,
-      discountExpiry: discountExpiry || null,
-      origin: origin || null,
-      details,
-      reviews: [],
-    };
-
-    if (req.files.thumbnail && req.files.thumbnail[0]) {
-      try {
-        const uploaded = await req.app.locals.uploadToImgBB(
-          req.files.thumbnail[0]
-        );
-        product.thumbnail = uploaded;
-      } catch (err) {
-        console.error("Thumbnail upload failed:", err);
-      }
+    if (err) {
+      console.error("Upload error:", err);
+      return res.render("admin/edit", {
+        product: null,
+        categories: loadDB().categories || [],
+        user: req.user,
+        error: err.message,
+      });
     }
+    try {
+      const db = loadDB();
+      const { name, category, price, stock, discountPrice, discountExpiry, origin } = req.body;
+      const details = req.body.details
+        ? req.body.details.key
+            .map((key, i) => ({
+              key,
+              value: req.body.details.value[i],
+            }))
+            .filter((d) => d.key && d.value)
+        : [];
 
-    if (req.files.previewImages) {
-      product.previewImages = [];
-      for (const file of req.files.previewImages) {
-        try {
+      const product = {
+        id: Date.now().toString(),
+        name,
+        category,
+        price: parseFloat(price),
+        stock: parseInt(stock) || 0,
+        discountPrice: discountPrice ? parseFloat(discountPrice) : null,
+        discountExpiry: discountExpiry || null,
+        origin: origin || null,
+        details,
+        reviews: [],
+      };
+
+      if (req.files.thumbnail && req.files.thumbnail[0]) {
+        const uploaded = await req.app.locals.uploadToImgBB(req.files.thumbnail[0]);
+        product.thumbnail = uploaded;
+      }
+
+      if (req.files.previewImages) {
+        product.previewImages = [];
+        for (const file of req.files.previewImages.slice(0, 8)) {
           const uploaded = await req.app.locals.uploadToImgBB(file);
           product.previewImages.push(uploaded);
-        } catch (err) {
-          console.error("Preview image upload failed:", err);
         }
       }
-    }
 
-    db.products = db.products || [];
-    db.products.push(product);
-    saveDB(db);
-    res.redirect("/admin");
+      db.products = db.products || [];
+      db.products.push(product);
+      if (category && !db.categories.includes(category)) {
+        db.categories.push(category);
+      }
+      saveDB(db);
+      console.log("Product added:", product.id);
+      res.redirect("/admin");
+    } catch (err) {
+      console.error("Add product error:", err);
+      res.render("admin/edit", {
+        product: null,
+        categories: loadDB().categories || [],
+        user: req.user,
+        error: "Failed to add product",
+      });
+    }
   });
 });
 
@@ -125,102 +145,144 @@ router.post("/add", (req, res) => {
 router.get("/edit/:id", (req, res) => {
   const db = loadDB();
   const product = db.products.find((p) => p.id === req.params.id);
-  if (!product) return res.redirect("/admin");
+  if (!product) {
+    return res.status(404).render("error", {
+      message: "Product not found",
+      user: req.user,
+    });
+  }
   res.render("admin/edit", {
     product,
     categories: db.categories || [],
+    users: db.users || [],
     user: req.user,
+    error: null,
   });
 });
 
 // Update Product
 router.post("/edit/:id", (req, res) => {
   req.upload(req, res, async (err) => {
-    if (err) return res.status(400).send("Upload error");
-    const db = loadDB();
-    const product = db.products.find((p) => p.id === req.params.id);
-    if (!product) return res.redirect("/admin");
+    if (err) {
+      console.error("Upload error:", err);
+      const db = loadDB();
+      const product = db.products.find((p) => p.id === req.params.id);
+      return res.render("admin/edit", {
+        product,
+        categories: db.categories || [],
+        users: db.users || [],
+        user: req.user,
+        error: err.message,
+      });
+    }
+    try {
+      const db = loadDB();
+      const product = db.products.find((p) => p.id === req.params.id);
+      if (!product) {
+        return res.status(404).render("error", {
+          message: "Product not found",
+          user: req.user,
+        });
+      }
 
-    const { name, category, price, discountPrice, discountExpiry, origin } =
-      req.body;
-    const details = req.body.details
-      ? req.body.details.key
-          .map((key, i) => ({
-            key,
-            value: req.body.details.value[i],
-          }))
-          .filter((d) => d.key && d.value)
-      : [];
+      const { name, category, price, stock, discountPrice, discountExpiry, origin, deleteImages } = req.body;
+      const details = req.body.details
+        ? req.body.details.key
+            .map((key, i) => ({
+              key,
+              value: req.body.details.value[i],
+            }))
+            .filter((d) => d.key && d.value)
+        : [];
 
-    product.name = name;
-    product.category = category;
-    product.price = parseFloat(price);
-    product.discountPrice = discountPrice ? parseFloat(discountPrice) : null;
-    product.discountExpiry = discountExpiry || null;
-    product.origin = origin || null;
-    product.details = details;
+      product.name = name;
+      product.category = category;
+      product.price = parseFloat(price);
+      product.stock = parseInt(stock) || 0;
+      product.discountPrice = discountPrice ? parseFloat(discountPrice) : null;
+      product.discountExpiry = discountExpiry || null;
+      product.origin = origin || null;
+      product.details = details;
 
-    if (req.files.thumbnail && req.files.thumbnail[0]) {
-      try {
+      if (req.files.thumbnail && req.files.thumbnail[0]) {
         if (product.thumbnail?.delete_url) {
           await req.app.locals.deleteFromImgBB(product.thumbnail.delete_url);
         }
-        const uploaded = await req.app.locals.uploadToImgBB(
-          req.files.thumbnail[0]
-        );
+        const uploaded = await req.app.locals.uploadToImgBB(req.files.thumbnail[0]);
         product.thumbnail = uploaded;
-      } catch (err) {
-        console.error("Thumbnail upload/delete failed:", err);
       }
-    }
 
-    if (req.files.previewImages) {
-      try {
-        if (product.previewImages) {
-          for (const img of product.previewImages) {
-            if (img.delete_url) {
-              await req.app.locals.deleteFromImgBB(img.delete_url);
-            }
-          }
-        }
-        product.previewImages = [];
-        for (const file of req.files.previewImages) {
+      if (req.files.previewImages) {
+        product.previewImages = product.previewImages || [];
+        for (const file of req.files.previewImages.slice(0, 8 - product.previewImages.length)) {
           const uploaded = await req.app.locals.uploadToImgBB(file);
           product.previewImages.push(uploaded);
         }
-      } catch (err) {
-        console.error("Preview images upload/delete failed:", err);
       }
-    }
 
-    saveDB(db);
-    res.redirect("/admin");
+      if (deleteImages) {
+        const imagesToDelete = Array.isArray(deleteImages) ? deleteImages : [deleteImages];
+        for (const url of imagesToDelete) {
+          const index = product.previewImages.findIndex((img) => img.url === url);
+          if (index !== -1) {
+            await req.app.locals.deleteFromImgBB(product.previewImages[index].delete_url);
+            product.previewImages.splice(index, 1);
+          }
+        }
+      }
+
+      if (category && !db.categories.includes(category)) {
+        db.categories.push(category);
+      }
+      saveDB(db);
+      console.log("Product edited:", product.id);
+      res.redirect("/admin");
+    } catch (err) {
+      console.error("Edit product error:", err);
+      const db = loadDB();
+      const product = db.products.find((p) => p.id === req.params.id);
+      res.render("admin/edit", {
+        product,
+        categories: db.categories || [],
+        users: db.users || [],
+        user: req.user,
+        error: "Failed to edit product",
+      });
+    }
   });
 });
 
 // Delete Product
 router.post("/delete/:id", async (req, res) => {
-  const db = loadDB();
-  const product = db.products.find((p) => p.id === req.params.id);
-  if (!product) return res.redirect("/admin");
-
   try {
+    const db = loadDB();
+    const product = db.products.find((p) => p.id === req.params.id);
+    if (!product) {
+      return res.status(404).render("error", {
+        message: "Product not found",
+        user: req.user,
+      });
+    }
+
     if (product.thumbnail?.delete_url) {
       await req.app.locals.deleteFromImgBB(product.thumbnail.delete_url);
     }
     if (product.previewImages) {
       for (const img of product.previewImages) {
-        if (img.delete_url) {
-          await req.app.locals.deleteFromImgBB(img.delete_url);
-        }
+        await req.app.locals.deleteFromImgBB(img.delete_url);
       }
     }
     db.products = db.products.filter((p) => p.id !== req.params.id);
     saveDB(db);
+    console.log("Product deleted:", req.params.id);
+    res.redirect("/admin");
   } catch (err) {
-    console.error("Error deleting images:", err);
+    console.error("Delete product error:", err);
+    res.status(500).render("error", {
+      message: "Failed to delete product",
+      user: req.user,
+    });
   }
-  res.redirect("/admin");
 });
 
 // Delete Image
@@ -246,6 +308,7 @@ router.post("/image/delete", async (req, res) => {
       res.status(500).json({ success: false });
     }
   } catch (err) {
+    console.error("Image deletion error:", err);
     res.status(500).json({ success: false });
   }
 });
@@ -284,6 +347,496 @@ router.post("/users/:id/role", (req, res) => {
     saveDB(db);
   }
   res.redirect("/admin/users");
+});
+
+// Stock Management
+router.get("/stock", (req, res) => {
+  const db = loadDB();
+  res.render("admin/stock", {
+    products: db.products || [],
+    user: req.user,
+    categories: db.categories || [],
+  });
+});
+
+router.post("/stock/update", async (req, res) => {
+  try {
+    const db = loadDB();
+    const { productId, action, quantity, notes } = req.body;
+    const product = db.products.find((p) => p.id === productId);
+    if (!product) {
+      return res.render("stock", {
+        products: db.products,
+        user: req.user,
+        error: "Product not found",
+      });
+    }
+    const qty = parseInt(quantity);
+    if (isNaN(qty) || qty <= 0) {
+      return res.render("stock", {
+        products: db.products,
+        user: req.user,
+        error: "Invalid quantity",
+      });
+    }
+    if (action === "sold" && qty > product.stock) {
+      return res.render("stock", {
+        products: db.products,
+        user: req.user,
+        error: `Cannot sell ${qty}. Available stock: ${product.stock}`,
+      });
+    }
+    product.stock = action === "sold" ? product.stock - qty : product.stock + qty;
+    db.stockHistory = db.stockHistory || [];
+    db.stockHistory.push({
+      id: Date.now().toString(),
+      productId,
+      action,
+      quantity: qty,
+      notes: notes || "",
+      updatedBy: req.user.id,
+      updatedAt: new Date().toISOString(),
+    });
+    saveDB(db);
+    console.log("Stock updated:", { productId, action, quantity: qty, userId: req.user.id });
+    res.render("stock", {
+      products: db.products,
+      user: req.user,
+      success: `Stock updated: ${action === "sold" ? "Sold" : "Added"} ${qty} of ${product.name}`,
+    });
+  } catch (err) {
+    console.error("Stock update error:", err);
+    res.render("stock", {
+      products: db.products,
+      user: req.user,
+      error: "Failed to update stock",
+    });
+  }
+});
+
+// Stock History
+router.get("/stock/history", (req, res) => {
+  const db = loadDB();
+  let { dateRange, startDate, endDate, productId, action } = req.query;
+
+  // Default to last day
+  if (!dateRange) dateRange = "lastDay";
+
+  let filteredHistory = db.stockHistory || [];
+
+  // Date filtering
+  const now = new Date();
+  if (dateRange === "lastDay") {
+    const lastDay = new Date(now.setDate(now.getDate() - 1));
+    filteredHistory = filteredHistory.filter((entry) => new Date(entry.timestamp) >= lastDay);
+  } else if (dateRange === "lastWeek") {
+    const lastWeek = new Date(now.setDate(now.getDate() - 7));
+    filteredHistory = filteredHistory.filter((entry) => new Date(entry.timestamp) >= lastWeek);
+  } else if (dateRange === "lastMonth") {
+    const lastMonth = new Date(now.setDate(now.getDate() - 30));
+    filteredHistory = filteredHistory.filter((entry) => new Date(entry.timestamp) >= lastMonth);
+  } else if (dateRange === "custom" && startDate && endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    filteredHistory = filteredHistory.filter(
+      (entry) =>
+        new Date(entry.timestamp) >= start &&
+        new Date(entry.timestamp) <= end
+    );
+  }
+
+  // Product filtering
+  if (productId) {
+    filteredHistory = filteredHistory.filter((entry) => entry.productId === productId);
+  }
+
+  // Action filtering
+  if (action) {
+    filteredHistory = filteredHistory.filter((entry) => entry.action === action);
+  }
+
+  res.render("admin/stock-history", {
+    history: filteredHistory,
+    products: db.products || [],
+    users: db.users || [],
+    user: req.user,
+    categories: db.categories || [],
+    dateRange,
+    startDate,
+    endDate,
+    productId,
+    action,
+  });
+});
+
+router.post("/stock/history/delete", (req, res) => {
+  try {
+    const db = loadDB();
+    const { id, action, quantity, productId } = req.body;
+
+    const entry = db.stockHistory.find((h) => h.id === id);
+    if (!entry) {
+      return res.redirect("/admin/stock/history");
+    }
+
+    const product = db.products.find((p) => p.id === productId);
+    if (product) {
+      // Reverse the stock change
+      if (action === "sold") {
+        product.stock += parseInt(quantity);
+      } else if (action === "bought") {
+        product.stock -= parseInt(quantity);
+        if (product.stock < 0) {
+          product.stock = 0; // Prevent negative stock
+        }
+      }
+    }
+
+    db.stockHistory = db.stockHistory.filter((h) => h.id !== id);
+    saveDB(db);
+    console.log("Stock history entry deleted:", id);
+    res.redirect(`/admin/stock/history?dateRange=${req.body.dateRange || req.query.dateRange || 'lastDay'}&startDate=${req.body.startDate || req.query.startDate || ''}&endDate=${req.body.endDate || req.query.endDate || ''}&productId=${req.body.productId || req.query.productId || ''}&action=${req.body.action || req.query.action || ''}`);
+  } catch (err) {
+    console.error("Stock history deletion error:", err);
+    res.status(500).render("error", {
+      message: "Failed to delete stock history entry",
+      user: req.user,
+    });
+  }
+});
+
+router.post("/stock/history/edit", (req, res) => {
+  try {
+    const db = loadDB();
+    const { id, productId, action, quantity, notes, dateRange, startDate, endDate } = req.body;
+    const qty = parseInt(quantity);
+
+    const entry = db.stockHistory.find((h) => h.id === id);
+    if (!entry) {
+      return res.status(404).render("error", {
+        message: "Stock history entry not found",
+        user: req.user,
+      });
+    }
+
+    const product = db.products.find((p) => p.id === productId);
+    if (!product) {
+      return res.status(404).render("error", {
+        message: "Product not found",
+        user: req.user,
+      });
+    }
+
+    if (!["sold", "bought"].includes(action) || isNaN(qty) || qty <= 0) {
+      return res.status(400).render("admin/stock-history", {
+        history: db.stockHistory || [],
+        products: db.products || [],
+        users: db.users || [],
+        user: req.user,
+        categories: db.categories || [],
+        dateRange,
+        startDate,
+        endDate,
+        productId,
+        action,
+        error: "Invalid action or quantity",
+      });
+    }
+
+    // Reverse original stock change
+    if (entry.action === "sold") {
+      product.stock += entry.quantity;
+    } else if (entry.action === "bought") {
+      product.stock -= entry.quantity;
+      if (product.stock < 0) {
+        product.stock = 0;
+      }
+    }
+
+    // Apply new stock change
+    if (action === "sold") {
+      if (product.stock < qty) {
+        return res.status(400).render("admin/stock-history", {
+          history: db.stockHistory || [],
+          products: db.products || [],
+          users: db.users || [],
+          user: req.user,
+          categories: db.categories || [],
+          dateRange,
+          startDate,
+          endDate,
+          productId,
+          action,
+          error: `Cannot sell ${qty} items. Only ${product.stock} in stock.`,
+        });
+      }
+      product.stock -= qty;
+    } else if (action === "bought") {
+      product.stock += qty;
+    }
+
+    // Update entry
+    entry.action = action;
+    entry.quantity = qty;
+    entry.notes = notes || "";
+    entry.timestamp = new Date().toISOString();
+    entry.updatedBy = req.user.id;
+
+    saveDB(db);
+    console.log("Stock history entry edited:", { id, productId, action, quantity: qty });
+    res.redirect(`/admin/stock/history?dateRange=${dateRange || 'lastDay'}&startDate=${startDate || ''}&endDate=${endDate || ''}&productId=${productId || ''}&action=${action || ''}`);
+  } catch (err) {
+    console.error("Stock history edit error:", err);
+    res.status(500).render("error", {
+      message: "Failed to edit stock history entry",
+      user: req.user,
+    });
+  }
+});
+
+router.get("/stock/history/export", async (req, res) => {
+  try {
+    const db = loadDB();
+    let { dateRange, startDate, endDate, productId, action } = req.query;
+
+    // Default to last day
+    if (!dateRange) dateRange = "lastDay";
+
+    let filteredHistory = db.stockHistory || [];
+
+    // Date filtering
+    const now = new Date();
+    if (dateRange === "lastDay") {
+      const lastDay = new Date(now.setDate(now.getDate() - 1));
+      filteredHistory = filteredHistory.filter((entry) => new Date(entry.timestamp) >= lastDay);
+    } else if (dateRange === "lastWeek") {
+      const lastWeek = new Date(now.setDate(now.getDate() - 7));
+      filteredHistory = filteredHistory.filter((entry) => new Date(entry.timestamp) >= lastWeek);
+    } else if (dateRange === "lastMonth") {
+      const lastMonth = new Date(now.setDate(now.getDate() - 30));
+      filteredHistory = filteredHistory.filter((entry) => new Date(entry.timestamp) >= lastMonth);
+    } else if (dateRange === "custom" && startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      filteredHistory = filteredHistory.filter(
+        (entry) =>
+          new Date(entry.timestamp) >= start &&
+          new Date(entry.timestamp) <= end
+      );
+    }
+
+    // Product filtering
+    if (productId) {
+      filteredHistory = filteredHistory.filter((entry) => entry.productId === productId);
+    }
+
+    // Action filtering
+    if (action) {
+      filteredHistory = filteredHistory.filter((entry) => entry.action === action);
+    }
+
+    // Create Excel workbook
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Stock History");
+
+    // Define columns
+    worksheet.columns = [
+      { header: "Date & Time", key: "timestamp", width: 20 },
+      { header: "Product", key: "product", width: 30 },
+      { header: "Action", key: "action", width: 10 },
+      { header: "Quantity", key: "quantity", width: 10 },
+      { header: "Notes", key: "notes", width: 40 },
+      { header: "Updated By", key: "updatedBy", width: 20 },
+    ];
+
+    // Add rows
+    filteredHistory.forEach((entry) => {
+      worksheet.addRow({
+        timestamp: new Date(entry.timestamp).toLocaleString('en-US', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }),
+        product: db.products.find((p) => p.id === entry.productId)?.name || "Unknown",
+        action: entry.action.charAt(0).toUpperCase() + entry.action.slice(1),
+        quantity: entry.quantity,
+        notes: entry.notes || "-",
+        updatedBy: db.users.find((u) => u.id === entry.updatedBy)?.displayName || "Unknown",
+      });
+    });
+
+    // Style header
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.getRow(1).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFE5E7EA" },
+    };
+
+    // Generate buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+
+    // Set headers for download
+    res.setHeader("Content-Disposition", "attachment; filename=stock_history.xlsx");
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.send(buffer);
+
+    console.log("Stock history exported:", { entries: filteredHistory.length });
+  } catch (err) {
+    console.error("Stock history export error:", err);
+    res.status(500).render("error", {
+      message: "Failed to export stock history",
+      user: req.user,
+    });
+  }
+});
+
+// Admin Review Management
+router.post("/review/edit/:productId", (req, res) => {
+  try {
+    const db = loadDB();
+    const product = db.products.find((p) => p.id === req.params.productId);
+    if (!product) {
+      return res.status(404).render("error", {
+        message: "Product not found",
+        user: req.user,
+      });
+    }
+
+    const { reviewId, rating, comment } = req.body;
+    const review = product.reviews.find((r) => r.id === reviewId);
+    if (!review) {
+      return res.render("admin/edit", {
+        product,
+        categories: db.categories || [],
+        users: db.users || [],
+        user: req.user,
+        error: "Review not found",
+      });
+    }
+
+    if (!rating || rating < 1 || rating > 5 || !comment) {
+      return res.render("admin/edit", {
+        product,
+        categories: db.categories || [],
+        users: db.users || [],
+        user: req.user,
+        error: "Please provide a valid rating (1-5) and comment",
+      });
+    }
+
+    review.rating = parseInt(rating);
+    review.comment = comment;
+    review.edited = true;
+    review.timestamp = new Date().toISOString();
+
+    saveDB(db);
+    console.log("Review edited:", reviewId);
+    res.redirect(`/admin/edit/${req.params.productId}`);
+  } catch (err) {
+    console.error("Review edit error:", err);
+    res.status(500).render("error", {
+      message: "Failed to edit review",
+      user: req.user,
+    });
+  }
+});
+
+router.post("/review/delete/:productId", (req, res) => {
+  try {
+    const db = loadDB();
+    const product = db.products.find((p) => p.id === req.params.productId);
+    if (!product) {
+      return res.status(404).render("error", {
+        message: "Product not found",
+        user: req.user,
+      });
+    }
+
+    const { reviewId } = req.body;
+    product.reviews = product.reviews.filter((r) => r.id !== reviewId);
+
+    saveDB(db);
+    console.log("Review deleted:", reviewId);
+    res.redirect(`/admin/edit/${req.params.productId}`);
+  } catch (err) {
+    console.error("Review deletion error:", err);
+    res.status(500).render("error", {
+      message: "Failed to delete review",
+      user: req.user,
+    });
+  }
+});
+
+// Admin Management
+router.get("/admins", (req, res) => {
+  const db = loadDB();
+  res.render("admin/admins", {
+    admins: db.admins || [],
+    users: db.users || [],
+    user: req.user,
+    error: null,
+  });
+});
+
+router.post("/admins/add", (req, res) => {
+  try {
+    const db = loadDB();
+    const { email } = req.body;
+    const user = db.users.find((u) => u.email === email);
+    if (!user) {
+      return res.render("admin/admins", {
+        admins: db.admins || [],
+        users: db.users || [],
+        user: req.user,
+        error: "User not found",
+      });
+    }
+    db.admins = db.admins || [];
+    if (!db.admins.includes(email)) {
+      db.admins.push(email);
+      user.role = "admin";
+      user.isAdmin = true;
+      saveDB(db);
+      console.log("Admin added:", email);
+    }
+    res.redirect("/admin/admins");
+  } catch (err) {
+    console.error("Add admin error:", err);
+    res.render("admin/admins", {
+      admins: db.admins || [],
+      users: db.users || [],
+      user: req.user,
+      error: "Failed to add admin",
+    });
+  }
+});
+
+router.post("/admins/delete/:email", (req, res) => {
+  try {
+    const db = loadDB();
+    const email = decodeURIComponent(req.params.email);
+    db.admins = db.admins.filter((e) => e !== email);
+    const user = db.users.find((u) => u.email === email);
+    if (user) {
+      user.role = "user";
+      user.isAdmin = false;
+    }
+    saveDB(db);
+    console.log("Admin removed:", email);
+    res.redirect("/admin/admins");
+  } catch (err) {
+    console.error("Remove admin error:", err);
+    res.render("admin/admins", {
+      admins: db.admins || [],
+      users: db.users || [],
+      user: req.user,
+      error: "Failed to remove admin",
+    });
+  }
 });
 
 module.exports = router;
