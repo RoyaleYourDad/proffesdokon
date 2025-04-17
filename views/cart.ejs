@@ -1,115 +1,122 @@
 <%- include('partials/header') %>
-<div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12">
+<div class="min-h-screen bg-gradient-to-b from-gray-100 to-gray-50 py-12 font-['Inter']">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-8 flex items-center">
-      <svg class="w-8 h-8 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+    <!-- Cart Header -->
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-10 flex items-center animate-fade-in">
+      <svg class="w-8 h-8 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
       </svg>
-      Your Cart <span class="ml-2 text-sm font-normal text-gray-500">(<%= cartItems.length %> items)</span>
+      Your Cart
+      <span class="ml-3 text-sm font-medium text-gray-500">(<%= cartItems.length %> items)</span>
     </h1>
-    <div class="bg-white shadow-xl rounded-2xl p-6 sm:p-8">
+
+    <!-- Cart Container -->
+    <div class="bg-white shadow-2xl rounded-xl p-6 sm:p-8">
+      <!-- Error Message -->
       <% if (typeof error !== 'undefined' && error) { %>
-        <p class="text-red-500 text-sm mb-6 bg-red-50 p-4 rounded-lg"><%= error %></p>
+        <p id="error-message" class="text-red-600 text-sm mb-6 bg-red-50 p-4 rounded-lg animate-error-shake"><%= error %></p>
       <% } %>
+
+      <!-- Empty Cart -->
       <% if (cartItems.length === 0) { %>
-        <div class="text-center py-16">
-          <svg class="mx-auto w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+        <div class="text-center py-20">
+          <svg class="mx-auto w-20 h-20 text-gray-300 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
-          <p class="text-gray-500 text-lg">Your cart is empty.</p>
-          <a href="/"
-            class="mt-6 inline-flex items-center bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
+          <p class="text-gray-600 text-xl font-medium mb-6">Your cart is empty.</p>
+          <a href="/" class="inline-flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-8 rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:scale-105 hover:shadow-lg active:animate-pulse-click transition-all duration-200">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
             Shop Now
           </a>
         </div>
       <% } else { %>
-        <div class="space-y-6">
-          <% cartItems.forEach(item => { %>
-            <div class="flex flex-col sm:flex-row items-start sm:items-center border-b py-6 gap-4 sm:gap-6 hover:bg-gray-50 transition-colors rounded-lg px-4">
+        <!-- Cart Items -->
+        <div class="grid gap-6">
+          <% cartItems.forEach((item, index) => { %>
+            <div class="grid grid-cols-1 sm:grid-cols-[120px_1fr_auto] items-center gap-4 sm:gap-6 border-b py-6 px-4 rounded-lg hover:bg-gray-50 transition-colors animate-slide-in" style="animation-delay: <%= index * 0.1 %>s" data-product-id="<%= item.productId %>">
+              <!-- Product Image -->
               <a href="/product/<%= item.productId %>">
-                <img src="<%= item.product.thumbnail.url %>" alt="<%= item.product.name %>"
-                  class="w-24 h-24 object-cover rounded-lg hover:scale-105 transition-transform" />
+                <img src="<%= item.product.thumbnail.url %>" alt="<%= item.product.name %>" class="w-24 h-24 object-cover rounded-lg hover:scale-105 hover:shadow-md transition-all duration-200" />
               </a>
+              <!-- Product Details -->
               <div class="flex-1">
-                <a href="/product/<%= item.productId %>"
-                  class="text-lg sm:text-xl font-semibold text-gray-800 hover:text-blue-600 transition-colors">
+                <a href="/product/<%= item.productId %>" class="text-lg sm:text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors">
                   <%= item.product.name %>
                 </a>
                 <p class="text-sm text-gray-600 mt-1"><%= item.product.category || 'N/A' %></p>
-                <p class="text-sm text-gray-600">
-                  Stock: <%= item.product.stock > 0 ? item.product.stock + ' available' : 'Out of stock' %>
-                </p>
+                <p class="text-sm text-gray-600">Stock: <%= item.product.stock > 0 ? item.product.stock + ' available' : 'Out of stock' %></p>
                 <div class="flex items-center gap-3 mt-2 flex-wrap">
                   <% if (item.product.discountPrice && item.product.discountPrice <= item.product.price && (!item.product.discountExpiry || new Date(item.product.discountExpiry) > new Date())) { %>
                     <span class="text-xl font-bold text-blue-600">$<%= item.product.discountPrice.toFixed(2) %></span>
                     <span class="text-sm text-gray-400 line-through">$<%= item.product.price.toFixed(2) %></span>
+                    <span class="text-sm text-green-600">Save: $<%= ((item.product.price - item.product.discountPrice) * item.quantity).toFixed(2) %></span>
                   <% } else { %>
                     <span class="text-xl font-bold text-blue-600">$<%= item.product.price.toFixed(2) %></span>
                   <% } %>
-                  <span class="text-sm text-gray-600">x <%= item.quantity %> = </span>
-                  <span class="text-xl font-semibold text-gray-800">
+                  <span class="text-sm text-gray-600">x <span class="item-quantity"><%= item.quantity %></span> = </span>
+                  <span class="text-xl font-semibold text-gray-900 item-total">
                     $<%= ((item.product.discountPrice && item.product.discountPrice <= item.product.price && (!item.product.discountExpiry || new Date(item.product.discountExpiry) > new Date()) ? item.product.discountPrice : item.product.price) * item.quantity).toFixed(2) %>
                   </span>
                 </div>
               </div>
-              <!-- Quantity Update -->
-              <form action="/cart/update/<%= item.productId %>" method="POST" class="flex items-center mt-4 sm:mt-0">
-                <div class="flex items-center border rounded-lg bg-gray-50">
-                  <button type="button" onclick="updateQuantity(this, -1)"
-                    class="px-4 py-2 text-gray-600 hover:bg-blue-100 transition-colors">-</button>
-                  <input type="number" name="quantity" value="<%= item.quantity %>" min="1"
-                    max="<%= item.product.stock %>"
-                    class="w-16 p-2 text-center border-none bg-transparent focus:outline-none"
-                    onchange="debouncedSubmit(this)" />
-                  <button type="button" onclick="updateQuantity(this, 1)"
-                    class="px-4 py-2 text-gray-600 hover:bg-blue-100 transition-colors">+</button>
-                </div>
-              </form>
-              <!-- Remove Button -->
-              <form action="/cart/remove/<%= item.productId %>" method="POST" class="inline">
-                <button type="submit" class="text-red-500 hover:text-red-700">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </form>
+              <!-- Quantity and Remove -->
+              <div class="flex items-center gap-4 mt-4 sm:mt-0">
+                <!-- Quantity Update -->
+                <form action="/cart/update/<%= item.productId %>" method="POST" class="flex items-center quantity-form">
+                  <div class="flex items-center border border-gray-200 rounded-lg bg-gray-50 shadow-sm">
+                    <button type="button" onclick="updateQuantity(this, -1)" class="px-4 py-2 text-gray-600 hover:bg-blue-100 hover:scale-110 active:animate-pulse-click transition-all duration-200">-</button>
+                    <input
+                      type="number"
+                      name="quantity"
+                      value="<%= item.quantity %>"
+                      min="1"
+                      max="<%= item.product.stock %>"
+                      class="w-16 p-2 text-center border-none bg-transparent focus:outline-none focus:bg-white focus:animate-pulse-bg hover:border-blue-500 transition-all duration-200 item-quantity-input"
+                      onchange="updateQuantityAjax(this)"
+                    />
+                    <button type="button" onclick="updateQuantity(this, 1)" class="px-4 py-2 text-gray-600 hover:bg-blue-100 hover:scale-110 active:animate-pulse-click transition-all duration-200">+</button>
+                  </div>
+                </form>
+                <!-- Remove Button -->
+                <form action="/cart/remove/<%= item.productId %>" method="POST" class="inline">
+                  <button type="submit" class="text-red-500 hover:text-red-700 hover:scale-125 hover:rotate-12 active:animate-pulse-click transition-all duration-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </form>
+              </div>
             </div>
           <% }) %>
         </div>
+
         <!-- Cart Summary -->
-        <div class="mt-10 bg-gray-50 p-6 rounded-xl">
+        <div class="mt-10 bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-xl shadow-md animate-fade-in">
           <div class="text-right space-y-4">
-            <% let subtotal = cartItems.reduce((sum, item) => sum + (item.product.discountPrice && item.product.discountPrice <= item.product.price && (!item.product.discountExpiry || new Date(item.product.discountExpiry) > new Date()) ? item.product.discountPrice : item.product.price) * item.quantity, 0); %>
-            <p class="text-lg font-semibold text-gray-800">Subtotal: $<%= subtotal.toFixed(2) %></p>
-            <% let totalSavings = cartItems.reduce((sum, item) => {
-              if (item.product.discountPrice && item.product.discountPrice <= item.product.price && (!item.product.discountExpiry || new Date(item.product.discountExpiry) > new Date())) {
-                return sum + (item.product.price - item.product.discountPrice) * item.quantity;
-              }
-              return sum;
-            }, 0); %>
+            <p class="text-lg font-semibold text-gray-900 animate-fade-in" style="animation-delay: 0.1s" id="subtotal">Subtotal: $<%= cartItems.reduce((sum, item) => sum + (item.product.discountPrice && item.product.discountPrice <= item.product.price && (!item.product.discountExpiry || new Date(item.product.discountExpiry) > new Date()) ? item.product.discountPrice : item.product.price) * item.quantity, 0).toFixed(2) %></p>
+            <% let totalSavings = cartItems.reduce((sum, item) => { if (item.product.discountPrice && item.product.discountPrice <= item.product.price && (!item.product.discountExpiry || new Date(item.product.discountExpiry) > new Date())) { return sum + (item.product.price - item.product.discountPrice) * item.quantity; } return sum; }, 0); %>
             <% if (totalSavings > 0) { %>
-              <p class="text-sm text-green-600">You Save: $<%= totalSavings.toFixed(2) %></p>
+              <p class="text-sm text-green-600 animate-fade-in" style="animation-delay: 0.2s" id="savings">You Save: $<%= totalSavings.toFixed(2) %></p>
             <% } %>
-            <p class="text-xl font-bold text-blue-600">Total: $<%= subtotal.toFixed(2) %></p>
+            <p class="text-xl font-bold text-blue-600 animate-fade-in" style="animation-delay: 0.3s" id="total">Total: $<%= cartItems.reduce((sum, item) => sum + (item.product.discountPrice && item.product.discountPrice <= item.product.price && (!item.product.discountExpiry || new Date(item.product.discountExpiry) > new Date()) ? item.product.discountPrice : item.product.price) * item.quantity, 0).toFixed(2) %></p>
             <div class="flex flex-col sm:flex-row justify-end gap-4 mt-6">
-              <a href="/"
-                class="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium py-3 px-6 rounded-lg border border-blue-600 transition-colors">
+              <a
+                href="/"
+                class="inline-flex items-center text-blue-600 font-medium py-3 px-6 rounded-xl border border-blue-600 hover:bg-blue-50 hover:scale-105 hover:shadow-md active:animate-pulse-click transition-all duration-200"
+              >
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
                 Continue Shopping
               </a>
-              <a href="/checkout"
-                class="inline-flex items-center bg-blue-600 text-white py-3 px-8 rounded-lg hover:bg-blue-700 transition-colors">
+              <a
+                href="/checkout"
+                class="inline-flex items-center bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-8 rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:scale-105 hover:shadow-lg active:animate-pulse-click transition-all duration-200"
+              >
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
                 Proceed to Checkout
               </a>
@@ -128,30 +135,214 @@
     if (value < 1) value = 1;
     if (value > parseInt(input.max)) value = parseInt(input.max);
     input.value = value;
-    debouncedSubmit(input);
+    updateQuantityAjax(input);
   }
 
-  let debounceTimeout;
-  function debouncedSubmit(input) {
-    clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(() => input.form.submit(), 300);
+  function updateQuantityAjax(input) {
+    const form = input.closest('.quantity-form');
+    const productId = form.closest('[data-product-id]').dataset.productId;
+    const quantity = parseInt(input.value);
+    const errorContainer = document.getElementById('error-message') || document.createElement('p');
+    errorContainer.id = 'error-message';
+    errorContainer.className = 'text-red-600 text-sm mb-6 bg-red-50 p-4 rounded-lg animate-error-shake hidden';
+
+    fetch(`/cart/update/${productId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+      body: JSON.stringify({ quantity }),
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Update quantity display
+          const itemRow = input.closest('[data-product-id]');
+          const quantityDisplay = itemRow.querySelector('.item-quantity');
+          quantityDisplay.textContent = quantity;
+
+          // Update item total
+          const itemTotal = itemRow.querySelector('.item-total');
+          const product = data.cartItems.find(item => item.productId === productId).product;
+          const price = product.discountPrice &&
+            product.discountPrice <= product.price &&
+            (!product.discountExpiry || new Date(product.discountExpiry) > new Date())
+            ? product.discountPrice
+            : product.price;
+          itemTotal.textContent = `$${(price * quantity).toFixed(2)}`;
+
+          // Update savings per item
+          const savingsDisplay = itemRow.querySelector('.text-green-600');
+          if (savingsDisplay) {
+            const savings = product.discountPrice &&
+              product.discountPrice <= product.price &&
+              (!product.discountExpiry || new Date(product.discountExpiry) > new Date())
+              ? (product.price - product.discountPrice) * quantity
+              : 0;
+            savingsDisplay.textContent = `Save: $${savings.toFixed(2)}`;
+          }
+
+          // Update cart summary
+          document.getElementById('subtotal').textContent = `Subtotal: $${data.subtotal}`;
+          const savingsElement = document.getElementById('savings');
+          if (data.totalSavings > 0) {
+            if (savingsElement) {
+              savingsElement.textContent = `You Save: $${data.totalSavings}`;
+            } else {
+              const newSavings = document.createElement('p');
+              newSavings.id = 'savings';
+              newSavings.className = 'text-sm text-green-600 animate-fade-in';
+              newSavings.style.animationDelay = '0.2s';
+              newSavings.textContent = `You Save: $${data.totalSavings}`;
+              document.getElementById('total').before(newSavings);
+            }
+          } else if (savingsElement) {
+            savingsElement.remove();
+          }
+          document.getElementById('total').textContent = `Total: $${data.total}`;
+
+          // Clear error
+          errorContainer.classList.add('hidden');
+        } else {
+          // Show error
+          errorContainer.textContent = data.error;
+          errorContainer.classList.remove('hidden');
+          if (!errorContainer.parentNode) {
+            document.querySelector('.bg-white').prepend(errorContainer);
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error updating quantity:', error);
+        errorContainer.textContent = 'Failed to update quantity';
+        errorContainer.classList.remove('hidden');
+        if (!errorContainer.parentNode) {
+          document.querySelector('.bg-white').prepend(errorContainer);
+        }
+      });
   }
+
+  // Animations
+  document.querySelectorAll('.quantity-form button, .quantity-form input').forEach(element => {
+    element.addEventListener('click', () => {
+      element.classList.add('animate-pulse-click');
+      setTimeout(() => element.classList.remove('animate-pulse-click'), 300);
+    });
+  });
 </script>
 
 <style>
-  @media (max-width: 640px) {
-    .text-3xl {
-      font-size: 1.5rem;
-    }
+  /* Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
+  .animate-slide-in {
+    animation: slideIn 0.5s ease-in-out;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .animate-pulse-bg {
+    animation: pulseBg 1.5s ease-in-out infinite;
+  }
+  @keyframes pulseBg {
+    0% { background-color: #ffffff; }
+    50% { background-color: #f3f4f6; }
+    100% { background-color: #ffffff; }
+  }
+
+  .animate-pulse-click {
+    animation: pulseClick 0.3s ease-in-out;
+  }
+  @keyframes pulseClick {
+    0% { transform: scale(1); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
+    50% { transform: scale(0.95); box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); }
+    100% { transform: scale(1); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
+  }
+
+  .animate-error-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+  }
+
+  /* Touch-friendly inputs */
+  input[type="number"], button {
+    min-height: 40px;
+    touch-action: manipulation;
+  }
+
+  /* Hide number input arrows */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  /* Responsive breakpoints */
+  @media (max-width: 768px) {
+    .container {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    .text-3xl {
+      font-size: 1.75rem;
+    }
+    .text-xl {
+      font-size: 1.125rem;
+    }
     .py-6 {
       padding-top: 1rem;
       padding-bottom: 1rem;
     }
-
     .px-4 {
-      padding-left: 0.5rem;
-      padding-right: 0.5rem;
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+    /* Reduce animation intensity for mobile */
+    .hover\:scale-105:hover {
+      transform: scale(1.03);
+    }
+    .hover\:scale-110:hover {
+      transform: scale(1.05);
+    }
+    .hover\:scale-125:hover {
+      transform: scale(1.1);
+    }
+    .w-24 {
+      width: 5rem;
+      height: 5rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .text-3xl {
+      font-size: 1.5rem;
+    }
+    .text-lg {
+      font-size: 1rem;
+    }
+    .text-sm {
+      font-size: 0.875rem;
+    }
+    .py-20 {
+      padding-top: 4rem;
+      padding-bottom: 4rem;
     }
   }
 </style>

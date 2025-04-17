@@ -27,7 +27,6 @@ const saveDB = (data) => {
   }
 };
 
-// Middleware to check logged-in user
 router.use((req, res, next) => {
   if (!req.user) {
     console.log("Cart middleware: No user, redirecting to /auth/login");
@@ -36,7 +35,6 @@ router.use((req, res, next) => {
   next();
 });
 
-// Get cart count
 router.get("/count", (req, res) => {
   try {
     const db = loadDB();
@@ -53,33 +51,38 @@ router.get("/count", (req, res) => {
   }
 });
 
-// Add to cart
 router.post("/add", (req, res) => {
   try {
     const db = loadDB();
     const { productId, quantity } = req.body;
     const product = db.products.find((p) => p.id === productId);
     if (!product) {
-      return res.status(404).render("error", {
-        message: "Product not found",
-        user: req.user,
-      });
+      return req.xhr
+        ? res.status(404).json({ error: "Product not found" })
+        : res.status(404).render("error", {
+            message: "Product not found",
+            user: req.user,
+          });
     }
     const qty = parseInt(quantity) || 1;
     if (qty <= 0 || qty > product.stock) {
-      return res.status(400).render("product", {
-        product,
-        user: req.user,
-        users: db.users || [],
-        error: `Invalid quantity. Available stock: ${product.stock}`,
-      });
+      return req.xhr
+        ? res.status(400).json({ error: `Invalid quantity. Available stock: ${product.stock}` })
+        : res.status(400).render("product", {
+            product,
+            user: req.user,
+            users: db.users || [],
+            error: `Invalid quantity. Available stock: ${product.stock}`,
+          });
     }
     const user = db.users.find((u) => u.id === req.user.id);
     if (!user) {
-      return res.status(404).render("error", {
-        message: "User not found",
-        user: req.user,
-      });
+      return req.xhr
+        ? res.status(404).json({ error: "User not found" })
+        : res.status(404).render("error", {
+            message: "User not found",
+            user: req.user,
+          });
     }
     user.cart = user.cart || [];
     const cartItem = user.cart.find((item) => item.productId === productId);
@@ -95,18 +98,27 @@ router.post("/add", (req, res) => {
       productId,
       quantity: qty,
     });
+
+    if (req.xhr) {
+      return res.json({
+        success: true,
+        cartCount: user.cartCount,
+      });
+    }
+
     res.setHeader("X-Cart-Updated", "true");
     res.redirect(`/product/${productId}`);
   } catch (err) {
     console.error("Add to cart error:", err);
-    res.status(500).render("error", {
-      message: "Failed to add to cart",
-      user: req.user,
-    });
+    return req.xhr
+      ? res.status(500).json({ error: "Failed to add to cart" })
+      : res.status(500).render("error", {
+          message: "Failed to add to cart",
+          user: req.user,
+        });
   }
 });
 
-// Update cart quantity
 router.post("/update/:productId", (req, res) => {
   try {
     const db = loadDB();
@@ -114,46 +126,54 @@ router.post("/update/:productId", (req, res) => {
     const quantity = parseInt(req.body.quantity);
     const product = db.products.find((p) => p.id === productId);
     if (!product) {
-      return res.status(404).render("error", {
-        message: "Product not found",
-        user: req.user,
-      });
+      return req.xhr
+        ? res.status(404).json({ error: "Product not found" })
+        : res.status(404).render("error", {
+            message: "Product not found",
+            user: req.user,
+          });
     }
     if (isNaN(quantity) || quantity <= 0 || quantity > product.stock) {
       const user = db.users.find((u) => u.id === req.user.id);
-      return res.status(400).render("cart", {
-        cartItems: user.cart
-          ? user.cart.map((item) => ({
-              ...item,
-              product: db.products.find((p) => p.id === item.productId),
-            }))
-          : [],
-        user: req.user,
-        categories: db.categories || [],
-        error: `Invalid quantity. Available stock: ${product.stock}`,
-      });
+      return req.xhr
+        ? res.status(400).json({ error: `Invalid quantity. Available stock: ${product.stock}` })
+        : res.status(400).render("cart", {
+            cartItems: user.cart
+              ? user.cart.map((item) => ({
+                  ...item,
+                  product: db.products.find((p) => p.id === item.productId),
+                }))
+              : [],
+            user: req.user,
+            categories: db.categories || [],
+            error: `Invalid quantity. Available stock: ${product.stock}`,
+          });
     }
     const user = db.users.find((u) => u.id === req.user.id);
     if (!user) {
-      return res.status(404).render("error", {
-        message: "User not found",
-        user: req.user,
-      });
+      return req.xhr
+        ? res.status(404).json({ error: "User not found" })
+        : res.status(404).render("error", {
+            message: "User not found",
+            user: req.user,
+          });
     }
     user.cart = user.cart || [];
     const cartItem = user.cart.find((item) => item.productId === productId);
     if (!cartItem) {
-      return res.status(400).render("cart", {
-        cartItems: user.cart
-          ? user.cart.map((item) => ({
-              ...item,
-              product: db.products.find((p) => p.id === item.productId),
-            }))
-          : [],
-        user: req.user,
-        categories: db.categories || [],
-        error: "Item not in cart",
-      });
+      return req.xhr
+        ? res.status(400).json({ error: "Item not in cart" })
+        : res.status(400).render("cart", {
+            cartItems: user.cart
+              ? user.cart.map((item) => ({
+                  ...item,
+                  product: db.products.find((p) => p.id === item.productId),
+                }))
+              : [],
+            user: req.user,
+            categories: db.categories || [],
+            error: "Item not in cart",
+          });
     }
     cartItem.quantity = quantity;
     user.cartCount = user.cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -163,18 +183,55 @@ router.post("/update/:productId", (req, res) => {
       productId,
       quantity,
     });
+
+    if (req.xhr) {
+      const updatedCartItems = user.cart.map((item) => {
+        const product = db.products.find((p) => p.id === item.productId);
+        return { ...item, product };
+      });
+      const subtotal = updatedCartItems.reduce(
+        (sum, item) =>
+          sum +
+          (item.product.discountPrice &&
+          item.product.discountPrice <= item.product.price &&
+          (!item.product.discountExpiry || new Date(item.product.discountExpiry) > new Date())
+            ? item.product.discountPrice
+            : item.product.price) *
+          item.quantity,
+        0
+      );
+      const totalSavings = updatedCartItems.reduce((sum, item) => {
+        if (
+          item.product.discountPrice &&
+          item.product.discountPrice <= item.product.price &&
+          (!item.product.discountExpiry || new Date(item.product.discountExpiry) > new Date())
+        ) {
+          return sum + (item.product.price - item.product.discountPrice) * item.quantity;
+        }
+        return sum;
+      }, 0);
+      return res.json({
+        success: true,
+        cartItems: updatedCartItems,
+        subtotal: subtotal.toFixed(2),
+        totalSavings: totalSavings.toFixed(2),
+        total: subtotal.toFixed(2),
+      });
+    }
+
     res.setHeader("X-Cart-Updated", "true");
     res.redirect("/cart");
   } catch (err) {
     console.error("Update cart error:", err);
-    res.status(500).render("error", {
-      message: "Failed to update cart",
-      user: req.user,
-    });
+    return req.xhr
+      ? res.status(500).json({ error: "Failed to update cart" })
+      : res.status(500).render("error", {
+          message: "Failed to update cart",
+          user: req.user,
+        });
   }
 });
 
-// Remove from cart
 router.post("/remove/:productId", (req, res) => {
   try {
     const db = loadDB();
@@ -202,7 +259,6 @@ router.post("/remove/:productId", (req, res) => {
   }
 });
 
-// Remove from cart (body-based, for compatibility)
 router.post("/remove", (req, res) => {
   try {
     const db = loadDB();
@@ -230,7 +286,6 @@ router.post("/remove", (req, res) => {
   }
 });
 
-// View cart
 router.get("/", (req, res) => {
   try {
     const db = loadDB();

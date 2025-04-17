@@ -24,64 +24,130 @@ const saveDB = (data) => {
 
 // GET /
 router.get("/", (req, res) => {
-  const db = loadDB();
-  let products = db.products;
-  const query = req.query;
+  try {
+    const db = loadDB();
+    let products = db.products || [];
+    const query = req.query;
 
-  // Search filter
-  if (query.search) {
-    products = products.filter((p) =>
-      p.name.toLowerCase().includes(query.search.toLowerCase())
-    );
-  }
+    console.log("Query parameters:", query);
 
-  // Category filter
-  if (query.category) {
-    products = products.filter((p) => p.category === query.category);
-  }
+    // Compute used categories
+    const usedCategories = [...new Set(products.map(p => p.category).filter(Boolean))];
+    console.log("Used categories:", usedCategories);
 
-  // Price range filter
-  if (query.priceMin || query.priceMax) {
-    const priceMin = parseFloat(query.priceMin) || 0;
-    const priceMax = parseFloat(query.priceMax) || Infinity;
-    products = products.filter((p) => {
-      const effectivePrice = p.discountPrice && new Date(p.discountExpiry) > new Date() ? p.discountPrice : p.price;
-      return effectivePrice >= priceMin && effectivePrice <= priceMax;
-    });
-  }
+    // Search filter
+    if (query.search) {
+      const searchTerm = query.search.toLowerCase().trim();
+      products = products.filter((p) =>
+        (p.name && p.name.toLowerCase().includes(searchTerm)) ||
+        (p.category && p.category.toLowerCase().includes(searchTerm)) ||
+        (p.origin && p.origin.toLowerCase().includes(searchTerm)) ||
+        (p.details && p.details.some(d =>
+          (d.key && d.key.toLowerCase().includes(searchTerm)) ||
+          (d.value && d.value.toLowerCase().includes(searchTerm))
+        ))
+      );
+      console.log(`Search term: ${searchTerm}, matched products: ${products.length}`);
+    }
 
-  // Sort filter
-  if (query.sort) {
-    if (query.sort === "price-asc") {
-      products.sort((a, b) => {
-        const priceA = a.discountPrice && new Date(a.discountExpiry) > new Date() ? a.discountPrice : a.price;
-        const priceB = b.discountPrice && new Date(b.discountExpiry) > new Date() ? b.discountPrice : b.price;
-        return priceA - priceB;
-      });
-    } else if (query.sort === "price-desc") {
-      products.sort((a, b) => {
-        const priceA = a.discountPrice && new Date(a.discountExpiry) > new Date() ? a.discountPrice : a.price;
-        const priceB = b.discountPrice && new Date(b.discountExpiry) > new Date() ? b.discountPrice : b.price;
-        return priceB - priceA;
-      });
-    } else if (query.sort === "name-asc") {
-      products.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (query.sort === "rating-desc") {
-      products.sort((a, b) => {
-        const ratingA = a.reviews && a.reviews.length > 0 ? a.reviews.reduce((sum, r) => sum + r.rating, 0) / a.reviews.length : 0;
-        const ratingB = b.reviews && b.reviews.length > 0 ? b.reviews.reduce((sum, r) => sum + r.rating, 0) / b.reviews.length : 0;
-        return ratingB - ratingA;
+    // Category filter (support multiple categories)
+    if (query.category) {
+      const categories = Array.isArray(query.category) ? query.category : [query.category];
+      console.log("Selected categories:", categories);
+      if (categories.length > 0 && !categories.includes("")) {
+        products = products.filter((p) => {
+          if (!p.category) {
+            console.warn(`Product ${p.name} has no category`);
+            return false;
+          }
+          return categories.some((c) => p.category.toLowerCase().trim() === c.toLowerCase().trim());
+        });
+      }
+    }
+
+    // Price range filter
+    if (query.priceMin || query.priceMax) {
+      const priceMin = parseFloat(query.priceMin) || 0;
+      const priceMax = parseFloat(query.priceMax) || Infinity;
+      console.log(`Price range: ${priceMin} - ${priceMax}`);
+      products = products.filter((p) => {
+        const effectivePrice =
+          p.discountPrice &&
+            (!p.discountExpiry || new Date(p.discountExpiry) > new Date())
+            ? p.discountPrice
+            : p.price;
+        return effectivePrice >= priceMin && effectivePrice <= priceMax;
       });
     }
-  }
 
-  res.render("index", {
-    products,
-    categories: db.categories,
-    query,
-    user: req.user,
-    error: null,
-  });
+    // Sort filter
+    if (query.sort) {
+      console.log("Sort option:", query.sort);
+      if (query.sort === "price-asc") {
+        products.sort((a, b) => {
+          const priceA =
+            a.discountPrice &&
+              (!a.discountExpiry || new Date(a.discountExpiry) > new Date())
+              ? a.discountPrice
+              : a.price;
+          const priceB =
+            b.discountPrice &&
+              (!b.discountExpiry || new Date(b.discountExpiry) > new Date())
+              ? b.discountPrice
+              : b.price;
+          return priceA - priceB;
+        });
+      } else if (query.sort === "price-desc") {
+        products.sort((a, b) => {
+          const priceA =
+            a.discountPrice &&
+              (!a.discountExpiry || new Date(a.discountExpiry) > new Date())
+              ? a.discountPrice
+              : a.price;
+          const priceB =
+            b.discountPrice &&
+              (!b.discountExpiry || new Date(b.discountExpiry) > new Date())
+              ? b.discountPrice
+              : b.price;
+          return priceB - priceA;
+        });
+      } else if (query.sort === "name-asc") {
+        products.sort((a, b) => a.name.localeCompare(b.name));
+      } else if (query.sort === "rating-desc") {
+        products.sort((a, b) => {
+          const ratingA =
+            a.reviews && a.reviews.length > 0
+              ? a.reviews.reduce((sum, r) => sum + r.rating, 0) / a.reviews.length
+              : 0;
+          const ratingB =
+            b.reviews && b.reviews.length > 0
+              ? b.reviews.reduce((sum, r) => sum + r.rating, 0) / b.reviews.length
+              : 0;
+          return ratingB - ratingA;
+        });
+      }
+    }
+
+    console.log("Filtered products count:", products.length);
+
+    res.render("index", {
+      products,
+      categories: usedCategories,
+      query,
+      user: req.user,
+      error:
+        products.length === 0 && (query.search || query.category || query.priceMin || query.priceMax)
+          ? "No products match your filters. Try different categories (e.g., Grillar, Gaz Plitalari, Tosterlar) or clear filters."
+          : null,
+    });
+  } catch (err) {
+    console.error("Error loading products:", err);
+    res.status(500).render("error", {
+      message: "Failed to load products",
+      user: req.user,
+      query: req.query || {}, // Ensure query is passed
+    });
+  }
 });
 
 // GET /product/:id
@@ -92,8 +158,8 @@ router.get("/product/:id", (req, res) => {
   if (!product) {
     return res.status(404).render("index", {
       products: [],
-      categories: db.categories,
-      query: {},
+      categories: [...new Set(db.products.map(p => p.category).filter(Boolean))],
+      query: req.query || {},
       user: req.user,
       error: "Product not found",
     });
@@ -101,8 +167,9 @@ router.get("/product/:id", (req, res) => {
 
   res.render("product", {
     product,
-     users: db.users,
+    users: db.users || [],
     user: req.user,
+    query: req.query || {},
     error: null,
   });
 });
@@ -124,8 +191,9 @@ router.post("/product/:id/review", (req, res) => {
   if (!rating || !comment) {
     return res.render("product", {
       product,
-      users: db.users,
+      users: db.users || [],
       user: req.user,
+      query: req.query || {},
       error: "Rating and comment are required",
     });
   }

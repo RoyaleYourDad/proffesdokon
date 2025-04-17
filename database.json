@@ -45,22 +45,6 @@
           "comment": "gdfgsdffg",
           "timestamp": "2025-04-15T18:10:24.544Z",
           "edited": false
-        },
-        {
-          "id": "r_1744739166453_2",
-          "userId": "1744729926566",
-          "rating": 3,
-          "comment": "2nd Review test",
-          "timestamp": "2025-04-16T10:36:10.853Z",
-          "edited": false
-        },
-        {
-          "id": "r_1744739166453_3",
-          "userId": "1744729926566",
-          "rating": 1,
-          "comment": ".",
-          "timestamp": "2025-04-16T12:01:20.037Z",
-          "edited": false
         }
       ]
     },
@@ -167,15 +151,15 @@
       "cart": [
         {
           "productId": "1744739166453",
-          "quantity": 10
+          "quantity": 6
         },
         {
           "productId": "1744813498742",
-          "quantity": 5
+          "quantity": 4
         }
       ],
       "role": "admin",
-      "cartCount": 15,
+      "cartCount": 10,
       "isAdmin": true
     },
     {
