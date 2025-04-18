@@ -3,37 +3,25 @@ const fs = require("fs").promises;
 const path = require("path");
 const router = express.Router();
 const ExcelJS = require("exceljs");
+const { loadDB, saveDB } = require("../db"); // Import from db.js
 const dbPath = path.join(__dirname, "../database.json");
-
-const loadDB = async () => {
-  try {
-    return await require("../app").loadDB();
-  } catch (err) {
-    console.error("Error loading database:", err);
-    return { products: [], categories: [], users: [], stockHistory: [], admins: [] };
-  }
-};
-
-const saveDB = async (data) => {
-  try {
-    await require("../app").saveDB(data);
-    console.log("Database written successfully");
-  } catch (err) {
-    console.error("Error saving database:", err);
-    throw err;
-  }
-};
 
 // Middleware to check admin
 router.use(async (req, res, next) => {
   if (!req.user) {
-    console.log("Admin middleware: No user, redirecting to /auth/login");
+    console.log("Admin middleware: No user, redirecting to /auth/login", {
+      sessionID: req.sessionID,
+      path: req.path,
+    });
     return res.redirect("/auth/login");
   }
   const db = await loadDB();
   const user = db.users.find((u) => u.id === req.user.id);
   if (!user || !user.isAdmin) {
-    console.log(`Admin middleware: User ${req.user.email} is not admin, redirecting to /`);
+    console.log(`Admin middleware: User ${req.user.email} is not admin, redirecting to /`, {
+      userId: req.user.id,
+      isAdmin: user ? user.isAdmin : "user not found",
+    });
     return res.redirect("/");
   }
   console.log(`Admin middleware: User ${req.user.email} is admin, proceeding`);
@@ -42,29 +30,47 @@ router.use(async (req, res, next) => {
 
 // Admin Dashboard
 router.get("/", async (req, res) => {
-  const db = await loadDB();
-  console.log("Rendering admin/index with:", {
-    userId: req.user.id,
-    productCount: db.products.length,
-    userCount: db.users.length,
-  });
-  res.render("admin/index", {
-    products: db.products || [],
-    user: req.user,
-    categories: db.categories || [],
-    users: db.users || [],
-  });
+  try {
+    const db = await loadDB();
+    console.log("Rendering admin/index with:", {
+      userId: req.user.id,
+      productCount: db.products.length,
+      userCount: db.users.length,
+    });
+    res.render("admin/index", {
+      products: db.products || [],
+      user: req.user,
+      categories: db.categories || [],
+      users: db.users || [],
+    });
+  } catch (err) {
+    console.error("Error rendering admin dashboard:", err);
+    res.status(500).render("error", {
+      message: "Failed to load admin dashboard",
+      user: req.user,
+      query: req.query || {},
+    });
+  }
 });
 
 // Add Product Page
 router.get("/add", async (req, res) => {
-  const db = await loadDB();
-  res.render("admin/edit", {
-    product: null,
-    categories: db.categories || [],
-    user: req.user,
-    error: null,
-  });
+  try {
+    const db = await loadDB();
+    res.render("admin/edit", {
+      product: null,
+      categories: db.categories || [],
+      user: req.user,
+      error: null,
+    });
+  } catch (err) {
+    console.error("Error rendering add product page:", err);
+    res.status(500).render("error", {
+      message: "Failed to load add product page",
+      user: req.user,
+      query: req.query || {},
+    });
+  }
 });
 
 // Alias for /admin/add
@@ -78,23 +84,33 @@ router.post("/add", (req, res) => {
   req.upload(req, res, async (err) => {
     if (err) {
       console.error("Upload error:", err);
-      return res.render("admin/edit", {
-        product: null,
-        categories: (await loadDB()).categories || [],
-        user: req.user,
-        error: err.message,
-      });
+      try {
+        const db = await loadDB();
+        return res.render("admin/edit", {
+          product: null,
+          categories: db.categories || [],
+          user: req.user,
+          error: err.message,
+        });
+      } catch (dbErr) {
+        console.error("Error loading db for upload error:", dbErr);
+        return res.status(500).render("error", {
+          message: "Failed to load add product page",
+          user: req.user,
+          query: req.query || {},
+        });
+      }
     }
     try {
       const db = await loadDB();
       const { name, category, price, stock, discountPrice, discountExpiry, origin } = req.body;
       const details = req.body.details
         ? req.body.details.key
-          .map((key, i) => ({
-            key,
-            value: req.body.details.value[i],
-          }))
-          .filter((d) => d.key && d.value)
+            .map((key, i) => ({
+              key,
+              value: req.body.details.value[i],
+            }))
+            .filter((d) => d.key && d.value)
         : [];
 
       const product = {
@@ -133,33 +149,52 @@ router.post("/add", (req, res) => {
       res.redirect("/admin");
     } catch (err) {
       console.error("Add product error:", err);
-      res.render("admin/edit", {
-        product: null,
-        categories: (await loadDB()).categories || [],
-        user: req.user,
-        error: "Failed to add product",
-      });
+      try {
+        const db = await loadDB();
+        res.render("admin/edit", {
+          product: null,
+          categories: db.categories || [],
+          user: req.user,
+          error: "Failed to add product",
+        });
+      } catch (dbErr) {
+        console.error("Error loading db for add product error:", dbErr);
+        res.status(500).render("error", {
+          message: "Failed to load add product page",
+          user: req.user,
+          query: req.query || {},
+        });
+      }
     }
   });
 });
 
 // Edit Product Page
 router.get("/edit/:id", async (req, res) => {
-  const db = await loadDB();
-  const product = db.products.find((p) => p.id === req.params.id);
-  if (!product) {
-    return res.status(404).render("error", {
-      message: "Product not found",
+  try {
+    const db = await loadDB();
+    const product = db.products.find((p) => p.id === req.params.id);
+    if (!product) {
+      return res.status(404).render("error", {
+        message: "Product not found",
+        user: req.user,
+      });
+    }
+    res.render("admin/edit", {
+      product,
+      categories: db.categories || [],
+      users: db.users || [],
       user: req.user,
+      error: null,
+    });
+  } catch (err) {
+    console.error("Error rendering edit product page:", err);
+    res.status(500).render("error", {
+      message: "Failed to load edit product page",
+      user: req.user,
+      query: req.query || {},
     });
   }
-  res.render("admin/edit", {
-    product,
-    categories: db.categories || [],
-    users: db.users || [],
-    user: req.user,
-    error: null,
-  });
 });
 
 // Update Product
@@ -167,15 +202,24 @@ router.post("/edit/:id", (req, res) => {
   req.upload(req, res, async (err) => {
     if (err) {
       console.error("Upload error:", err);
-      const db = await loadDB();
-      const product = db.products.find((p) => p.id === req.params.id);
-      return res.render("admin/edit", {
-        product,
-        categories: db.categories || [],
-        users: db.users || [],
-        user: req.user,
-        error: err.message,
-      });
+      try {
+        const db = await loadDB();
+        const product = db.products.find((p) => p.id === req.params.id);
+        return res.render("admin/edit", {
+          product,
+          categories: db.categories || [],
+          users: db.users || [],
+          user: req.user,
+          error: err.message,
+        });
+      } catch (dbErr) {
+        console.error("Error loading db for upload error:", dbErr);
+        return res.status(500).render("error", {
+          message: "Failed to load edit product page",
+          user: req.user,
+          query: req.query || {},
+        });
+      }
     }
     try {
       const db = await loadDB();
@@ -190,11 +234,11 @@ router.post("/edit/:id", (req, res) => {
       const { name, category, price, stock, discountPrice, discountExpiry, origin, deleteImages } = req.body;
       const details = req.body.details
         ? req.body.details.key
-          .map((key, i) => ({
-            key,
-            value: req.body.details.value[i],
-          }))
-          .filter((d) => d.key && d.value)
+            .map((key, i) => ({
+              key,
+              value: req.body.details.value[i],
+            }))
+            .filter((d) => d.key && d.value)
         : [];
 
       product.name = name;
@@ -241,15 +285,24 @@ router.post("/edit/:id", (req, res) => {
       res.redirect("/admin");
     } catch (err) {
       console.error("Edit product error:", err);
-      const db = await loadDB();
-      const product = db.products.find((p) => p.id === req.params.id);
-      res.render("admin/edit", {
-        product,
-        categories: db.categories || [],
-        users: db.users || [],
-        user: req.user,
-        error: "Failed to edit product",
-      });
+      try {
+        const db = await loadDB();
+        const product = db.products.find((p) => p.id === req.params.id);
+        res.render("admin/edit", {
+          product,
+          categories: db.categories || [],
+          users: db.users || [],
+          user: req.user,
+          error: "Failed to edit product",
+        });
+      } catch (dbErr) {
+        console.error("Error loading db for edit product error:", dbErr);
+        res.status(500).render("error", {
+          message: "Failed to load edit product page",
+          user: req.user,
+          query: req.query || {},
+        });
+      }
     }
   });
 });
@@ -317,49 +370,81 @@ router.post("/image/delete", async (req, res) => {
 
 // Add Category
 router.post("/category/add", async (req, res) => {
-  const db = await loadDB();
-  const { name } = req.body;
-  if (name && !db.categories.includes(name)) {
-    db.categories.push(name);
-    await saveDB(db);
-    res.json({ success: true });
-  } else {
-    res.status(400).json({ success: false, error: "Invalid or duplicate category" });
+  try {
+    const db = await loadDB();
+    const { name } = req.body;
+    if (name && !db.categories.includes(name)) {
+      db.categories.push(name);
+      await saveDB(db);
+      res.json({ success: true });
+    } else {
+      res.status(400).json({ success: false, error: "Invalid or duplicate category" });
+    }
+  } catch (err) {
+    console.error("Add category error:", err);
+    res.status(500).json({ success: false, error: "Failed to add category" });
   }
 });
 
 // User Management
 router.get("/users", async (req, res) => {
-  const db = await loadDB();
-  res.render("admin/users", {
-    users: db.users || [],
-    user: req.user,
-    categories: db.categories || [],
-  });
+  try {
+    const db = await loadDB();
+    res.render("admin/users", {
+      users: db.users || [],
+      user: req.user,
+      categories: db.categories || [],
+    });
+  } catch (err) {
+    console.error("Error rendering users page:", err);
+    res.status(500).render("error", {
+      message: "Failed to load users page",
+      user: req.user,
+      query: req.query || {},
+    });
+  }
 });
 
 router.post("/users/:id/role", async (req, res) => {
-  const db = await loadDB();
-  const targetUser = db.users.find((u) => u.id === req.params.id);
-  if (targetUser) {
-    targetUser.role = req.body.role;
-    targetUser.isAdmin = targetUser.role === "admin";
-    if (req.user.id === targetUser.id) {
-      req.session.passport.user = targetUser; // Update session
+  try {
+    const db = await loadDB();
+    const targetUser = db.users.find((u) => u.id === req.params.id);
+    if (targetUser) {
+      targetUser.role = req.body.role;
+      targetUser.isAdmin = targetUser.role === "admin";
+      if (req.user.id === targetUser.id) {
+        req.session.passport.user = targetUser; // Update session
+      }
+      await saveDB(db);
     }
-    await saveDB(db);
+    res.redirect("/admin/users");
+  } catch (err) {
+    console.error("Error updating user role:", err);
+    res.status(500).render("error", {
+      message: "Failed to update user role",
+      user: req.user,
+      query: req.query || {},
+    });
   }
-  res.redirect("/admin/users");
 });
 
 // Stock Management
 router.get("/stock", async (req, res) => {
-  const db = await loadDB();
-  res.render("admin/stock", {
-    products: db.products || [],
-    user: req.user,
-    categories: db.categories || [],
-  });
+  try {
+    const db = await loadDB();
+    res.render("admin/stock", {
+      products: db.products || [],
+      user: req.user,
+      categories: db.categories || [],
+    });
+  } catch (err) {
+    console.error("Error rendering stock page:", err);
+    res.status(500).render("error", {
+      message: "Failed to load stock page",
+      user: req.user,
+      query: req.query || {},
+    });
+  }
 });
 
 router.post("/stock/update", async (req, res) => {
@@ -418,67 +503,86 @@ router.post("/stock/update", async (req, res) => {
     });
   } catch (err) {
     console.error("Stock update error:", err);
-    res.render("admin/stock", {
-      products: (await loadDB()).products || [],
-      user: req.user,
-      categories: (await loadDB()).categories || [],
-      error: "Failed to update stock: Server error",
-    });
+    try {
+      const db = await loadDB();
+      res.render("admin/stock", {
+        products: db.products || [],
+        user: req.user,
+        categories: db.categories || [],
+        error: "Failed to update stock: Server error",
+      });
+    } catch (dbErr) {
+      console.error("Error loading db for stock update error:", dbErr);
+      res.status(500).render("error", {
+        message: "Failed to load stock page",
+        user: req.user,
+        query: req.query || {},
+      });
+    }
   }
 });
 
 // Stock History
 router.get("/stock/history", async (req, res) => {
-  const db = await loadDB();
-  let { dateRange, startDate, endDate, productId, action } = req.query;
+  try {
+    const db = await loadDB();
+    let { dateRange, startDate, endDate, productId, action } = req.query;
 
-  let filteredHistory = (db.stockHistory || []).map((entry) => ({
-    ...entry,
-    updatedAt: entry.updatedAt || entry.timestamp || new Date().toISOString(),
-  }));
-  console.log("Stock history raw:", filteredHistory.length, filteredHistory);
+    let filteredHistory = (db.stockHistory || []).map((entry) => ({
+      ...entry,
+      updatedAt: entry.updatedAt || entry.timestamp || new Date().toISOString(),
+    }));
+    console.log("Stock history raw:", filteredHistory.length, filteredHistory);
 
-  if (!dateRange) dateRange = "all";
-  const now = new Date();
-  if (dateRange === "lastDay") {
-    const lastDay = new Date(now.setDate(now.getDate() - 1));
-    filteredHistory = filteredHistory.filter((entry) => new Date(entry.updatedAt) >= lastDay);
-  } else if (dateRange === "lastWeek") {
-    const lastWeek = new Date(now.setDate(now.getDate() - 7));
-    filteredHistory = filteredHistory.filter((entry) => new Date(entry.updatedAt) >= lastWeek);
-  } else if (dateRange === "lastMonth") {
-    const lastMonth = new Date(now.setDate(now.getDate() - 30));
-    filteredHistory = filteredHistory.filter((entry) => new Date(entry.updatedAt) >= lastMonth);
-  } else if (dateRange === "custom" && startDate && endDate) {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    filteredHistory = filteredHistory.filter(
-      (entry) => new Date(entry.updatedAt) >= start && new Date(entry.updatedAt) <= end
-    );
+    if (!dateRange) dateRange = "all";
+    const now = new Date();
+    if (dateRange === "lastDay") {
+      const lastDay = new Date(now.setDate(now.getDate() - 1));
+      filteredHistory = filteredHistory.filter((entry) => new Date(entry.updatedAt) >= lastDay);
+    } else if (dateRange === "lastWeek") {
+      const lastWeek = new Date(now.setDate(now.getDate() - 7));
+      filteredHistory = filteredHistory.filter((entry) => new Date(entry.updatedAt) >= lastWeek);
+    } else if (dateRange === "lastMonth") {
+      const lastMonth = new Date(now.setDate(now.getDate() - 30));
+      filteredHistory = filteredHistory.filter((entry) => new Date(entry.updatedAt) >= lastMonth);
+    } else if (dateRange === "custom" && startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      filteredHistory = filteredHistory.filter(
+        (entry) => new Date(entry.updatedAt) >= start && new Date(entry.updatedAt) <= end
+      );
+    }
+
+    if (productId) {
+      filteredHistory = filteredHistory.filter((entry) => entry.productId === productId);
+    }
+
+    if (action) {
+      filteredHistory = filteredHistory.filter((entry) => entry.action === action);
+    }
+
+    console.log("Stock history filtered:", filteredHistory.length, filteredHistory);
+
+    res.render("admin/stock-history", {
+      history: filteredHistory,
+      products: db.products || [],
+      users: db.users || [],
+      user: req.user,
+      categories: db.categories || [],
+      dateRange,
+      startDate,
+      endDate,
+      productId,
+      action,
+    });
+  } catch (err) {
+    console.error("Error rendering stock history:", err);
+    res.status(500).render("error", {
+      message: "Failed to load stock history",
+      user: req.user,
+      query: req.query || {},
+    });
   }
-
-  if (productId) {
-    filteredHistory = filteredHistory.filter((entry) => entry.productId === productId);
-  }
-
-  if (action) {
-    filteredHistory = filteredHistory.filter((entry) => entry.action === action);
-  }
-
-  console.log("Stock history filtered:", filteredHistory.length, filteredHistory);
-
-  res.render("admin/stock-history", {
-    history: filteredHistory,
-    products: db.products || [],
-    users: db.users || [],
-    user: req.user,
-    categories: db.categories || [],
-    dateRange,
-    startDate,
-    endDate,
-    productId,
-    action,
-  });
 });
 
 router.post("/stock/history/delete", async (req, res) => {
@@ -507,8 +611,10 @@ router.post("/stock/history/delete", async (req, res) => {
     await saveDB(db);
     console.log("Stock history entry deleted:", id);
     res.redirect(
-      `/admin/stock/history?dateRange=${req.body.dateRange || req.query.dateRange || "lastDay"}&startDate=${req.body.startDate || req.query.startDate || ""
-      }&endDate=${req.body.endDate || req.query.endDate || ""}&productId=${req.body.productId || req.query.productId || ""
+      `/admin/stock/history?dateRange=${req.body.dateRange || req.query.dateRange || "lastDay"}&startDate=${
+        req.body.startDate || req.query.startDate || ""
+      }&endDate=${req.body.endDate || req.query.endDate || ""}&productId=${
+        req.body.productId || req.query.productId || ""
       }&action=${req.body.action || req.query.action || ""}`
     );
   } catch (err) {
@@ -597,7 +703,8 @@ router.post("/stock/history/edit", async (req, res) => {
     await saveDB(db);
     console.log("Stock history entry edited:", { id, productId, action, quantity: qty });
     res.redirect(
-      `/admin/stock/history?dateRange=${dateRange || "lastDay"}&startDate=${startDate || ""}&endDate=${endDate || ""
+      `/admin/stock/history?dateRange=${dateRange || "lastDay"}&startDate=${startDate || ""}&endDate=${
+        endDate || ""
       }&productId=${productId || ""}&action=${action || ""}`
     );
   } catch (err) {
@@ -691,19 +798,29 @@ router.get("/stock/history/export", async (req, res) => {
     res.end();
   } catch (err) {
     console.error("Export error:", err);
-    res.status(500).render("admin/stock-history", {
-      history: [],
-      products: (await loadDB()).products || [],
-      users: (await loadDB()).users || [],
-      user: req.user,
-      categories: (await loadDB()).categories || [],
-      dateRange,
-      startDate,
-      endDate,
-      productId,
-      action,
-      error: "Failed to export stock history",
-    });
+    try {
+      const db = await loadDB();
+      res.status(500).render("admin/stock-history", {
+        history: [],
+        products: db.products || [],
+        users: db.users || [],
+        user: req.user,
+        categories: db.categories || [],
+        dateRange,
+        startDate,
+        endDate,
+        productId,
+        action,
+        error: "Failed to export stock history",
+      });
+    } catch (dbErr) {
+      console.error("Error loading db for export error:", dbErr);
+      res.status(500).render("error", {
+        message: "Failed to load stock history",
+        user: req.user,
+        query: req.query || {},
+      });
+    }
   }
 });
 
@@ -735,13 +852,22 @@ router.post("/review/delete/:productId", async (req, res) => {
 
 // Admin Management
 router.get("/admins", async (req, res) => {
-  const db = await loadDB();
-  res.render("admin/admins", {
-    admins: db.admins || [],
-    users: db.users || [],
-    user: req.user,
-    error: null,
-  });
+  try {
+    const db = await loadDB();
+    res.render("admin/admins", {
+      admins: db.admins || [],
+      users: db.users || [],
+      user: req.user,
+      error: null,
+    });
+  } catch (err) {
+    console.error("Error rendering admins page:", err);
+    res.status(500).render("error", {
+      message: "Failed to load admins page",
+      user: req.user,
+      query: req.query || {},
+    });
+  }
 });
 
 router.post("/admins/add", async (req, res) => {
@@ -771,12 +897,22 @@ router.post("/admins/add", async (req, res) => {
     res.redirect("/admin/admins");
   } catch (err) {
     console.error("Add admin error:", err);
-    res.render("admin/admins", {
-      admins: (await loadDB()).admins || [],
-      users: (await loadDB()).users || [],
-      user: req.user,
-      error: "Failed to add admin",
-    });
+    try {
+      const db = await loadDB();
+      res.render("admin/admins", {
+        admins: db.admins || [],
+        users: db.users || [],
+        user: req.user,
+        error: "Failed to add admin",
+      });
+    } catch (dbErr) {
+      console.error("Error loading db for add admin error:", dbErr);
+      res.status(500).render("error", {
+        message: "Failed to load admins page",
+        user: req.user,
+        query: req.query || {},
+      });
+    }
   }
 });
 
@@ -798,12 +934,22 @@ router.post("/admins/delete/:email", async (req, res) => {
     res.redirect("/admin/admins");
   } catch (err) {
     console.error("Remove admin error:", err);
-    res.render("admin/admins", {
-      admins: (await loadDB()).admins || [],
-      users: (await loadDB()).users || [],
-      user: req.user,
-      error: "Failed to remove admin",
-    });
+    try {
+      const db = await loadDB();
+      res.render("admin/admins", {
+        admins: db.admins || [],
+        users: db.users || [],
+        user: req.user,
+        error: "Failed to remove admin",
+      });
+    } catch (dbErr) {
+      console.error("Error loading db for remove admin error:", dbErr);
+      res.status(500).render("error", {
+        message: "Failed to load admins page",
+        user: req.user,
+        query: req.query || {},
+      });
+    }
   }
 });
 

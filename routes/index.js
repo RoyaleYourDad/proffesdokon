@@ -1,27 +1,15 @@
 const express = require("express");
 const router = express.Router();
-
-const loadDB = async () => {
-  try {
-    return await require("../app").loadDB();
-  } catch (err) {
-    console.error("Error loading database:", err);
-    return { products: [], categories: [], users: [] };
-  }
-};
-
-const saveDB = async (data) => {
-  try {
-    await require("../app").saveDB(data);
-  } catch (err) {
-    console.error("Error saving database:", err);
-  }
-};
+const { loadDB, saveDB } = require("../db"); // Import from db.js
 
 // GET /
 router.get("/", async (req, res) => {
   try {
     const db = await loadDB();
+    console.log("Loaded database for index:", {
+      productCount: db.products.length,
+      categoryCount: db.categories.length,
+    });
     let products = db.products || [];
     const query = req.query;
 
@@ -142,26 +130,35 @@ router.get("/", async (req, res) => {
 
 // GET /product/:id
 router.get("/product/:id", async (req, res) => {
-  const db = await loadDB();
-  const product = db.products.find((p) => p.id === req.params.id);
+  try {
+    const db = await loadDB();
+    const product = db.products.find((p) => p.id === req.params.id);
 
-  if (!product) {
-    return res.status(404).render("index", {
-      products: [],
-      categories: [...new Set(db.products.map((p) => p.category).filter(Boolean))],
-      query: req.query || {},
+    if (!product) {
+      return res.status(404).render("index", {
+        products: [],
+        categories: [...new Set(db.products.map((p) => p.category).filter(Boolean))],
+        query: req.query || {},
+        user: req.user,
+        error: "Product not found",
+      });
+    }
+
+    res.render("product", {
+      product,
+      users: db.users || [],
       user: req.user,
-      error: "Product not found",
+      query: req.query || {},
+      error: null,
+    });
+  } catch (err) {
+    console.error("Error loading product:", err);
+    res.status(500).render("error", {
+      message: "Failed to load product",
+      user: req.user,
+      query: req.query || {},
     });
   }
-
-  res.render("product", {
-    product,
-    users: db.users || [],
-    user: req.user,
-    query: req.query || {},
-    error: null,
-  });
 });
 
 // POST /product/:id/review
@@ -170,34 +167,43 @@ router.post("/product/:id/review", async (req, res) => {
     return res.redirect("/auth/login");
   }
 
-  const db = await loadDB();
-  const product = db.products.find((p) => p.id === req.params.id);
+  try {
+    const db = await loadDB();
+    const product = db.products.find((p) => p.id === req.params.id);
 
-  if (!product) {
-    return res.redirect("/");
-  }
+    if (!product) {
+      return res.redirect("/");
+    }
 
-  const { rating, comment } = req.body;
-  if (!rating || !comment) {
-    return res.render("product", {
-      product,
-      users: db.users || [],
+    const { rating, comment } = req.body;
+    if (!rating || !comment) {
+      return res.render("product", {
+        product,
+        users: db.users || [],
+        user: req.user,
+        query: req.query || {},
+        error: "Rating and comment are required",
+      });
+    }
+
+    product.reviews = product.reviews || [];
+    product.reviews.push({
+      userId: req.user.id,
+      rating: parseInt(rating),
+      comment,
+      timestamp: new Date(),
+    });
+
+    await saveDB(db);
+    res.redirect(`/product/${req.params.id}`);
+  } catch (err) {
+    console.error("Error saving review:", err);
+    res.status(500).render("error", {
+      message: "Failed to save review",
       user: req.user,
       query: req.query || {},
-      error: "Rating and comment are required",
     });
   }
-
-  product.reviews = product.reviews || [];
-  product.reviews.push({
-    userId: req.user.id,
-    rating: parseInt(rating),
-    comment,
-    timestamp: new Date(),
-  });
-
-  await saveDB(db);
-  res.redirect(`/product/${req.params.id}`);
 });
 
 module.exports = router;
