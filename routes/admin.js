@@ -1,40 +1,39 @@
 const express = require("express");
-const fs = require("fs");
+const fs = require("fs").promises;
 const path = require("path");
 const router = express.Router();
 const ExcelJS = require("exceljs");
 const dbPath = path.join(__dirname, "../database.json");
-const fss = require('fs').promises;
-const loadDB = () => {
+
+const loadDB = async () => {
   try {
-    return JSON.parse(fs.readFileSync(dbPath, "utf8"));
+    return await require("../app").loadDB();
   } catch (err) {
     console.error("Error loading database:", err);
     return { products: [], categories: [], users: [], stockHistory: [], admins: [] };
   }
 };
 
-// Update saveDB for better error handling (replace lines 16–22)
-const saveDB = (data) => {
+const saveDB = async (data) => {
   try {
-    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+    await require("../app").saveDB(data);
     console.log("Database written successfully");
   } catch (err) {
     console.error("Error saving database:", err);
-    throw err; // Propagate error to caller
+    throw err;
   }
 };
 
 // Middleware to check admin
-router.use((req, res, next) => {
+router.use(async (req, res, next) => {
   if (!req.user) {
     console.log("Admin middleware: No user, redirecting to /auth/login");
     return res.redirect("/auth/login");
   }
-  if (!req.user.isAdmin) {
-    console.log(
-      `Admin middleware: User ${req.user.email} is not admin, redirecting to /`
-    );
+  const db = await loadDB();
+  const user = db.users.find((u) => u.id === req.user.id);
+  if (!user || !user.isAdmin) {
+    console.log(`Admin middleware: User ${req.user.email} is not admin, redirecting to /`);
     return res.redirect("/");
   }
   console.log(`Admin middleware: User ${req.user.email} is admin, proceeding`);
@@ -42,8 +41,8 @@ router.use((req, res, next) => {
 });
 
 // Admin Dashboard
-router.get("/", (req, res) => {
-  const db = loadDB();
+router.get("/", async (req, res) => {
+  const db = await loadDB();
   console.log("Rendering admin/index with:", {
     userId: req.user.id,
     productCount: db.products.length,
@@ -58,8 +57,8 @@ router.get("/", (req, res) => {
 });
 
 // Add Product Page
-router.get("/add", (req, res) => {
-  const db = loadDB();
+router.get("/add", async (req, res) => {
+  const db = await loadDB();
   res.render("admin/edit", {
     product: null,
     categories: db.categories || [],
@@ -81,21 +80,21 @@ router.post("/add", (req, res) => {
       console.error("Upload error:", err);
       return res.render("admin/edit", {
         product: null,
-        categories: loadDB().categories || [],
+        categories: (await loadDB()).categories || [],
         user: req.user,
         error: err.message,
       });
     }
     try {
-      const db = loadDB();
+      const db = await loadDB();
       const { name, category, price, stock, discountPrice, discountExpiry, origin } = req.body;
       const details = req.body.details
         ? req.body.details.key
-            .map((key, i) => ({
-              key,
-              value: req.body.details.value[i],
-            }))
-            .filter((d) => d.key && d.value)
+          .map((key, i) => ({
+            key,
+            value: req.body.details.value[i],
+          }))
+          .filter((d) => d.key && d.value)
         : [];
 
       const product = {
@@ -129,14 +128,14 @@ router.post("/add", (req, res) => {
       if (category && !db.categories.includes(category)) {
         db.categories.push(category);
       }
-      saveDB(db);
+      await saveDB(db);
       console.log("Product added:", product.id);
       res.redirect("/admin");
     } catch (err) {
       console.error("Add product error:", err);
       res.render("admin/edit", {
         product: null,
-        categories: loadDB().categories || [],
+        categories: (await loadDB()).categories || [],
         user: req.user,
         error: "Failed to add product",
       });
@@ -145,8 +144,8 @@ router.post("/add", (req, res) => {
 });
 
 // Edit Product Page
-router.get("/edit/:id", (req, res) => {
-  const db = loadDB();
+router.get("/edit/:id", async (req, res) => {
+  const db = await loadDB();
   const product = db.products.find((p) => p.id === req.params.id);
   if (!product) {
     return res.status(404).render("error", {
@@ -168,7 +167,7 @@ router.post("/edit/:id", (req, res) => {
   req.upload(req, res, async (err) => {
     if (err) {
       console.error("Upload error:", err);
-      const db = loadDB();
+      const db = await loadDB();
       const product = db.products.find((p) => p.id === req.params.id);
       return res.render("admin/edit", {
         product,
@@ -179,7 +178,7 @@ router.post("/edit/:id", (req, res) => {
       });
     }
     try {
-      const db = loadDB();
+      const db = await loadDB();
       const product = db.products.find((p) => p.id === req.params.id);
       if (!product) {
         return res.status(404).render("error", {
@@ -191,11 +190,11 @@ router.post("/edit/:id", (req, res) => {
       const { name, category, price, stock, discountPrice, discountExpiry, origin, deleteImages } = req.body;
       const details = req.body.details
         ? req.body.details.key
-            .map((key, i) => ({
-              key,
-              value: req.body.details.value[i],
-            }))
-            .filter((d) => d.key && d.value)
+          .map((key, i) => ({
+            key,
+            value: req.body.details.value[i],
+          }))
+          .filter((d) => d.key && d.value)
         : [];
 
       product.name = name;
@@ -237,12 +236,12 @@ router.post("/edit/:id", (req, res) => {
       if (category && !db.categories.includes(category)) {
         db.categories.push(category);
       }
-      saveDB(db);
+      await saveDB(db);
       console.log("Product edited:", product.id);
       res.redirect("/admin");
     } catch (err) {
       console.error("Edit product error:", err);
-      const db = loadDB();
+      const db = await loadDB();
       const product = db.products.find((p) => p.id === req.params.id);
       res.render("admin/edit", {
         product,
@@ -258,7 +257,7 @@ router.post("/edit/:id", (req, res) => {
 // Delete Product
 router.post("/delete/:id", async (req, res) => {
   try {
-    const db = loadDB();
+    const db = await loadDB();
     const product = db.products.find((p) => p.id === req.params.id);
     if (!product) {
       return res.status(404).render("error", {
@@ -276,7 +275,7 @@ router.post("/delete/:id", async (req, res) => {
       }
     }
     db.products = db.products.filter((p) => p.id !== req.params.id);
-    saveDB(db);
+    await saveDB(db);
     console.log("Product deleted:", req.params.id);
     res.redirect("/admin");
   } catch (err) {
@@ -294,7 +293,7 @@ router.post("/image/delete", async (req, res) => {
   try {
     const success = await req.app.locals.deleteFromImgBB(delete_url);
     if (success) {
-      const db = loadDB();
+      const db = await loadDB();
       db.products.forEach((product) => {
         if (product.thumbnail?.delete_url === delete_url) {
           product.thumbnail = null;
@@ -305,7 +304,7 @@ router.post("/image/delete", async (req, res) => {
           );
         }
       });
-      saveDB(db);
+      await saveDB(db);
       res.json({ success: true });
     } else {
       res.status(500).json({ success: false });
@@ -317,23 +316,21 @@ router.post("/image/delete", async (req, res) => {
 });
 
 // Add Category
-router.post("/category/add", (req, res) => {
-  const db = loadDB();
+router.post("/category/add", async (req, res) => {
+  const db = await loadDB();
   const { name } = req.body;
   if (name && !db.categories.includes(name)) {
     db.categories.push(name);
-    saveDB(db);
+    await saveDB(db);
     res.json({ success: true });
   } else {
-    res
-      .status(400)
-      .json({ success: false, error: "Invalid or duplicate category" });
+    res.status(400).json({ success: false, error: "Invalid or duplicate category" });
   }
 });
 
 // User Management
-router.get("/users", (req, res) => {
-  const db = loadDB();
+router.get("/users", async (req, res) => {
+  const db = await loadDB();
   res.render("admin/users", {
     users: db.users || [],
     user: req.user,
@@ -341,20 +338,23 @@ router.get("/users", (req, res) => {
   });
 });
 
-router.post("/users/:id/role", (req, res) => {
-  const db = loadDB();
+router.post("/users/:id/role", async (req, res) => {
+  const db = await loadDB();
   const targetUser = db.users.find((u) => u.id === req.params.id);
   if (targetUser) {
     targetUser.role = req.body.role;
     targetUser.isAdmin = targetUser.role === "admin";
-    saveDB(db);
+    if (req.user.id === targetUser.id) {
+      req.session.passport.user = targetUser; // Update session
+    }
+    await saveDB(db);
   }
   res.redirect("/admin/users");
 });
 
 // Stock Management
-router.get("/stock", (req, res) => {
-  const db = loadDB();
+router.get("/stock", async (req, res) => {
+  const db = await loadDB();
   res.render("admin/stock", {
     products: db.products || [],
     user: req.user,
@@ -364,7 +364,7 @@ router.get("/stock", (req, res) => {
 
 router.post("/stock/update", async (req, res) => {
   try {
-    const db = loadDB();
+    const db = await loadDB();
     const { productId, action, quantity, notes } = req.body;
     console.log("Stock update request:", { productId, action, quantity, notes, userId: req.user.id });
     const product = db.products.find((p) => p.id === productId);
@@ -377,7 +377,7 @@ router.post("/stock/update", async (req, res) => {
         error: "Product not found",
       });
     }
-    const qty = Number(quantity); // Robust parsing
+    const qty = Number(quantity);
     if (isNaN(qty) || qty <= 0) {
       console.log("Invalid quantity:", quantity);
       return res.render("admin/stock", {
@@ -408,18 +408,7 @@ router.post("/stock/update", async (req, res) => {
       updatedAt: new Date().toISOString(),
     };
     db.stockHistory.push(historyEntry);
-    try {
-      saveDB(db);
-      console.log("Database saved successfully:", { productId, stock: product.stock, historyLength: db.stockHistory.length });
-    } catch (saveErr) {
-      console.error("Failed to save database:", saveErr);
-      return res.render("admin/stock", {
-        products: db.products,
-        user: req.user,
-        categories: db.categories || [],
-        error: "Failed to save stock update: Database error",
-      });
-    }
+    await saveDB(db);
     console.log("Stock updated:", { productId, action, quantity: qty, userId: req.user.id });
     res.render("admin/stock", {
       products: db.products,
@@ -430,27 +419,26 @@ router.post("/stock/update", async (req, res) => {
   } catch (err) {
     console.error("Stock update error:", err);
     res.render("admin/stock", {
-      products: db.products || [],
+      products: (await loadDB()).products || [],
       user: req.user,
-      categories: db.categories || [],
+      categories: (await loadDB()).categories || [],
       error: "Failed to update stock: Server error",
     });
   }
 });
 
 // Stock History
-router.get("/stock/history", (req, res) => {
-  const db = loadDB();
+router.get("/stock/history", async (req, res) => {
+  const db = await loadDB();
   let { dateRange, startDate, endDate, productId, action } = req.query;
 
-  let filteredHistory = (db.stockHistory || []).map(entry => ({
+  let filteredHistory = (db.stockHistory || []).map((entry) => ({
     ...entry,
-    updatedAt: entry.updatedAt || entry.timestamp || new Date().toISOString() // Normalize dates
+    updatedAt: entry.updatedAt || entry.timestamp || new Date().toISOString(),
   }));
   console.log("Stock history raw:", filteredHistory.length, filteredHistory);
 
-  // Date filtering
-  if (!dateRange) dateRange = "all"; // Show all by default for debugging
+  if (!dateRange) dateRange = "all";
   const now = new Date();
   if (dateRange === "lastDay") {
     const lastDay = new Date(now.setDate(now.getDate() - 1));
@@ -469,12 +457,10 @@ router.get("/stock/history", (req, res) => {
     );
   }
 
-  // Product filtering
   if (productId) {
     filteredHistory = filteredHistory.filter((entry) => entry.productId === productId);
   }
 
-  // Action filtering
   if (action) {
     filteredHistory = filteredHistory.filter((entry) => entry.action === action);
   }
@@ -495,9 +481,9 @@ router.get("/stock/history", (req, res) => {
   });
 });
 
-router.post("/stock/history/delete", (req, res) => {
+router.post("/stock/history/delete", async (req, res) => {
   try {
-    const db = loadDB();
+    const db = await loadDB();
     const { id, action, quantity, productId } = req.body;
 
     const entry = db.stockHistory.find((h) => h.id === id);
@@ -507,21 +493,24 @@ router.post("/stock/history/delete", (req, res) => {
 
     const product = db.products.find((p) => p.id === productId);
     if (product) {
-      // Reverse the stock change
       if (action === "sold") {
         product.stock += parseInt(quantity);
       } else if (action === "bought") {
         product.stock -= parseInt(quantity);
         if (product.stock < 0) {
-          product.stock = 0; // Prevent negative stock
+          product.stock = 0;
         }
       }
     }
 
     db.stockHistory = db.stockHistory.filter((h) => h.id !== id);
-    saveDB(db);
+    await saveDB(db);
     console.log("Stock history entry deleted:", id);
-    res.redirect(`/admin/stock/history?dateRange=${req.body.dateRange || req.query.dateRange || 'lastDay'}&startDate=${req.body.startDate || req.query.startDate || ''}&endDate=${req.body.endDate || req.query.endDate || ''}&productId=${req.body.productId || req.query.productId || ''}&action=${req.body.action || req.query.action || ''}`);
+    res.redirect(
+      `/admin/stock/history?dateRange=${req.body.dateRange || req.query.dateRange || "lastDay"}&startDate=${req.body.startDate || req.query.startDate || ""
+      }&endDate=${req.body.endDate || req.query.endDate || ""}&productId=${req.body.productId || req.query.productId || ""
+      }&action=${req.body.action || req.query.action || ""}`
+    );
   } catch (err) {
     console.error("Stock history deletion error:", err);
     res.status(500).render("error", {
@@ -531,9 +520,9 @@ router.post("/stock/history/delete", (req, res) => {
   }
 });
 
-router.post("/stock/history/edit", (req, res) => {
+router.post("/stock/history/edit", async (req, res) => {
   try {
-    const db = loadDB();
+    const db = await loadDB();
     const { id, productId, action, quantity, notes, dateRange, startDate, endDate } = req.body;
     const qty = parseInt(quantity);
 
@@ -569,7 +558,6 @@ router.post("/stock/history/edit", (req, res) => {
       });
     }
 
-    // Reverse original stock change
     if (entry.action === "sold") {
       product.stock += entry.quantity;
     } else if (entry.action === "bought") {
@@ -579,7 +567,6 @@ router.post("/stock/history/edit", (req, res) => {
       }
     }
 
-    // Apply new stock change
     if (action === "sold") {
       if (product.stock < qty) {
         return res.status(400).render("admin/stock-history", {
@@ -601,16 +588,18 @@ router.post("/stock/history/edit", (req, res) => {
       product.stock += qty;
     }
 
-    // Update entry
     entry.action = action;
     entry.quantity = qty;
     entry.notes = notes || "";
     entry.timestamp = new Date().toISOString();
     entry.updatedBy = req.user.id;
 
-    saveDB(db);
+    await saveDB(db);
     console.log("Stock history entry edited:", { id, productId, action, quantity: qty });
-    res.redirect(`/admin/stock/history?dateRange=${dateRange || 'lastDay'}&startDate=${startDate || ''}&endDate=${endDate || ''}&productId=${productId || ''}&action=${action || ''}`);
+    res.redirect(
+      `/admin/stock/history?dateRange=${dateRange || "lastDay"}&startDate=${startDate || ""}&endDate=${endDate || ""
+      }&productId=${productId || ""}&action=${action || ""}`
+    );
   } catch (err) {
     console.error("Stock history edit error:", err);
     res.status(500).render("error", {
@@ -622,17 +611,15 @@ router.post("/stock/history/edit", (req, res) => {
 
 router.get("/stock/history/export", async (req, res) => {
   try {
-    const db = loadDB();
+    const db = await loadDB();
     let { dateRange, startDate, endDate, productId, action } = req.query;
 
-    // Normalize dates (same as /admin/stock/history)
-    let filteredHistory = (db.stockHistory || []).map(entry => ({
+    let filteredHistory = (db.stockHistory || []).map((entry) => ({
       ...entry,
       updatedAt: entry.updatedAt || entry.timestamp || new Date().toISOString(),
     }));
     console.log("Export raw history:", filteredHistory.length);
 
-    // Apply filters (same logic as /admin/stock/history)
     if (!dateRange) dateRange = "all";
     const now = new Date();
     if (dateRange === "lastDay") {
@@ -662,7 +649,6 @@ router.get("/stock/history/export", async (req, res) => {
 
     console.log("Export filtered history:", filteredHistory.length, filteredHistory);
 
-    // Create Excel file
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Stock History");
     worksheet.columns = [
@@ -674,9 +660,9 @@ router.get("/stock/history/export", async (req, res) => {
       { header: "Updated By", key: "updatedBy", width: 20 },
     ];
 
-    filteredHistory.forEach(entry => {
-      const product = db.products.find(p => p.id === entry.productId);
-      const user = db.users.find(u => u.id === entry.updatedBy);
+    filteredHistory.forEach((entry) => {
+      const product = db.products.find((p) => p.id === entry.productId);
+      const user = db.users.find((u) => u.id === entry.updatedBy);
       worksheet.addRow({
         updatedAt: new Date(entry.updatedAt).toLocaleString("en-US", {
           year: "numeric",
@@ -694,13 +680,11 @@ router.get("/stock/history/export", async (req, res) => {
       });
     });
 
-    // Style header
-    worksheet.getRow(1).eachCell(cell => {
+    worksheet.getRow(1).eachCell((cell) => {
       cell.font = { bold: true };
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEFEFEF" } };
     });
 
-    // Send file
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     res.setHeader("Content-Disposition", "attachment; filename=stock_history.xlsx");
     await workbook.xlsx.write(res);
@@ -709,10 +693,10 @@ router.get("/stock/history/export", async (req, res) => {
     console.error("Export error:", err);
     res.status(500).render("admin/stock-history", {
       history: [],
-      products: db.products || [],
-      users: db.users || [],
+      products: (await loadDB()).products || [],
+      users: (await loadDB()).users || [],
       user: req.user,
-      categories: db.categories || [],
+      categories: (await loadDB()).categories || [],
       dateRange,
       startDate,
       endDate,
@@ -723,9 +707,9 @@ router.get("/stock/history/export", async (req, res) => {
   }
 });
 
-router.post("/review/delete/:productId", (req, res) => {
+router.post("/review/delete/:productId", async (req, res) => {
   try {
-    const db = loadDB();
+    const db = await loadDB();
     const product = db.products.find((p) => p.id === req.params.productId);
     if (!product) {
       return res.status(404).render("error", {
@@ -737,7 +721,7 @@ router.post("/review/delete/:productId", (req, res) => {
     const { reviewId } = req.body;
     product.reviews = product.reviews.filter((r) => r.id !== reviewId);
 
-    saveDB(db);
+    await saveDB(db);
     console.log("Review deleted:", reviewId);
     res.redirect(`/admin/edit/${req.params.productId}`);
   } catch (err) {
@@ -750,8 +734,8 @@ router.post("/review/delete/:productId", (req, res) => {
 });
 
 // Admin Management
-router.get("/admins", (req, res) => {
-  const db = loadDB();
+router.get("/admins", async (req, res) => {
+  const db = await loadDB();
   res.render("admin/admins", {
     admins: db.admins || [],
     users: db.users || [],
@@ -760,9 +744,9 @@ router.get("/admins", (req, res) => {
   });
 });
 
-router.post("/admins/add", (req, res) => {
+router.post("/admins/add", async (req, res) => {
   try {
-    const db = loadDB();
+    const db = await loadDB();
     const { email } = req.body;
     const user = db.users.find((u) => u.email === email);
     if (!user) {
@@ -778,63 +762,62 @@ router.post("/admins/add", (req, res) => {
       db.admins.push(email);
       user.role = "admin";
       user.isAdmin = true;
-      saveDB(db);
+      if (req.user.email === email) {
+        req.session.passport.user = user; // Update session
+      }
+      await saveDB(db);
       console.log("Admin added:", email);
     }
     res.redirect("/admin/admins");
   } catch (err) {
     console.error("Add admin error:", err);
     res.render("admin/admins", {
-      admins: db.admins || [],
-      users: db.users || [],
+      admins: (await loadDB()).admins || [],
+      users: (await loadDB()).users || [],
       user: req.user,
       error: "Failed to add admin",
     });
   }
 });
 
-router.post("/admins/delete/:email", (req, res) => {
+router.post("/admins/delete/:email", async (req, res) => {
   try {
-    const db = loadDB();
+    const db = await loadDB();
     const email = decodeURIComponent(req.params.email);
     db.admins = db.admins.filter((e) => e !== email);
     const user = db.users.find((u) => u.email === email);
     if (user) {
       user.role = "user";
       user.isAdmin = false;
+      if (req.user.email === email) {
+        req.session.passport.user = user; // Update session
+      }
     }
-    saveDB(db);
+    await saveDB(db);
     console.log("Admin removed:", email);
     res.redirect("/admin/admins");
   } catch (err) {
     console.error("Remove admin error:", err);
     res.render("admin/admins", {
-      admins: db.admins || [],
-      users: db.users || [],
+      admins: (await loadDB()).admins || [],
+      users: (await loadDB()).users || [],
       user: req.user,
       error: "Failed to remove admin",
     });
   }
 });
 
-router.post('/database/save', async (req, res) => {
+router.post("/database/save", async (req, res) => {
   try {
     const { dbContent } = req.body;
-    const dbPath = 'path/to/your/database/file'; // Replace with actual dbPath (e.g., from session or config)
-
-    // Validate input
-    if (!dbContent || !dbPath) {
-      return res.status(400).json({ error: 'Missing dbContent or dbPath' });
+    if (!dbContent) {
+      return res.status(400).json({ error: "Missing dbContent" });
     }
-
-    // Save content to file
-    await fss.writeFile(path.resolve(dbPath), dbContent, 'utf8');
-
-    // Redirect back to database page or send success response
-    res.redirect('/database');
-  } catch (error) {
-    console.error('Error saving database content:', error);
-    res.status(500).json({ error: 'Failed to save content' });
+    await fs.writeFile(dbPath, dbContent, "utf8");
+    res.redirect("/database");
+  } catch (err) {
+    console.error("Error saving database content:", err);
+    res.status(500).json({ error: "Failed to save content" });
   }
 });
 

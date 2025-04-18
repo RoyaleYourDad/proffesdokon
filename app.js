@@ -1,11 +1,9 @@
 const express = require("express");
 const session = require("express-session");
-const FileStore = require("session-file-store")(session);
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const fs = require("fs");
+const fs = require("fs").promises; // Use promises for async file operations
 const path = require("path");
-const os = require("os");
 const dotenv = require("dotenv");
 const multer = require("multer");
 const axios = require("axios");
@@ -16,22 +14,9 @@ dotenv.config();
 
 const app = express();
 const dbPath = path.join(__dirname, "database.json");
-const sessionPath = path.join(os.tmpdir(), "sessions");
 
-// Ensure sessions directory exists and is writable
-try {
-  if (!fs.existsSync(sessionPath)) {
-    fs.mkdirSync(sessionPath, { recursive: true });
-    console.log(`Created sessions directory at ${sessionPath}`);
-  }
-  fs.chmodSync(sessionPath, 0o777); // Permissive for debugging
-} catch (err) {
-  console.error("Failed to initialize sessions directory:", {
-    path: sessionPath,
-    error: err.message,
-    stack: err.stack,
-  });
-}
+// Enable trust proxy for Railway
+app.set("trust proxy", 1);
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -63,24 +48,15 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
+// Session configuration with MemoryStore
 app.use(
   session({
-    store: new FileStore({
-      path: sessionPath,
-      ttl: 12 * 60 * 60, // 12 hours
-      retries: 3,
-      logFn: (msg) => console.error(`Session store error: ${msg}`),
-      fileExtension: ".json",
-      reapInterval: 60 * 60,
-      reapAsync: true,
-      create: (filename) => console.log(`Created session file: ${filename}`),
-      destroy: (filename) => console.log(`Deleted session file: ${filename}`),
-    }),
     secret: process.env.SESSION_SECRET || "fallback-secret",
     resave: false,
     saveUninitialized: false,
+    store: undefined, // Use default MemoryStore
     cookie: {
-      secure: process.env.NODE_ENV === "production" ? true : "auto",
+      secure: "auto", // Works for both HTTP and HTTPS
       maxAge: 12 * 60 * 60 * 1000, // 12 hours
       sameSite: "lax",
     },
@@ -89,21 +65,10 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Middleware to check for missing sessions
+// Middleware for debugging sessions
 app.use((req, res, next) => {
   console.log("Session ID:", req.sessionID);
   console.log("Session data:", req.session);
-  if (!req.user && req.session.passport && !req.path.startsWith("/auth")) {
-    console.log("Missing user but session exists, redirecting to login", {
-      sessionID: req.sessionID,
-      path: req.path,
-    });
-    return res.redirect("/auth/login?error=session_expired");
-  }
-  req.upload = upload.fields([
-    { name: "thumbnail", maxCount: 1 },
-    { name: "previewImages", maxCount: 8 },
-  ]);
   console.log(
     "Request user:",
     req.user
@@ -115,16 +80,28 @@ app.use((req, res, next) => {
         }
       : "No user"
   );
+  if (!req.user && req.session.passport && !req.path.startsWith("/auth")) {
+    console.log("Missing user but session exists, redirecting to login", {
+      sessionID: req.sessionID,
+      path: req.path,
+    });
+    return res.redirect("/auth/login?error=session_expired");
+  }
+  req.upload = upload.fields([
+    { name: "thumbnail", maxCount: 1 },
+    { name: "previewImages", maxCount: 8 },
+  ]);
   next();
 });
 
-// Cached database
+// Cached database and lock
 let dbCache = null;
+let dbLock = false; // Simple in-memory lock for database writes
 
-const loadDB = () => {
-  if (dbCache) return dbCache;
+const loadDB = async () => {
+  if (dbCache && !dbLock) return dbCache;
   try {
-    const data = JSON.parse(fs.readFileSync(dbPath, "utf8"));
+    const data = JSON.parse(await fs.readFile(dbPath, "utf8"));
     dbCache = {
       products: (data.products || []).map((p) => ({
         ...p,
@@ -141,33 +118,36 @@ const loadDB = () => {
       admins: data.admins || [],
       stockHistory: data.stockHistory || [],
     };
+    console.log("Database loaded:", { users: dbCache.users.length, products: dbCache.products.length });
     return dbCache;
   } catch (err) {
     console.error("Failed to load database.json:", {
       path: dbPath,
       error: err.message,
-      stack: err.stack,
     });
     dbCache = { products: [], categories: [], users: [], admins: [], stockHistory: [] };
     return dbCache;
   }
 };
 
-const saveDB = (data) => {
+const saveDB = async (data) => {
+  while (dbLock) {
+    await new Promise((resolve) => setTimeout(resolve, 100)); // Wait for lock
+  }
+  dbLock = true;
   try {
     dbCache = data;
-    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2));
+    await fs.writeFile(dbPath, JSON.stringify(data, null, 2));
+    console.log("Database saved:", { users: data.users.length, products: data.products.length });
   } catch (err) {
     console.error("Error saving database:", err);
+    throw err;
+  } finally {
+    dbLock = false;
   }
 };
 
-const imgbbApiKeys = [
-  process.env.IMGBB_API_KEY_1,
-  process.env.IMGBB_API_KEY_2,
-  process.env.IMGBB_API_KEY_3,
-].filter((key) => key);
-
+// ImgBB upload/delete functions (unchanged)
 async function uploadToImgBB(file) {
   try {
     const dimensions = sizeOf(file.buffer);
@@ -175,20 +155,22 @@ async function uploadToImgBB(file) {
       throw new Error("Image must be at least 512x512 pixels");
     }
 
+    const imgbbApiKeys = [
+      process.env.IMGBB_API_KEY_1,
+      process.env.IMGBB_API_KEY_2,
+      process.env.IMGBB_API_KEY_3,
+    ].filter((key) => key);
+
     for (const apiKey of imgbbApiKeys) {
       try {
         const formData = new FormData();
         formData.append("image", file.buffer.toString("base64"));
         formData.append("key", apiKey);
 
-        const response = await axios.post(
-          "https://api.imgbb.com/1/upload",
-          formData,
-          {
-            headers: formData.getHeaders(),
-            timeout: 10000,
-          }
-        );
+        const response = await axios.post("https://api.imgbb.com/1/upload", formData, {
+          headers: formData.getHeaders(),
+          timeout: 10000,
+        });
 
         if (response.data.success) {
           return {
@@ -197,10 +179,7 @@ async function uploadToImgBB(file) {
           };
         }
       } catch (err) {
-        console.error(
-          `ImgBB upload failed with key ${apiKey.slice(0, 4)}...:`,
-          err.response?.data || err.message
-        );
+        console.error(`ImgBB upload failed with key ${apiKey.slice(0, 4)}...:`, err.message);
         continue;
       }
     }
@@ -215,7 +194,7 @@ async function deleteFromImgBB(deleteUrl) {
     await axios.get(deleteUrl, { timeout: 5000 });
     return true;
   } catch (err) {
-    console.error("ImgBB delete failed:", err.response?.data || err.message);
+    console.error("ImgBB delete failed:", err.message);
     return false;
   }
 }
@@ -230,13 +209,13 @@ passport.use(
           ? process.env.GOOGLE_CALLBACK_URL
           : "http://localhost:3000/auth/google/callback",
     },
-    (accessToken, refreshToken, profile, done) => {
+    async (accessToken, refreshToken, profile, done) => {
       console.log("Google auth callback:", {
         googleId: profile.id,
         email: profile.emails[0].value,
         displayName: profile.displayName,
       });
-      const db = loadDB();
+      const db = await loadDB();
       let user = db.users.find((u) => u.googleId === profile.id);
 
       if (!user) {
@@ -251,7 +230,7 @@ passport.use(
           isAdmin: false,
         };
         db.users.push(user);
-        saveDB(db);
+        await saveDB(db);
       }
 
       user.isAdmin = user.role === "admin";
@@ -271,22 +250,27 @@ passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser((id, done) => {
+passport.deserializeUser(async (id, done) => {
   console.log("Deserializing user ID:", id);
-  const db = loadDB();
-  const user = db.users.find((u) => u.id === id);
-  if (user) {
-    user.isAdmin = user.role === "admin";
-    console.log("Deserialized user:", {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      isAdmin: user.isAdmin,
-    });
-    done(null, user);
-  } else {
-    console.error("Deserialize failed: User not found", id);
-    done(null, false);
+  try {
+    const db = await loadDB();
+    const user = db.users.find((u) => u.id === id);
+    if (user) {
+      user.isAdmin = user.role === "admin";
+      console.log("Deserialized user:", {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        isAdmin: user.isAdmin,
+      });
+      done(null, user);
+    } else {
+      console.error("Deserialize failed: User not found", id);
+      done(null, false);
+    }
+  } catch (err) {
+    console.error("Deserialize error:", err);
+    done(err, null);
   }
 });
 
@@ -302,7 +286,7 @@ app.use("/cart", require("./routes/cart"));
 app.use("/sessions", require("./routes/sessions"));
 
 // Serve database.json (admin-only)
-const serveDatabase = (req, res) => {
+const serveDatabase = async (req, res) => {
   if (!req.user || !req.user.isAdmin) {
     return res.status(403).render("error", {
       message: "Access denied: Admin privileges required",
@@ -312,18 +296,13 @@ const serveDatabase = (req, res) => {
   }
   try {
     if (req.query.view === "raw") {
-      // Serve raw JSON content
-      const dbData = fs.readFileSync(dbPath, "utf8");
+      const dbData = await fs.readFile(dbPath, "utf8");
       res.setHeader("Content-Type", "application/json");
       res.send(dbData);
     } else if (req.query.download === "true") {
-      // Trigger download
       res.download(dbPath, "database.json", (err) => {
         if (err) {
-          console.error("Error downloading database.json:", {
-            error: err.message,
-            stack: err.stack,
-          });
+          console.error("Error downloading database.json:", err);
           if (!res.headersSent) {
             res.status(500).render("error", {
               message: "Failed to download database",
@@ -334,20 +313,16 @@ const serveDatabase = (req, res) => {
         }
       });
     } else {
-      // Render database view
-      const dbData = fs.readFileSync(dbPath, "utf8");
+      const dbData = await fs.readFile(dbPath, "utf8");
       res.render("database", {
         user: req.user,
         query: req.query || {},
         dbContent: dbData,
-        dbPath: dbPath, // Added to fix dbPath is not defined
+        dbPath: dbPath,
       });
     }
   } catch (err) {
-    console.error("Error reading database.json:", {
-      error: err.message,
-      stack: err.stack,
-    });
+    console.error("Error reading database.json:", err);
     res.status(500).render("error", {
       message: "Failed to load database",
       user: req.user,
