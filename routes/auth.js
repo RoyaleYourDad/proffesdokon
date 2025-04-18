@@ -33,7 +33,11 @@ router.get("/login", (req, res) => {
     console.log(`Login page: User ${req.user.email} already logged in, redirecting to /`);
     return res.redirect("/");
   }
-  res.render("login", { user: null });
+  res.render("login", {
+    user: null,
+    query: req.query || {},
+    error: req.query.error || null,
+  });
 });
 
 // GET /auth/google
@@ -48,19 +52,34 @@ router.get(
 // GET /auth/google/callback
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/auth/login" }),
-  (req, res, next) => {
+  passport.authenticate("google", {
+    failureRedirect: "/auth/login?error=auth_failed",
+  }),
+  (req, res) => {
     console.log(`Google callback: User ${req.user.email}`, {
       sessionID: req.sessionID,
       userID: req.user.id,
     });
     req.session.save((err) => {
       if (err) {
-        console.error("Session save failed:", err);
-        return next(err);
+        console.error("Session save failed:", {
+          error: err.message,
+          stack: err.stack,
+        });
+        if (!res.headersSent) {
+          return res.status(500).render("error", {
+            message: "Failed to save session. Please try again.",
+            user: req.user,
+            query: req.query || {},
+          });
+        }
+        console.warn("Headers already sent, skipping error response");
+        return;
       }
       console.log("Session saved, redirecting to /");
-      res.redirect("/");
+      if (!res.headersSent) {
+        res.redirect("/");
+      }
     });
   }
 );

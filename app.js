@@ -17,9 +17,19 @@ const app = express();
 const dbPath = path.join(__dirname, "database.json");
 const sessionPath = path.join(__dirname, "sessions");
 
-// Ensure sessions directory exists
-if (!fs.existsSync(sessionPath)) {
-  fs.mkdirSync(sessionPath, { recursive: true });
+// Ensure sessions directory exists and is writable
+try {
+  if (!fs.existsSync(sessionPath)) {
+    fs.mkdirSync(sessionPath, { recursive: true });
+    console.log(`Created sessions directory at ${sessionPath}`);
+  }
+  fs.chmodSync(sessionPath, "755");
+} catch (err) {
+  console.error("Failed to initialize sessions directory:", {
+    path: sessionPath,
+    error: err.message,
+    stack: err.stack,
+  });
 }
 
 const storage = multer.memoryStorage();
@@ -36,6 +46,7 @@ const upload = multer({
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
+app.locals.ejs = { debug: true };
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -45,16 +56,21 @@ app.use(
   session({
     store: new FileStore({
       path: sessionPath,
-      ttl: 24 * 60 * 60, // 1 day
-      retries: 2,
-      logFn: console.error,
+      ttl: 12 * 60 * 60, // 12 hours
+      retries: 3,
+      logFn: (msg) => console.error(`Session store error: ${msg}`),
+      fileExtension: ".json",
+      reapInterval: 60 * 60, // Clean up expired sessions hourly
+      reapAsync: true,
+      create: (filename) => console.log(`Created session file: ${filename}`),
+      destroy: (filename) => console.log(`Deleted session file: ${filename}`),
     }),
     secret: process.env.SESSION_SECRET || "fallback-secret",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: "auto",
-      maxAge: 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production" ? true : "auto",
+      maxAge: 12 * 60 * 60 * 1000, // 12 hours
       sameSite: "lax",
     },
   })
@@ -87,7 +103,11 @@ const loadDB = () => {
     };
     return dbCache;
   } catch (err) {
-    console.error("Error loading database:", err);
+    console.error("Failed to load database.json:", {
+      path: dbPath,
+      error: err.message,
+      stack: err.stack,
+    });
     dbCache = { products: [], categories: [], users: [], admins: [], stockHistory: [] };
     return dbCache;
   }
@@ -254,26 +274,41 @@ app.locals.uploadToImgBB = uploadToImgBB;
 app.locals.deleteFromImgBB = deleteFromImgBB;
 
 // Routes
+app.use("/product", require("./routes/product"));
 app.use("/", require("./routes/index"));
 app.use("/admin", require("./routes/admin"));
 app.use("/auth", require("./routes/auth"));
 app.use("/cart", require("./routes/cart"));
-app.use("/product", require("./routes/product"));
 
-// Product route for product.ejs
-app.get("/product/:id", (req, res, next) => {
-  const db = loadDB();
-  const product = db.products.find((p) => p.id === req.params.id);
-  if (!product) {
-    return res.status(404).render("error", { message: "Product not found", user: req.user });
+// Serve database.json (admin-only)
+const serveDatabase = (req, res) => {
+  if (!req.user || !req.user.isAdmin) {
+    return res.status(403).render("error", {
+      message: "Access denied: Admin privileges required",
+      user: req.user,
+      query: req.query || {},
+    });
   }
-  res.render("product", {
-    product,
-    user: req.user,
-    users: db.users,
-    categories: db.categories,
-  });
-});
+  try {
+    const dbData = fs.readFileSync(dbPath, "utf8");
+    res.setHeader("Content-Type", "application/json");
+    res.send(dbData);
+  } catch (err) {
+    console.error("Error reading database.json:", {
+      error: err.message,
+      stack: err.stack,
+    });
+    res.status(500).render("error", {
+      message: "Failed to load database",
+      user: req.user,
+      query: req.query || {},
+    });
+  }
+};
+
+// Database routes
+app.get("/database", serveDatabase);
+app.get("/database.json", serveDatabase);
 
 // Error handling
 app.use((err, req, res, next) => {
@@ -282,11 +317,24 @@ app.use((err, req, res, next) => {
     stack: err.stack,
     path: req.path,
     method: req.method,
+    user: req.user ? { id: req.user.id, email: req.user.email } : "No user",
   });
-  if (err instanceof multer.MulterError) {
-    return res.status(400).render("error", { message: "File upload error", user: req.user });
+  if (res.headersSent) {
+    console.warn("Headers already sent, skipping error response");
+    return next();
   }
-  res.status(500).render("error", { message: "Something went wrong!", user: req.user });
+  if (err instanceof multer.MulterError) {
+    return res.status(400).render("error", {
+      message: "File upload error",
+      user: req.user,
+      query: req.query || {},
+    });
+  }
+  res.status(500).render("error", {
+    message: err.message || "Something went wrong!",
+    user: req.user,
+    query: req.query || {},
+  });
 });
 
 const PORT = process.env.PORT || 3000;

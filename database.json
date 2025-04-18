@@ -13,6 +13,7 @@
         "url": "https://i.ibb.co/Sw8p6FGG/21588122bc45.jpg",
         "delete_url": "https://ibb.co/k2fFGNvv/1b9b141d96de9bed3a4fa03d2d219446"
       },
+      "reviews": [],
       "previewImages": [
         {
           "url": "https://i.ibb.co/Ldm1sT39/88561e9fd3d0.jpg",
@@ -35,16 +36,6 @@
         {
           "key": "Key4",
           "value": "Value4"
-        }
-      ],
-      "reviews": [
-        {
-          "id": "r_1744739166453_1",
-          "userId": "1744729926566",
-          "rating": 5,
-          "comment": "gdfgsdffg",
-          "timestamp": "2025-04-15T18:10:24.544Z",
-          "edited": false
         }
       ]
     },
@@ -71,16 +62,7 @@
           "value": "sadcf"
         }
       ],
-      "reviews": [
-        {
-          "id": "r_1744804812036_1",
-          "userId": "1744729926566",
-          "rating": 4,
-          "comment": "Feedback test product2 1\r\n",
-          "timestamp": "2025-04-16T12:00:52.151Z",
-          "edited": false
-        }
-      ],
+      "reviews": [],
       "thumbnail": {
         "url": "https://i.ibb.co/1GKrgrBm/bc561e73a4d2.jpg",
         "delete_url": "https://ibb.co/Kx72P2Br/3520594a27f796bcc1284f602f362a68"
@@ -148,18 +130,9 @@
       "googleId": "111987115029041087440",
       "displayName": "Ubaydulloh Sayfullayev",
       "email": "royaleyourdad@gmail.com",
-      "cart": [
-        {
-          "productId": "1744739166453",
-          "quantity": 6
-        },
-        {
-          "productId": "1744813498742",
-          "quantity": 4
-        }
-      ],
+      "cart": [],
       "role": "admin",
-      "cartCount": 10,
+      "cartCount": 0,
       "isAdmin": true
     },
     {

@@ -145,7 +145,7 @@ router.get("/", (req, res) => {
     res.status(500).render("error", {
       message: "Failed to load products",
       user: req.user,
-      query: req.query || {}, // Ensure query is passed
+      query: req.query || {},
     });
   }
 });

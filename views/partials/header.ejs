@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -39,8 +40,9 @@
       <div class="hidden md:flex items-center gap-6">
         <!-- Search Bar -->
         <form action="/" method="GET" class="flex items-center">
-          <input type="text" name="search" value="<%= query && query.search ? query.search : '' %>"
-            placeholder="Search products, categories, origins, or details..."
+          <input type="text" name="search"
+            value="<%= typeof query !== 'undefined' && query.search ? query.search : '' %>"
+            placeholder="Search products, categories, or details..."
             class="p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <button type="submit" class="ml-2 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,7 +58,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
-          Cart (<span id="cart-count"><%= user && user.cartCount ? user.cartCount : 0 %></span>)
+          Cart
         </a>
         <!-- User and Admin Links -->
         <% if (user) { %>
@@ -88,28 +90,33 @@
                 <a href="/admin"
                   class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">Dashboard</a>
                 <a href="/admin/add"
-                  class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">Add Product</a>
+                  class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">Add
+                  Product</a>
                 <a href="/admin/users"
-                  class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">User Management</a>
+                  class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">User
+                  Management</a>
                 <a href="/admin/stock"
-                  class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">Stock Management</a>
+                  class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">Stock
+                  Management</a>
                 <a href="/admin/stock/history"
-                  class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">Stock History</a>
+                  class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">Stock
+                  History</a>
                 <a href="/admin/admins"
-                  class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">Admin Management</a>
+                  class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">Admin
+                  Management</a>
               </div>
             </div>
             <% } %>
-        <% } else { %>
-          <a href="/auth/login"
-            class="text-gray-700 hover:text-blue-600 flex items-center text-base whitespace-nowrap transition-colors duration-200">
-            <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-            </svg>
-            Login
-          </a>
-        <% } %>
+              <% } else { %>
+                <a href="/auth/login"
+                  class="text-gray-700 hover:text-blue-600 flex items-center text-base whitespace-nowrap transition-colors duration-200">
+                  <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
+                  Login
+                </a>
+                <% } %>
       </div>
     </div>
 
@@ -118,9 +125,9 @@
       <div class="flex flex-col gap-4 p-4">
         <!-- Search Bar (Mobile) -->
         <form action="/" method="GET" class="relative inline-block">
-          <input type="text" name="search" placeholder="Search products, categories, origins, or details..."
+          <input type="text" name="search" placeholder="Search products, categories, or details..."
             class="w-full h-12 px-4 bg-gray-100 border border-gray-200 rounded-lg text-base text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:scale-105 focus:animate-pulse-bg hover:border-blue-500 hover:scale-102 transition-all duration-200 ease-in-out"
-            value="<%= query && query.search ? query.search : '' %>" />
+            value="<%= typeof query !== 'undefined' && query.search ? query.search : '' %>" />
           <button type="submit" class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -135,7 +142,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
-          Cart (<span id="cart-count"><%= user && user.cartCount ? user.cartCount : 0 %></span>)
+          Cart
         </a>
         <!-- User and Admin Links (Mobile) -->
         <% if (user) { %>
@@ -164,23 +171,28 @@
             <!-- Admin Links (Mobile) -->
             <div class="flex flex-col gap-2 pl-4">
               <a href="/admin" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Dashboard</a>
-              <a href="/admin/add" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Add Product</a>
-              <a href="/admin/users" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">User Management</a>
-              <a href="/admin/stock" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Stock Management</a>
-              <a href="/admin/stock/history" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Stock History</a>
-              <a href="/admin/admins" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Admin Management</a>
+              <a href="/admin/add" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Add
+                Product</a>
+              <a href="/admin/users" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">User
+                Management</a>
+              <a href="/admin/stock" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Stock
+                Management</a>
+              <a href="/admin/stock/history"
+                class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Stock History</a>
+              <a href="/admin/admins" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Admin
+                Management</a>
             </div>
             <% } %>
-        <% } else { %>
-          <a href="/auth/login"
-            class="text-gray-700 hover:text-blue-600 flex items-center text-base whitespace-nowrap transition-colors duration-200">
-            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-            </svg>
-            Login
-          </a>
-        <% } %>
+              <% } else { %>
+                <a href="/auth/login"
+                  class="text-gray-700 hover:text-blue-600 flex items-center text-base whitespace-nowrap transition-colors duration-200">
+                  <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                  </svg>
+                  Login
+                </a>
+                <% } %>
       </div>
     </div>
   </nav>
@@ -427,3 +439,15 @@
       }
     }
   </style>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      fetch("/count")
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("cart-count").innerText = data.cartCount || 0;
+        })
+        .catch(err => {
+          console.error("Error fetching cart count:", err);
+        });
+    });
+  </script>
