@@ -28,6 +28,7 @@ router.get("/login", (req, res) => {
   console.log("Accessing /auth/login", {
     sessionID: req.sessionID,
     user: req.user ? req.user.email : "No user",
+    error: req.query.error || null,
   });
   if (req.user) {
     console.log(`Login page: User ${req.user.email} already logged in, redirecting to /`);
@@ -56,9 +57,10 @@ router.get(
     failureRedirect: "/auth/login?error=auth_failed",
   }),
   (req, res) => {
-    console.log(`Google callback: User ${req.user.email}`, {
+    console.log("Google callback session:", {
       sessionID: req.sessionID,
-      userID: req.user.id,
+      user: req.user ? { id: req.user.id, email: req.user.email } : "No user",
+      session: req.session,
     });
     req.session.save((err) => {
       if (err) {

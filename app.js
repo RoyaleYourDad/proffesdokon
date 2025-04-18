@@ -5,6 +5,7 @@ const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const fs = require("fs");
 const path = require("path");
+const os = require("os"); // Added for cross-platform tmp directory
 const dotenv = require("dotenv");
 const multer = require("multer");
 const axios = require("axios");
@@ -15,7 +16,7 @@ dotenv.config();
 
 const app = express();
 const dbPath = path.join(__dirname, "database.json");
-const sessionPath = path.join(__dirname, "sessions");
+const sessionPath = path.join(os.tmpdir(), "sessions"); // Dynamic path: C:\tmp\sessions (Windows) or /tmp/sessions (Linux)
 
 // Ensure sessions directory exists and is writable
 try {
@@ -23,7 +24,8 @@ try {
     fs.mkdirSync(sessionPath, { recursive: true });
     console.log(`Created sessions directory at ${sessionPath}`);
   }
-  fs.chmodSync(sessionPath, "755");
+  // Use 0o777 (rwxrwxrwx) for debugging, adjust to 0o755 in production if needed
+  fs.chmodSync(sessionPath, 0o777);
 } catch (err) {
   console.error("Failed to initialize sessions directory:", {
     path: sessionPath,
@@ -52,6 +54,16 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use("/uploads", express.static("public/uploads"));
 
+// Enforce HTTPS in production
+if (process.env.NODE_ENV === "production") {
+  app.use((req, res, next) => {
+    if (req.header("x-forwarded-proto") !== "https") {
+      return res.redirect(`https://${req.header("host")}${req.url}`);
+    }
+    next();
+  });
+}
+
 app.use(
   session({
     store: new FileStore({
@@ -77,6 +89,35 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Middleware to check for missing sessions
+app.use((req, res, next) => {
+  console.log("Session ID:", req.sessionID);
+  console.log("Session data:", req.session);
+  if (!req.user && req.session.passport && !req.path.startsWith("/auth")) {
+    console.log("Missing user but session exists, redirecting to login", {
+      sessionID: req.sessionID,
+      path: req.path,
+    });
+    return res.redirect("/auth/login?error=session_expired");
+  }
+  req.upload = upload.fields([
+    { name: "thumbnail", maxCount: 1 },
+    { name: "previewImages", maxCount: 8 },
+  ]);
+  console.log(
+    "Request user:",
+    req.user
+      ? {
+          id: req.user.id,
+          email: req.user.email,
+          role: req.user.role,
+          isAdmin: req.user.isAdmin,
+        }
+      : "No user"
+  );
+  next();
+});
 
 // Cached database
 let dbCache = null;
@@ -248,26 +289,6 @@ passport.deserializeUser((id, done) => {
     console.error("Deserialize failed: User not found", id);
     done(null, false);
   }
-});
-
-app.use((req, res, next) => {
-  console.log("Session ID:", req.sessionID);
-  req.upload = upload.fields([
-    { name: "thumbnail", maxCount: 1 },
-    { name: "previewImages", maxCount: 8 },
-  ]);
-  console.log(
-    "Request user:",
-    req.user
-      ? {
-          id: req.user.id,
-          email: req.user.email,
-          role: req.user.role,
-          isAdmin: req.user.isAdmin,
-        }
-      : "No user"
-  );
-  next();
 });
 
 app.locals.uploadToImgBB = uploadToImgBB;
