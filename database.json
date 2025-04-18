@@ -116,16 +116,6 @@
   ],
   "users": [
     {
-      "id": "1744729186213",
-      "googleId": "112865287677704924287",
-      "displayName": "Royale",
-      "email": "royalepubgacc@gmail.com",
-      "cart": [],
-      "role": "user",
-      "cartCount": 0,
-      "isAdmin": false
-    },
-    {
       "id": "1744729926566",
       "googleId": "111987115029041087440",
       "displayName": "Ubaydulloh Sayfullayev",
@@ -134,26 +124,6 @@
       "role": "admin",
       "cartCount": 0,
       "isAdmin": true
-    },
-    {
-      "id": "1744739267240",
-      "googleId": "107497949822712008036",
-      "displayName": "Public Store",
-      "email": "spublic598@gmail.com",
-      "role": "user",
-      "cart": [],
-      "cartCount": 0,
-      "isAdmin": false
-    },
-    {
-      "id": "1744798240414",
-      "googleId": "108976430254645774363",
-      "email": "someecommercialshop@gmail.com",
-      "displayName": "Shop Only",
-      "role": "user",
-      "cart": [],
-      "cartCount": 0,
-      "isAdmin": false
     }
   ],
   "categories": [

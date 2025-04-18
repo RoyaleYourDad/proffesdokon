@@ -5,7 +5,7 @@ const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const fs = require("fs");
 const path = require("path");
-const os = require("os"); // Added for cross-platform tmp directory
+const os = require("os");
 const dotenv = require("dotenv");
 const multer = require("multer");
 const axios = require("axios");
@@ -16,7 +16,7 @@ dotenv.config();
 
 const app = express();
 const dbPath = path.join(__dirname, "database.json");
-const sessionPath = path.join(os.tmpdir(), "sessions"); // Dynamic path: C:\tmp\sessions (Windows) or /tmp/sessions (Linux)
+const sessionPath = path.join(os.tmpdir(), "sessions");
 
 // Ensure sessions directory exists and is writable
 try {
@@ -24,8 +24,7 @@ try {
     fs.mkdirSync(sessionPath, { recursive: true });
     console.log(`Created sessions directory at ${sessionPath}`);
   }
-  // Use 0o777 (rwxrwxrwx) for debugging, adjust to 0o755 in production if needed
-  fs.chmodSync(sessionPath, 0o777);
+  fs.chmodSync(sessionPath, 0o777); // Permissive for debugging
 } catch (err) {
   console.error("Failed to initialize sessions directory:", {
     path: sessionPath,
@@ -72,7 +71,7 @@ app.use(
       retries: 3,
       logFn: (msg) => console.error(`Session store error: ${msg}`),
       fileExtension: ".json",
-      reapInterval: 60 * 60, // Clean up expired sessions hourly
+      reapInterval: 60 * 60,
       reapAsync: true,
       create: (filename) => console.log(`Created session file: ${filename}`),
       destroy: (filename) => console.log(`Deleted session file: ${filename}`),
@@ -300,6 +299,7 @@ app.use("/", require("./routes/index"));
 app.use("/admin", require("./routes/admin"));
 app.use("/auth", require("./routes/auth"));
 app.use("/cart", require("./routes/cart"));
+app.use("/sessions", require("./routes/sessions"));
 
 // Serve database.json (admin-only)
 const serveDatabase = (req, res) => {
@@ -311,9 +311,38 @@ const serveDatabase = (req, res) => {
     });
   }
   try {
-    const dbData = fs.readFileSync(dbPath, "utf8");
-    res.setHeader("Content-Type", "application/json");
-    res.send(dbData);
+    if (req.query.view === "raw") {
+      // Serve raw JSON content
+      const dbData = fs.readFileSync(dbPath, "utf8");
+      res.setHeader("Content-Type", "application/json");
+      res.send(dbData);
+    } else if (req.query.download === "true") {
+      // Trigger download
+      res.download(dbPath, "database.json", (err) => {
+        if (err) {
+          console.error("Error downloading database.json:", {
+            error: err.message,
+            stack: err.stack,
+          });
+          if (!res.headersSent) {
+            res.status(500).render("error", {
+              message: "Failed to download database",
+              user: req.user,
+              query: req.query || {},
+            });
+          }
+        }
+      });
+    } else {
+      // Render database view
+      const dbData = fs.readFileSync(dbPath, "utf8");
+      res.render("database", {
+        user: req.user,
+        query: req.query || {},
+        dbContent: dbData,
+        dbPath: dbPath, // Added to fix dbPath is not defined
+      });
+    }
   } catch (err) {
     console.error("Error reading database.json:", {
       error: err.message,

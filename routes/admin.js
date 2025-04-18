@@ -4,7 +4,7 @@ const path = require("path");
 const router = express.Router();
 const ExcelJS = require("exceljs");
 const dbPath = path.join(__dirname, "../database.json");
-
+const fss = require('fs').promises;
 const loadDB = () => {
   try {
     return JSON.parse(fs.readFileSync(dbPath, "utf8"));
@@ -814,6 +814,27 @@ router.post("/admins/delete/:email", (req, res) => {
       user: req.user,
       error: "Failed to remove admin",
     });
+  }
+});
+
+router.post('/database/save', async (req, res) => {
+  try {
+    const { dbContent } = req.body;
+    const dbPath = 'path/to/your/database/file'; // Replace with actual dbPath (e.g., from session or config)
+
+    // Validate input
+    if (!dbContent || !dbPath) {
+      return res.status(400).json({ error: 'Missing dbContent or dbPath' });
+    }
+
+    // Save content to file
+    await fss.writeFile(path.resolve(dbPath), dbContent, 'utf8');
+
+    // Redirect back to database page or send success response
+    res.redirect('/database');
+  } catch (error) {
+    console.error('Error saving database content:', error);
+    res.status(500).json({ error: 'Failed to save content' });
   }
 });
 
