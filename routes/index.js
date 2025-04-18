@@ -164,6 +164,7 @@ router.get("/product/:id", async (req, res) => {
 // POST /product/:id/review
 router.post("/product/:id/review", async (req, res) => {
   if (!req.user) {
+    console.log("Review submission: No user, redirecting to /auth/login");
     return res.redirect("/auth/login");
   }
 
@@ -172,11 +173,15 @@ router.post("/product/:id/review", async (req, res) => {
     const product = db.products.find((p) => p.id === req.params.id);
 
     if (!product) {
+      console.log(`Review submission: Product ${req.params.id} not found, redirecting to /`);
       return res.redirect("/");
     }
 
     const { rating, comment } = req.body;
+    console.log("Review submission:", { productId: req.params.id, rating, comment, userId: req.user.id });
+
     if (!rating || !comment) {
+      console.log("Review submission: Missing rating or comment");
       return res.render("product", {
         product,
         users: db.users || [],
@@ -187,14 +192,18 @@ router.post("/product/:id/review", async (req, res) => {
     }
 
     product.reviews = product.reviews || [];
-    product.reviews.push({
+    const newReview = {
       userId: req.user.id,
       rating: parseInt(rating),
       comment,
       timestamp: new Date(),
-    });
+    };
+    product.reviews.push(newReview);
+    console.log("Review added to product:", { productId: req.params.id, reviewsCount: product.reviews.length, newReview });
 
     await saveDB(db);
+    console.log("Review saved to database:", { productId: req.params.id, reviewsCount: db.products.find(p => p.id === req.params.id).reviews.length });
+
     res.redirect(`/product/${req.params.id}`);
   } catch (err) {
     console.error("Error saving review:", err);

@@ -9,7 +9,6 @@ const multer = require("multer");
 const axios = require("axios");
 const FormData = require("form-data");
 const sizeOf = require("image-size");
-const { loadDB, saveDB } = require("./db"); // Import from db.js
 
 dotenv.config();
 
@@ -95,6 +94,60 @@ app.use((req, res, next) => {
   next();
 });
 
+// Cached database and lock
+let dbCache = null;
+let dbLock = false;
+
+const loadDB = async () => {
+  if (dbCache && !dbLock) return dbCache;
+  try {
+    const data = JSON.parse(await fs.readFile(dbPath, "utf8"));
+    dbCache = {
+      products: (data.products || []).map((p) => ({
+        ...p,
+        reviews: (p.reviews || []).map((r) => ({ ...r, edited: r.edited || false })),
+      })),
+      categories: data.categories || [],
+      users: (data.users || []).map((user) => ({
+        ...user,
+        role: user.role || "user",
+        cart: user.cart || [],
+        cartCount: user.cartCount || 0,
+        isAdmin: user.role === "admin",
+      })),
+      admins: data.admins || [],
+      stockHistory: data.stockHistory || [],
+    };
+    console.log("Database loaded:", { users: dbCache.users.length, products: dbCache.products.length });
+    return dbCache;
+  } catch (err) {
+    console.error("Failed to load database.json:", {
+      path: dbPath,
+      error: err.message,
+    });
+    dbCache = { products: [], categories: [], users: [], admins: [], stockHistory: [] };
+    return dbCache;
+  }
+};
+
+const saveDB = async (data) => {
+  while (dbLock) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  dbLock = true;
+  try {
+    dbCache = data;
+    await fs.writeFile(dbPath, JSON.stringify(data, null, 2));
+    console.log("Database saved:", { users: data.users.length, products: data.products.length });
+  } catch (err) {
+    console.error("Error saving database:", err);
+    throw err;
+  } finally {
+    dbLock = false;
+  }
+};
+
+// ImgBB upload/delete functions (unchanged)
 async function uploadToImgBB(file) {
   try {
     const dimensions = sizeOf(file.buffer);
@@ -230,7 +283,6 @@ app.use("/", require("./routes/index"));
 app.use("/admin", require("./routes/admin"));
 app.use("/auth", require("./routes/auth"));
 app.use("/cart", require("./routes/cart"));
-app.use("/sessions", require("./routes/sessions"));
 
 // Serve database.json (admin-only)
 const serveDatabase = async (req, res) => {
@@ -313,3 +365,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
+// Export loadDB and saveDB for use in routes
+module.exports = { loadDB, saveDB };

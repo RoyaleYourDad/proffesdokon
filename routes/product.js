@@ -126,6 +126,12 @@ router.post("/:id/review", (req, res, next) => {
 // Render Edit Review Form
 router.get("/:id/review/edit/:reviewId", (req, res, next) => {
   try {
+    console.log("Entering edit review route", {
+      user: req.user ? { id: req.user.id, email: req.user.email, isAdmin: req.user.isAdmin } : "No user",
+      sessionID: req.sessionID,
+      reviewId: req.params.reviewId,
+      productId: req.params.id,
+    });
     if (!req.user) {
       console.log("Edit review: User not authenticated, redirecting to login");
       return res.redirect("/auth/login");

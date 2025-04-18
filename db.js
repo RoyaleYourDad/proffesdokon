@@ -46,11 +46,20 @@ const saveDB = async (data) => {
   dbLock = true;
   try {
     dbCache = data;
+    console.log("Saving database:", {
+      users: data.users.length,
+      products: data.products.length,
+      reviews: data.products.reduce((sum, p) => sum + (p.reviews || []).length, 0),
+    });
     await fs.writeFile(dbPath, JSON.stringify(data, null, 2));
-    console.log("Database saved:", { users: data.users.length, products: data.products.length });
+    console.log("Database successfully saved to disk:", { path: dbPath });
   } catch (err) {
-    console.error("Error saving database:", err);
-    throw err;
+    console.error("Error saving database:", {
+      path: dbPath,
+      error: err.message,
+      stack: err.stack,
+    });
+    throw err; // Rethrow to ensure callers handle the error
   } finally {
     dbLock = false;
   }
