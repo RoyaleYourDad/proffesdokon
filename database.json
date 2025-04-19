@@ -13,16 +13,7 @@
         "url": "https://i.ibb.co/Sw8p6FGG/21588122bc45.jpg",
         "delete_url": "https://ibb.co/k2fFGNvv/1b9b141d96de9bed3a4fa03d2d219446"
       },
-      "reviews": [
-        {
-          "id": "e1622042-f6f7-4186-9020-761e0fd13649",
-          "userId": "1744729926566",
-          "rating": null,
-          "comment": "sadafvsadfasdfgvdg",
-          "timestamp": "2025-04-19T10:58:11.695Z",
-          "edited": true
-        }
-      ],
+      "reviews": [],
       "previewImages": [
         {
           "url": "https://i.ibb.co/Ldm1sT39/88561e9fd3d0.jpg",
@@ -56,7 +47,7 @@
       "discountPrice": 178,
       "discountExpiry": "2025-04-17",
       "origin": "China",
-      "stock": 147,
+      "stock": 237,
       "details": [
         {
           "key": "Key1asdfcasdf",
@@ -91,7 +82,7 @@
       "discountPrice": 1000,
       "discountExpiry": "2025-06-01",
       "origin": "Taiwan",
-      "stock": 5,
+      "stock": 91,
       "details": [
         {
           "key": "Watt",
@@ -221,10 +212,11 @@
       "id": "1744830540708",
       "productId": "1744804812036",
       "action": "sold",
-      "quantity": 1,
-      "notes": "test sell 1, 1, from test product 2",
-      "timestamp": "2025-04-16T19:09:00.708Z",
-      "updatedBy": "1744729926566"
+      "quantity": 10,
+      "notes": "test sell 1, 1, from test product 2  test edit",
+      "updatedBy": "1744729926566",
+      "updatedAt": "2025-04-19T17:20:56.361Z",
+      "date": "2025-04-19T17:20:56.361Z"
     },
     {
       "id": "1744836074723",
@@ -233,7 +225,8 @@
       "quantity": 99,
       "notes": "Bought 100 units",
       "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-16T20:41:14.723Z"
+      "updatedAt": "2025-04-16T20:41:14.723Z",
+      "date": "2025-04-16T20:41:14.723Z"
     },
     {
       "id": "1744836245459",
@@ -242,7 +235,8 @@
       "quantity": 143,
       "notes": "ewrw",
       "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-16T20:44:05.459Z"
+      "updatedAt": "2025-04-16T20:44:05.459Z",
+      "date": "2025-04-16T20:44:05.459Z"
     },
     {
       "id": "1744836748748",
@@ -251,16 +245,18 @@
       "quantity": 108,
       "notes": "test",
       "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-16T20:52:28.748Z"
+      "updatedAt": "2025-04-16T20:52:28.748Z",
+      "date": "2025-04-16T20:52:28.748Z"
     },
     {
       "id": "1744836957241",
       "productId": "1744739166453",
       "action": "bought",
       "quantity": 13,
-      "notes": "32134",
+      "notes": "32134 w",
       "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-16T20:55:57.241Z"
+      "updatedAt": "2025-04-16T20:55:57.241Z",
+      "date": "2025-04-16T20:55:57.241Z"
     },
     {
       "id": "1744837474496",
@@ -269,7 +265,38 @@
       "quantity": 10,
       "notes": "test",
       "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-16T21:04:34.496Z"
+      "updatedAt": "2025-04-16T21:04:34.496Z",
+      "date": "2025-04-16T21:04:34.496Z"
+    },
+    {
+      "id": "1745082554056",
+      "productId": "1744813498742",
+      "action": "bought",
+      "quantity": 100,
+      "notes": "bought 100",
+      "updatedBy": "1744729926566",
+      "updatedAt": "2025-04-19T17:09:14.056Z",
+      "date": "2025-04-19T17:09:14.056Z"
+    },
+    {
+      "id": "1745084376796",
+      "productId": "1744813498742",
+      "action": "sold",
+      "quantity": 14,
+      "notes": "test functionality",
+      "updatedBy": "1744729926566",
+      "updatedAt": "2025-04-19T17:39:36.796Z",
+      "date": "2025-04-19T17:39:36.796Z"
+    },
+    {
+      "id": "1745087252867",
+      "productId": "1744804812036",
+      "action": "bought",
+      "quantity": 99,
+      "notes": ".",
+      "updatedBy": "1744729926566",
+      "updatedAt": "2025-04-19T18:27:32.867Z",
+      "date": "2025-04-19T18:27:32.867Z"
     }
   ]
 }

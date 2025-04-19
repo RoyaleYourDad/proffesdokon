@@ -201,7 +201,7 @@
       mobileMenu.classList.toggle("animate-slide-in", !isOpen);
       menuToggle.setAttribute("aria-expanded", !isOpen);
     });
-
+  
     // Close mobile menu on outside click
     document.addEventListener("click", (e) => {
       if (!mobileMenu.contains(e.target) && !menuToggle.contains(e.target) && !mobileMenu.classList.contains("hidden")) {
@@ -210,7 +210,7 @@
         menuToggle.setAttribute("aria-expanded", "false");
       }
     });
-
+  
     // Admin dropdown hover persistence
     const adminMenu = document.getElementById("admin-menu");
     const adminDropdown = document.getElementById("admin-dropdown");
@@ -236,7 +236,7 @@
         }, 100);
       });
     }
-
+  
     // Click animation for logo and admin button
     const logoButton = document.querySelector('a[href="/"].group');
     const adminButtons = document.querySelectorAll('a[href="/admin"]');
@@ -249,6 +249,52 @@
         button.classList.add("animate-pulse-click");
         setTimeout(() => button.classList.remove("animate-pulse-click"), 300);
       });
+    });
+  
+    // Fetch cart count
+    window.addEventListener("DOMContentLoaded", () => {
+      fetch("/count")
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("cart-count").innerText = data.cartCount || 0;
+        })
+        .catch(err => {
+          console.error("Error fetching cart count:", err);
+        });
+    });
+  
+    // Periodically check admin status
+    function updateAdminStatus() {
+      fetch("/admin/api/user/status")
+        .then(res => {
+          if (!res.ok) throw new Error("Failed to fetch user status");
+          return res.json();
+        })
+        .then(data => {
+          const isAdmin = data.isAdmin;
+          const adminMenu = document.getElementById("admin-menu");
+          const mobileAdminLinks = document.querySelectorAll(".mobile-admin-links");
+  
+          // Current admin status in the DOM
+          const isCurrentlyAdmin = adminMenu && !adminMenu.classList.contains("hidden");
+  
+          if (isAdmin && !isCurrentlyAdmin) {
+            // User became admin: reload to update header
+            window.location.reload();
+          } else if (!isAdmin && isCurrentlyAdmin) {
+            // User is no longer admin: reload to update header
+            window.location.reload();
+          }
+        })
+        .catch(err => {
+          console.error("Error checking admin status:", err);
+        });
+    }
+  
+    // Run on load and every 30 seconds
+    window.addEventListener("DOMContentLoaded", () => {
+      updateAdminStatus();
+      setInterval(updateAdminStatus, 30000); // Check every 30 seconds
     });
   </script>
 
@@ -446,3 +492,5 @@
         });
     });
   </script>
+</body>
+</html> 

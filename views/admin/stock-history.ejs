@@ -1,151 +1,212 @@
 <%- include('../partials/header') %>
-<div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-4">
-  <div class="container mx-auto px-3 max-w-7xl">
-    <h1 class="text-lg md:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 flex items-center">
-      <svg class="w-5 h-5 md:w-6 md:h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl py-12">
+  <!-- Header -->
+  <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-8 flex items-center animate-slide-in">
+    <svg class="w-6 h-6 mr-2 text-indigo-600 animate-pulse flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
       Stock History
-    </h1>
-    <div class="bg-white shadow-xl rounded-2xl p-3 md:p-4">
-      <!-- Filter Section -->
-      <div class="mb-3 flex flex-col md:flex-row md:justify-between md:items-center gap-2">
-        <button id="toggle-filter" class="text-blue-600 hover:text-blue-700 flex items-center text-xs md:text-sm font-medium">
-          <svg class="w-4 h-4 mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1m-17 4h14m-7 4h7m-14 4h14" />
+    </span>
+  </h1>
+
+  <!-- Stock History Section -->
+  <div class="bg-white/80 backdrop-blur-sm shadow-lg rounded-3xl p-6 sm:p-8 transition-all duration-300 hover:shadow-2xl">
+    <!-- Filter Section -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center filter-section gap-4">
+      <button id="toggle-filter" class="text-indigo-600 hover:text-indigo-700 flex items-center text-sm font-medium transition-all duration-300">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1m-17 4h14m-7 4h7m-14 4h14" />
+        </svg>
+        Filter History
+      </button>
+      <form action="/admin/stock/history/export" method="GET" class="inline">
+        <input type="hidden" name="dateRange" value="<%= dateRange || 'allTime' %>">
+        <input type="hidden" name="startDate" value="<%= startDate || '' %>">
+        <input type="hidden" name="endDate" value="<%= endDate || '' %>">
+        <input type="hidden" name="productId" value="<%= productId || '' %>">
+        <input type="hidden" name="action" value="<%= action || '' %>">
+        <button type="submit" class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl text-sm font-medium hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple flex items-center justify-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          Filter History
+          Export History
         </button>
-        <form action="/admin/stock/history/export" method="GET" class="inline">
-          <input type="hidden" name="dateRange" value="<%= dateRange || 'lastDay' %>">
-          <input type="hidden" name="startDate" value="<%= startDate || '' %>">
-          <input type="hidden" name="endDate" value="<%= endDate || '' %>">
-          <input type="hidden" name="productId" value="<%= productId || '' %>">
-          <input type="hidden" name="action" value="<%= action || '' %>">
-          <button type="submit" class="bg-gradient-to-r from-blue-500 to-blue-600 text-white py-1.5 px-2 md:px-3 rounded-lg text-xs font-medium shadow-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center">
-            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Export History
-          </button>
-        </form>
-      </div>
-      <form id="filter-form" action="/admin/stock/history" method="GET" class="hidden mt-2 space-y-2">
-        <div class="grid grid-cols-1 gap-2">
-          <div>
-            <label for="dateRange" class="block text-xs font-medium text-gray-700">Date Range</label>
-            <select name="dateRange" id="dateRange" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </form>
+    </div>
+    <form id="filter-form" action="/admin/stock/history" method="GET" class="hidden mt-4 space-y-4 animate-fade-in-up" style="animation-delay: 0.1s;">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <label for="dateRange" class="block text-sm font-medium text-gray-700">Date Range</label>
+          <div class="relative">
+            <select name="dateRange" id="dateRange" class="mt-1 w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300 appearance-none">
+              <option value="allTime" <%= dateRange === 'allTime' ? 'selected' : '' %>>All Time</option>
               <option value="lastDay" <%= dateRange === 'lastDay' ? 'selected' : '' %>>Last Day</option>
               <option value="lastWeek" <%= dateRange === 'lastWeek' ? 'selected' : '' %>>Last Week</option>
               <option value="lastMonth" <%= dateRange === 'lastMonth' ? 'selected' : '' %>>Last Month</option>
               <option value="custom" <%= dateRange === 'custom' ? 'selected' : '' %>>Custom Range</option>
             </select>
+            <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
-          <div id="custom-date" class="hidden">
-            <label for="startDate" class="block text-xs font-medium text-gray-700">Start Date</label>
-            <input type="date" name="startDate" id="startDate" value="<%= startDate || '' %>" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <label for="endDate" class="block text-xs font-medium text-gray-700 mt-1">End Date</label>
-            <input type="date" name="endDate" id="endDate" value="<%= endDate || '' %>" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div id="custom-date" class="hidden sm:col-span-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="startDate" class="block text-sm font-medium text-gray-700">Start Date</label>
+              <input type="date" name="startDate" id="startDate" value="<%= startDate || '' %>" class="mt-1 w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
+            </div>
+            <div>
+              <label for="endDate" class="block text-sm font-medium text-gray-700">End Date</label>
+              <input type="date" name="endDate" id="endDate" value="<%= endDate || '' %>" class="mt-1 w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
+            </div>
           </div>
-          <div>
-            <label for="productId" class="block text-xs font-medium text-gray-700">Product</label>
-            <select name="productId" id="productId" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label for="productId" class="block text-sm font-medium text-gray-700">Product</label>
+          <div class="relative">
+            <select name="productId" id="productId" class="mt-1 w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300 appearance-none">
               <option value="">All Products</option>
               <% products.forEach(product => { %>
                 <option value="<%= product.id %>" <%= productId === product.id ? 'selected' : '' %>><%= product.name %></option>
               <% }) %>
             </select>
+            <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
-          <div>
-            <label for="action" class="block text-xs font-medium text-gray-700">Action</label>
-            <select name="action" id="action" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div>
+          <label for="action" class="block text-sm font-medium text-gray-700">Action</label>
+          <div class="relative">
+            <select name="action" id="action" class="mt-1 w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300 appearance-none">
               <option value="">All Actions</option>
               <option value="sold" <%= action === 'sold' ? 'selected' : '' %>>Sold</option>
               <option value="bought" <%= action === 'bought' ? 'selected' : '' %>>Bought</option>
             </select>
+            <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
         </div>
-        <button type="submit" class="w-full bg-blue-600 text-white py-1.5 px-3 rounded-lg text-xs hover:bg-blue-700 transition-colors">Apply Filter</button>
-      </form>
-      <!-- History Table -->
-      <% if (history.length === 0) { %>
-        <div class="text-center py-6 md:py-8">
-          <svg class="mx-auto w-10 h-10 md:w-12 md:h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-3 0v6m-9 5h18M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
+      </div>
+      <div class="flex gap-4">
+        <button type="submit" class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl text-sm font-medium hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple flex items-center justify-center flex-1">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
-          <p class="text-gray-500 text-sm md:text-base">No stock history found for the selected filters.</p>
-        </div>
-      <% } else { %>
-        <div class="overflow-x-auto shadow-sm">
-          <table class="w-full text-left text-xs md:text-sm text-gray-600 min-w-[600px]">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[100px]">Date & Time</th>
-                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[80px] truncate">Product</th>
-                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[60px]">Action</th>
-                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[60px]">Quantity</th>
-                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[80px] truncate">Notes</th>
-                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[80px] truncate">Updated By</th>
-                <th class="p-2 md:p-3 font-medium text-gray-700 min-w-[60px]">Actions</th>
+          Apply Filter
+        </button>
+        <button type="button" onclick="clearFilters()" class="bg-gray-100 text-gray-800 py-3 px-6 rounded-xl text-sm font-medium hover:bg-gray-200 hover:scale-105 transition-all duration-300 shadow-md ripple flex items-center justify-center flex-1">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Clear Filters
+        </button>
+      </div>
+    </form>
+
+    <!-- Error/Success Messages -->
+    <% if (typeof error !== 'undefined' && error) { %>
+      <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-md animate-fade-in-up"><%= error %></div>
+    <% } %>
+    <% if (typeof success !== 'undefined' && success) { %>
+      <div class="mb-4 p-4 bg-green-100 text-green-700 rounded-md animate-fade-in-up"><%= success %></div>
+    <% } %>
+
+    <!-- History Table -->
+    <% if (history.length === 0) { %>
+      <div class="text-center py-12 animate-fade-in-up" style="animation-delay: 0.2s;">
+        <svg class="mx-auto w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-3 0v6m-9 5h18M7 3h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
+        </svg>
+        <p class="text-gray-500 text-sm">No stock history found for the selected filters.</p>
+      </div>
+    <% } else { %>
+      <div class="responsive-table shadow-sm rounded-2xl overflow-hidden">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-gray-50/70 backdrop-blur-sm">
+              <th class="p-4 text-sm font-semibold text-gray-700">Date</th>
+              <th class="p-4 text-sm font-semibold text-gray-700">Product</th>
+              <th class="p-4 text-sm font-semibold text-gray-700">Action</th>
+              <th class="p-4 text-sm font-semibold text-gray-700">Quantity</th>
+              <th class="p-4 text-sm font-semibold text-gray-700">Stock</th>
+              <th class="p-4 text-sm font-semibold text-gray-700">Notes</th>
+              <th class="p-4 text-sm font-semibold text-gray-700">Updated By</th>
+              <th class="p-4 text-sm font-semibold text-gray-700">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% history.forEach(entry => { %>
+              <tr class="hover:bg-gray-50/50 transition-all duration-200">
+                <td class="p-4 text-sm text-gray-600">
+                  <%= new Date(entry.date || entry.updatedAt).toLocaleDateString('en-US', { 
+                    year: 'numeric', month: '2-digit', day: '2-digit'
+                  }) %>
+                </td>
+                <td class="p-4 text-sm text-gray-600 truncate"><%= products.find(p => p.id === entry.productId)?.name || 'Unknown' %></td>
+                <td class="p-4 text-sm capitalize <%= entry.action === 'sold' ? 'text-red-600' : 'text-green-600' %>"><%= entry.action %></td>
+                <td class="p-4 text-sm <%= entry.action === 'sold' ? 'text-red-600' : 'text-green-600' %>">
+                  <%= entry.action === 'sold' ? '-' : '+' %><%= entry.quantity %>
+                </td>
+                <td class="p-4 text-sm text-gray-600">
+                  <%= entry.stockAfter !== null ? entry.stockAfter : 'N/A' %>
+                </td>
+                <td class="p-4 text-sm text-gray-600 truncate"><%= entry.notes || '-' %></td>
+                <td class="p-4 text-sm text-gray-600 truncate"><%= users.find(u => u.id === entry.updatedBy)?.displayName || 'Unknown' %></td>
+                <td class="p-4 action-buttons flex gap-2">
+                  <button onclick="tryShowEditModal('<%= entry.id %>', '<%= entry.action %>', <%= entry.quantity %>, '<%= entry.notes ? entry.notes.replace(/'/g, '\\\'') : '' %>', '<%= entry.productId %>', '<%= entry.date || entry.updatedAt %>')" class="text-indigo-500 hover:text-indigo-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.828l-2.828.586.586-2.828L16.414 6.586z" />
+                    </svg>
+                  </button>
+                  <button onclick="showWarning('<%= entry.id %>', '<%= entry.action %>', <%= entry.quantity %>, '<%= entry.productId %>')" class="text-red-500 hover:text-red-600 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              <% history.forEach(entry => { %>
-                <tr class="border-b hover:bg-gray-50">
-                  <td class="p-2 md:p-3">
-                    <%= new Date(entry.updatedAt || entry.timestamp).toLocaleString('en-US', { 
-                      year: 'numeric', month: '2-digit', day: '2-digit', 
-                      hour: '2-digit', minute: '2-digit', hour12: false 
-                    }) %>
-                  </td>
-                  <td class="p-2 md:p-3 truncate max-w-[80px]"><%= products.find(p => p.id === entry.productId)?.name || 'Unknown' %></td>
-                  <td class="p-2 md:p-3 capitalize <%= entry.action === 'sold' ? 'text-red-600' : 'text-green-600' %>"><%= entry.action %></td>
-                  <td class="p-2 md:p-3"><%= entry.quantity %></td>
-                  <td class="p-2 md:p-3 truncate max-w-[80px]"><%= entry.notes || '-' %></td>
-                  <td class="p-2 md:p-3 truncate max-w-[80px]"><%= users.find(u => u.id === entry.updatedBy)?.displayName || 'Unknown' %></td>
-                  <td class="p-2 md:p-3 flex gap-1 md:gap-2">
-                    <button onclick="showEditModal('<%= entry.id %>', '<%= entry.action %>', <%= entry.quantity %>, '<%= entry.notes || '' %>', '<%= entry.productId %>')" class="text-blue-500 hover:text-blue-600">
-                      <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.828l-2.828.586.586-2.828L16.414 6.586z" />
-                      </svg>
-                    </button>
-                    <button onclick="showWarning('<%= entry.id %>', '<%= entry.action %>', <%= entry.quantity %>, '<%= entry.productId %>')" class="text-red-500 hover:text-red-600">
-                      <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-              <% }) %>
-            </tbody>
-          </table>
-        </div>
-      <% } %>
-    </div>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
   </div>
 </div>
 
 <!-- Warning Modal (Delete) -->
 <div id="warning-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-  <div class="bg-white rounded-xl p-3 w-11/12">
-    <h2 class="text-sm md:text-base font-bold text-gray-800 mb-2">Warning: Deleting History</h2>
-    <p class="text-xs text-gray-600 mb-2">
-      Deleting this history entry will also reverse its effect on the stock. For example:
-      <ul class="list-disc pl-4 mt-1">
+  <div class="bg-white rounded-2xl modal-content p-6 max-w-md w-full">
+    <h2 class="text-lg font-bold text-gray-800 mb-4">Warning: Deleting History</h2>
+    <p class="text-sm text-gray-600 mb-4">
+      Deleting this history entry will reverse its effect on the stock. For example:
+      <ul class="list-disc pl-5 mt-2">
         <li>If this was a <strong>sale</strong>, the stock will <strong>increase</strong> by the sold quantity.</li>
         <li>If this was a <strong>purchase</strong>, the stock will <strong>decrease</strong> by the bought quantity.</li>
       </ul>
       Are you sure you want to proceed?
     </p>
-    <p class="text-xs text-red-500 mb-2">This action cannot be undone.</p>
+    <p class="text-sm text-red-500 mb-4">This action cannot be undone.</p>
     <form id="delete-form" action="/admin/stock/history/delete" method="POST">
       <input type="hidden" name="id" id="delete-id">
       <input type="hidden" name="action" id="delete-action">
       <input type="hidden" name="quantity" id="delete-quantity">
       <input type="hidden" name="productId" id="delete-productId">
-      <div class="flex gap-2">
-        <button type="submit" class="bg-red-600 text-white py-1.5 px-3 rounded-lg text-xs hover:bg-red-700 transition-colors">Yes, Delete</button>
-        <button type="button" onclick="closeWarning()" class="bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg text-xs hover:bg-gray-300 transition-colors">Cancel</button>
+      <input type="hidden" name="dateRange" value="<%= dateRange || '' %>">
+      <input type="hidden" name="startDate" value="<%= startDate || '' %>">
+      <input type="hidden" name="endDate" value="<%= endDate || '' %>">
+      <input type="hidden" name="filterProductId" value="<%= productId || '' %>">
+      <input type="hidden" name="filterAction" value="<%= action || '' %>">
+      <div class="flex gap-4">
+        <button type="submit" class="bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-6 rounded-xl text-sm font-medium hover:from-red-600 hover:to-red-700 hover:scale-105 transition-all duration-300 shadow-md ripple flex-1">
+          Yes, Delete
+        </button>
+        <button type="button" onclick="closeWarning()" class="bg-gray-100 text-gray-800 py-3 px-6 rounded-xl text-sm font-medium hover:bg-gray-200 hover:scale-105 transition-all duration-300 shadow-md ripple flex-1">
+          Cancel
+        </button>
       </div>
     </form>
   </div>
@@ -153,35 +214,80 @@
 
 <!-- Edit Modal -->
 <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-  <div class="bg-white rounded-xl p-3 w-11/12">
-    <h2 class="text-sm md:text-base font-bold text-gray-800 mb-2">Edit Stock History Entry</h2>
+  <div class="bg-white rounded-2xl modal-content p-6 max-w-md w-full">
+    <h2 class="text-lg font-bold text-gray-800 mb-4">Edit Stock History Entry</h2>
     <form id="edit-form" action="/admin/stock/history/edit" method="POST">
       <input type="hidden" name="id" id="edit-id">
-      <input type="hidden" name="productId" id="edit-productId">
-      <div class="mb-2">
-        <label for="edit-action" class="block text-xs font-medium text-gray-700">Action</label>
-        <select name="action" id="edit-action" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="sold">Sold</option>
-          <option value="bought">Bought</option>
-        </select>
+      <input type="hidden" name="dateRange" value="<%= dateRange || '' %>">
+      <input type="hidden" name="startDate" value="<%= startDate || '' %>">
+      <input type="hidden" name="endDate" value="<%= endDate || '' %>">
+      <input type="hidden" name="filterProductId" value="<%= productId || '' %>">
+      <input type="hidden" name="filterAction" value="<%= action || '' %>">
+      <div class="mb-4">
+        <label for="edit-productId" class="block text-sm font-medium text-gray-700">Product</label>
+        <div class="relative">
+          <select name="productId" id="edit-productId" class="mt-1 w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300 appearance-none">
+            <% products.forEach(product => { %>
+              <option value="<%= product.id %>"><%= product.name %></option>
+            <% }) %>
+          </select>
+          <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
       </div>
-      <div class="mb-2">
-        <label for="edit-quantity" class="block text-xs font-medium text-gray-700">Quantity</label>
-        <input type="number" name="quantity" id="edit-quantity" min="1" required class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <div class="mb-4">
+        <label for="edit-action" class="block text-sm font-medium text-gray-700">Action</label>
+        <div class="relative">
+          <select name="action" id="edit-action" class="mt-1 w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300 appearance-none">
+            <option value="sold">Sold</option>
+            <option value="bought">Bought</option>
+          </select>
+          <svg class="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
       </div>
-      <div class="mb-2">
-        <label for="edit-notes" class="block text-xs font-medium text-gray-700">Notes</label>
-        <textarea name="notes" id="edit-notes" class="mt-1 w-full p-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3"></textarea>
+      <div class="mb-4">
+        <label for="edit-quantity" class="block text-sm font-medium text-gray-700">Quantity</label>
+        <input type="number" name="quantity" id="edit-quantity" min="1" required class="mt-1 w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
       </div>
-      <div class="flex gap-2">
-        <button type="submit" class="bg-blue-600 text-white py-1.5 px-3 rounded-lg text-xs hover:bg-blue-700 transition-colors">Save Changes</button>
-        <button type="button" onclick="closeEditModal()" class="bg-gray-200 text-gray-700 py-1.5 px-3 rounded-lg text-xs hover:bg-gray-300 transition-colors">Cancel</button>
+      <div class="mb-4">
+        <label for="edit-date" class="block text-sm font-medium text-gray-700">Date of Action</label>
+        <input type="date" name="date" id="edit-date" class="mt-1 w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300" required>
+      </div>
+      <div class="mb-4">
+        <label for="edit-notes" class="block text-sm font-medium text-gray-700">Notes</label>
+        <textarea name="notes" id="edit-notes" class="mt-1 w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300" rows="4"></textarea>
+      </div>
+      <div class="flex gap-4">
+        <button type="submit" class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl text-sm font-medium hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple flex-1">
+          Save Changes
+        </button>
+        <button type="button" onclick="closeEditModal()" class="bg-gray-100 text-gray-800 py-3 px-6 rounded-xl text-sm font-medium hover:bg-gray-200 hover:scale-105 transition-all duration-300 shadow-md ripple flex-1">
+          Cancel
+        </button>
       </div>
     </form>
   </div>
 </div>
 
 <script>
+  // Ripple Effect for Buttons
+  document.querySelectorAll('.ripple').forEach(button => {
+    button.addEventListener('click', function(e) {
+      const ripple = document.createElement('span');
+      ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
+      const rect = button.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = `${size}px`;
+      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+      button.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    });
+  });
+
   // Toggle Filter
   const filterForm = document.getElementById('filter-form');
   document.getElementById('toggle-filter').addEventListener('click', () => {
@@ -195,12 +301,17 @@
     customDate.classList.toggle('hidden', dateRange.value !== 'custom');
   });
 
+  // Clear Filters
+  function clearFilters() {
+    window.location.href = '/admin/stock/history';
+  }
+
   // Warning Modal (Delete)
   function showWarning(id, action, quantity, productId) {
-    document.getElementById('delete-id').value = id;
-    document.getElementById('delete-action').value = action;
-    document.getElementById('delete-quantity').value = quantity;
-    document.getElementById('delete-productId').value = productId;
+    document.getElementById('delete-id').value = id || '';
+    document.getElementById('delete-action').value = action || '';
+    document.getElementById('delete-quantity').value = quantity || 0;
+    document.getElementById('delete-productId').value = productId || '';
     document.getElementById('warning-modal').classList.remove('hidden');
   }
 
@@ -209,17 +320,180 @@
   }
 
   // Edit Modal
-  function showEditModal(id, action, quantity, notes, productId) {
-    document.getElementById('edit-id').value = id;
-    document.getElementById('edit-productId').value = productId;
-    document.getElementById('edit-action').value = action;
-    document.getElementById('edit-quantity').value = quantity;
-    document.getElementById('edit-notes').value = notes;
-    document.getElementById('edit-modal').classList.remove('hidden');
+  function tryShowEditModal(id, action, quantity, notes, productId, date) {
+    try {
+      if (!id || !action || isNaN(quantity) || !productId || !date) throw new Error('Invalid input data');
+      document.getElementById('edit-id').value = id;
+      document.getElementById('edit-productId').value = productId;
+      document.getElementById('edit-action').value = action;
+      document.getElementById('edit-quantity').value = quantity;
+      document.getElementById('edit-notes').value = notes || '';
+      document.getElementById('edit-date').value = new Date(date).toISOString().split('T')[0];
+      document.getElementById('edit-modal').classList.remove('hidden');
+    } catch (error) {
+      console.error('Error opening edit modal:', error);
+    }
   }
 
   function closeEditModal() {
     document.getElementById('edit-modal').classList.add('hidden');
+    document.getElementById('edit-form').reset();
   }
+
+  // Handle Edit Form Submission
+  document.getElementById('edit-form').addEventListener('submit', () => {
+    setTimeout(() => closeEditModal(), 100);
+  });
 </script>
+
+<style>
+  /* Font Stack */
+  .font-inter {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* Animations */
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes ripple {
+    0% { transform: scale(0); opacity: 0.8; }
+    100% { transform: scale(4); opacity: 0; }
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.5s ease-out;
+  }
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+  .animate-ripple {
+    animation: ripple 0.6s linear;
+  }
+
+  /* Premium UI Styles */
+  .shadow-lg {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+  .shadow-2xl {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+  }
+  .rounded-3xl {
+    border-radius: 1.5rem;
+  }
+  .rounded-2xl {
+    border-radius: 1rem;
+  }
+  .backdrop-blur-sm {
+    backdrop-filter: blur(8px);
+  }
+  .bg-white\/80 {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  .hover\:scale-105:hover {
+    transform: scale(1.05);
+  }
+
+  /* Dropdown Styles */
+  select {
+    background-image: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  /* Table Responsiveness */
+  .responsive-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  /* Column Widths */
+  th:nth-child(1), td:nth-child(1) { width: 15%; min-width: 100px; } /* Date */
+  th:nth-child(2), td:nth-child(2) { width: 20%; min-width: 120px; } /* Product */
+  th:nth-child(3), td:nth-child(3) { width: 10%; min-width: 80px; } /* Action */
+  th:nth-child(4), td:nth-child(4) { width: 10%; min-width: 80px; } /* Quantity */
+  th:nth-child(5), td:nth-child(5) { width: 10%; min-width: 80px; } /* Stock */
+  th:nth-child(6), td:nth-child(6) { width: 20%; min-width: 120px; } /* Notes */
+  th:nth-child(7), td:nth-child(7) { width: 15%; min-width: 100px; } /* Updated By */
+  th:nth-child(8), td:nth-child(8) { width: 10%; min-width: 80px; } /* Actions */
+
+  /* Truncate long text */
+  td.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Responsive Styles */
+  @media (max-width: 1024px) {
+    th:nth-child(6), td:nth-child(6) { display: none; } /* Hide Notes */
+    th:nth-child(2), td:nth-child(2) { width: 25%; }
+    th:nth-child(7), td:nth-child(7) { width: 15%; }
+  }
+
+  @media (max-width: 768px) {
+    .container {
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+    }
+    th, td {
+      padding: 0.75rem;
+    }
+    th:nth-child(7), td:nth-child(7) { display: none; } /* Hide Updated By */
+    th:nth-child(1), td:nth-child(1) { width: 20%; min-width: 90px; }
+    th:nth-child(2), td:nth-child(2) { width: 25%; min-width: 100px; }
+    th:nth-child(3), td:nth-child(3) { width: 15%; min-width: 70px; }
+    th:nth-child(4), td:nth-child(4) { width: 15%; min-width: 70px; }
+    th:nth-child(5), td:nth-child(5) { width: 15%; min-width: 70px; }
+    th:nth-child(8), td:nth-child(8) { width: 10%; min-width: 60px; }
+    .text-3xl { font-size: 1.5rem; }
+    .text-2xl { font-size: 1.25rem; }
+    .text-lg { font-size: 1.125rem; }
+    .text-sm { font-size: 0.875rem; }
+    .p-8 { padding: 1.5rem; }
+    .p-6 { padding: 1rem; }
+  }
+
+  @media (max-width: 480px) {
+    th, td {
+      padding: 0.5rem;
+      font-size: 0.75rem;
+    }
+    th:nth-child(3), td:nth-child(3) { display: none; } /* Hide Action */
+    th:nth-child(1), td:nth-child(1) { width: 25%; min-width: 80px; }
+    th:nth-child(2), td:nth-child(2) { width: 30%; min-width: 90px; }
+    th:nth-child(4), td:nth-child(4) { width: 20%; min-width: 60px; }
+    th:nth-child(5), td:nth-child(5) { width: 15%; min-width: 60px; }
+    th:nth-child(8), td:nth-child(8) { width: 10%; min-width: 50px; }
+    .action-buttons svg { width: 1rem; height: 1rem; }
+  }
+
+  @media (max-width: 375px) {
+    .p-6 { padding: 0.75rem; }
+    .text-lg { font-size: 1rem; }
+    .text-sm { font-size: 0.75rem; }
+  }
+</style>
 <%- include('../partials/footer') %>
