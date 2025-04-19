@@ -967,4 +967,134 @@ router.post("/database/save", async (req, res) => {
   }
 });
 
+// Reviews management
+router.get("/reviews", async (req, res) => {
+  try {
+    const db = await loadDB();
+    console.log("Rendering admin/reviews with:", {
+      userId: req.user.id,
+      reviewCount: db.products.reduce((acc, p) => acc + (p.reviews?.length || 0), 0),
+    });
+    res.render("admin/reviews", {
+      products: db.products || [],
+      users: db.users || [],
+      user: req.user,
+      categories: db.categories || [],
+    });
+  } catch (err) {
+    console.error("Error rendering reviews page:", {
+      error: err.message,
+      stack: err.stack,
+    });
+    res.status(500).render("error", {
+      message: "Failed to load reviews page",
+      user: req.user,
+      query: req.query || {},
+    });
+  }
+});
+
+router.post("/review/edit/:productId", async (req, res) => {
+  try {
+    const db = await loadDB();
+    const product = db.products.find((p) => p.id === req.params.productId);
+    if (!product) {
+      console.log("Product not found:", { productId: req.params.productId });
+      return res.status(404).render("error", {
+        message: "Product not found",
+        user: req.user,
+      });
+    }
+
+    const { reviewId, rating, comment } = req.body;
+    const review = product.reviews.find((r) => r.id === reviewId);
+    if (!review) {
+      console.log("Review not found:", { reviewId, productId: req.params.productId });
+      return res.status(404).render("error", {
+        message: "Review not found",
+        user: req.user,
+      });
+    }
+
+    review.rating = parseInt(rating);
+    review.comment = comment;
+    review.edited = true;
+    review.timestamp = new Date().toISOString();
+
+    await saveDB(db);
+    console.log("Review edited:", { reviewId, productId: req.params.productId, userId: req.user.id });
+    res.redirect("/admin/reviews");
+  } catch (err) {
+    console.error("Review edit error:", {
+      error: err.message,
+      stack: err.stack,
+      productId: req.params.productId,
+    });
+    try {
+      const db = await loadDB();
+      res.render("admin/reviews", {
+        products: db.products || [],
+        users: db.users || [],
+        user: req.user,
+        categories: db.categories || [],
+        error: "Failed to edit review",
+      });
+    } catch (dbErr) {
+      console.error("Error loading db for review edit error:", {
+        error: dbErr.message,
+        stack: dbErr.stack,
+      });
+      res.status(500).render("error", {
+        message: "Failed to load reviews page",
+        user: req.user,
+      });
+    }
+  }
+});
+
+router.post("/review/delete/:productId", async (req, res) => {
+  try {
+    const db = await loadDB();
+    const product = db.products.find((p) => p.id === req.params.productId);
+    if (!product) {
+      console.log("Product not found:", { productId: req.params.productId });
+      return res.status(404).render("error", {
+        message: "Product not found",
+        user: req.user,
+      });
+    }
+
+    const { reviewId } = req.body;
+    product.reviews = product.reviews.filter((r) => r.id !== reviewId);
+
+    await saveDB(db);
+    console.log("Review deleted:", { reviewId, productId: req.params.productId, userId: req.user.id });
+    res.redirect("/admin/reviews");
+  } catch (err) {
+    console.error("Review deletion error:", {
+      error: err.message,
+      stack: err.stack,
+      productId: req.params.productId,
+    });
+    try {
+      const db = await loadDB();
+      res.render("admin/reviews", {
+        products: db.products || [],
+        users: db.users || [],
+        user: req.user,
+        categories: db.categories || [],
+        error: "Failed to delete review",
+      });
+    } catch (dbErr) {
+      console.error("Error loading db for review deletion error:", {
+        error: dbErr.message,
+        stack: dbErr.stack,
+      });
+      res.status(500).render("error", {
+        message: "Failed to load reviews page",
+        user: req.user,
+      });
+    }
+  }
+});
 module.exports = router;

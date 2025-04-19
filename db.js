@@ -8,7 +8,7 @@ let dbCache = null;
 let dbLock = false;
 
 const loadDB = async () => {
-  if (dbCache && !dbLock) return dbCache;
+  // Always read from file to ensure fresh data
   try {
     const data = JSON.parse(await fs.readFile(dbPath, "utf8"));
     dbCache = {
@@ -34,6 +34,11 @@ const loadDB = async () => {
       path: dbPath,
       error: err.message,
     });
+    // Return cached data if available, else empty structure
+    if (dbCache) {
+      console.log("Returning cached database due to load error");
+      return dbCache;
+    }
     dbCache = { products: [], categories: [], users: [], admins: [], stockHistory: [] };
     return dbCache;
   }

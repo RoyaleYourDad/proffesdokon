@@ -13,7 +13,16 @@
         "url": "https://i.ibb.co/Sw8p6FGG/21588122bc45.jpg",
         "delete_url": "https://ibb.co/k2fFGNvv/1b9b141d96de9bed3a4fa03d2d219446"
       },
-      "reviews": [],
+      "reviews": [
+        {
+          "id": "e1622042-f6f7-4186-9020-761e0fd13649",
+          "userId": "1744729926566",
+          "rating": 4,
+          "comment": "sadafvsadfasdfgvdg",
+          "timestamp": "2025-04-19T07:59:39.433Z",
+          "edited": false
+        }
+      ],
       "previewImages": [
         {
           "url": "https://i.ibb.co/Ldm1sT39/88561e9fd3d0.jpg",
@@ -41,7 +50,7 @@
     },
     {
       "id": "1744804812036",
-      "name": "Test Product 2",
+      "name": "Test Product 2 (test add)",
       "category": "Gaz Plitalari",
       "price": 220,
       "discountPrice": 178,

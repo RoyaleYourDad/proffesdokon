@@ -1,0 +1,585 @@
+<%- include('../partials/header') %>
+<div class="min-h-screen bg-gray-50 py-12">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+    <!-- Header -->
+    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-16 flex items-center animate-slide-in overflow-visible leading-tight">
+      <svg class="w-8 h-8 mr-4 text-indigo-600 animate-pulse flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3 .922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+      </svg>
+      <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">Manage Reviews</span>
+    </h1>
+
+    <!-- Filters Section -->
+    <div class="bg-white/80 backdrop-blur-sm shadow-lg rounded-3xl p-6 mb-8 transition-all duration-300 hover:shadow-2xl relative z-20">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Filter Reviews</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Product Name Filter -->
+        <div class="custom-dropdown">
+          <label for="productFilterInput" class="block text-sm font-medium text-gray-700 mb-2">Product</label>
+          <div class="relative">
+            <div class="dropdown-trigger block w-full rounded-xl border-0 bg-white/70 backdrop-blur-md shadow-md py-3 px-4 text-gray-800 hover:bg-gradient-to-br hover:from-indigo-50/50 hover:to-blue-50/50 transition-all duration-300 hover:scale-105 cursor-pointer" role="button" aria-expanded="false" aria-controls="productFilterOptions">
+              <span class="dropdown-label">All Products</span>
+              <span class="absolute inset-y-0 right-3 flex items-center transition-transform duration-300">
+                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </div>
+            <div id="productFilterOptions" class="dropdown-menu absolute w-full mt-1 bg-white rounded-xl shadow-lg z-40 hidden border border-gray-200 animate-dropdown-open">
+              <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="all">All Products</div>
+              <% products.forEach(product => { %>
+                <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="<%= product.id %>"><%= product.name %></div>
+              <% }) %>
+            </div>
+            <input type="hidden" id="productFilterInput" name="productFilter" value="all">
+          </div>
+        </div>
+        <!-- Star Rating Filter -->
+        <div class="custom-dropdown">
+          <label for="ratingFilterInput" class="block text-sm font-medium text-gray-700 mb-2">Star Rating</label>
+          <div class="relative">
+            <div class="dropdown-trigger block w-full rounded-xl border-0 bg-white/70 backdrop-blur-md shadow-md py-3 px-4 text-gray-800 hover:bg-gradient-to-br hover:from-indigo-50/50 hover:to-blue-50/50 transition-all duration-300 hover:scale-105 cursor-pointer" role="button" aria-expanded="false" aria-controls="ratingFilterOptions">
+              <span class="dropdown-label">All Ratings</span>
+              <span class="absolute inset-y-0 right-3 flex items-center transition-transform duration-300">
+                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </div>
+            <div id="ratingFilterOptions" class="dropdown-menu absolute w-full mt-1 bg-white rounded-xl shadow-lg z-40 hidden border border-gray-200 animate-dropdown-open">
+              <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="all">All Ratings</div>
+              <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="5">5 Stars</div>
+              <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="4">4 Stars</div>
+              <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="3">3 Stars</div>
+              <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="2">2 Stars</div>
+              <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="1">1 Star</div>
+            </div>
+            <input type="hidden" id="ratingFilterInput" name="ratingFilter" value="all">
+          </div>
+        </div>
+        <!-- Sort By -->
+        <div class="custom-dropdown">
+          <label for="sortFilterInput" class="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+          <div class="relative">
+            <div class="dropdown-trigger block w-full rounded-xl border-0 bg-white/70 backdrop-blur-md shadow-md py-3 px-4 text-gray-800 hover:bg-gradient-to-br hover:from-indigo-50/50 hover:to-blue-50/50 transition-all duration-300 hover:scale-105 cursor-pointer" role="button" aria-expanded="false" aria-controls="sortFilterOptions">
+              <span class="dropdown-label">Most Recent</span>
+              <span class="absolute inset-y-0 right-3 flex items-center transition-transform duration-300">
+                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </div>
+            <div id="sortFilterOptions" class="dropdown-menu absolute w-full mt-1 bg-white rounded-xl shadow-lg z-40 hidden border border-gray-200 animate-dropdown-open">
+              <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="recent">Most Recent</div>
+              <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="oldest">Oldest</div>
+              <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="highest">Highest Rated</div>
+              <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="lowest">Lowest Rated</div>
+            </div>
+            <input type="hidden" id="sortFilterInput" name="sortFilter" value="recent">
+          </div>
+        </div>
+      </div>
+      <button id="resetFilters" class="mt-4 bg-gray-100 text-gray-800 py-2 px-4 rounded-xl hover:bg-gray-200 hover:scale-105 transition-all duration-300 shadow-sm ripple">Reset Filters</button>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="bg-white shadow-lg rounded-3xl p-6 transition-all duration-300 hover:shadow-2xl relative z-10">
+      <% if (products.some(p => p.reviews && p.reviews.length > 0)) { %>
+        <div class="space-y-8" id="reviewsContainer">
+          <% products.forEach((product, index) => { %>
+            <% if (product.reviews && product.reviews.length > 0) { %>
+              <div class="border-b border-gray-200/30 pb-6 product-reviews" data-product-id="<%= product.id %>">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 relative group">
+                  Reviews for <a href="/product/<%= product.id %>" class="text-indigo-600 hover:text-indigo-800 transition-colors duration-300"><%= product.name %></a>
+                  <span class="absolute bottom-0 left-0 w-0 h-1 bg-gradient-to-r from-indigo-500 to-blue-500 transition-all duration-300 group-hover:w-full"></span>
+                </h2>
+                <div class="reviews-list">
+                  <% product.reviews.forEach((review, reviewIndex) => { %>
+                    <div class="review-item relative border border-gray-100/50 rounded-2xl p-6 mb-4 bg-white/80 backdrop-blur-sm hover:bg-gradient-to-br hover:from-indigo-50/30 hover:to-blue-50/30 transition-all duration-500 shadow-md hover:shadow-xl group animate-fade-in-up <%= reviewIndex >= 5 ? 'hidden' : '' %>"
+                         data-rating="<%= review.rating %>"
+                         data-timestamp="<%= review.timestamp %>"
+                         style="animation-delay: <%= index * 0.1 %>s;">
+                      <!-- Animated Border -->
+                      <span class="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out;"></span>
+                      <div class="flex justify-between items-start mb-3 relative z-10">
+                        <div>
+                          <p class="text-lg font-medium text-gray-900">
+                            <%= users.find(u => u.id === review.userId)?.displayName || 'Anonymous' %>
+                          </p>
+                          <p class="text-sm text-gray-500">
+                            <%= new Date(review.timestamp).toLocaleDateString() %>
+                            <% if (review.edited) { %>
+                              <span class="text-sm text-indigo-500 font-medium">(Edited)</span>
+                            <% } %>
+                          </p>
+                          <div class="flex mt-2">
+                            <% for (let i = 1; i <= 5; i++) { %>
+                              <svg class="w-6 h-6 <%= i <= review.rating ? 'text-yellow-400 animate-star-glow' : 'text-gray-300' %> transition-transform duration-300"
+                                   fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            <% } %>
+                          </div>
+                        </div>
+                        <div class="flex gap-4">
+                          <!-- Edit Button -->
+                          <button onclick="openEditModal('<%= review.id %>', '<%= product.id %>', '<%= review.rating %>', '<%= review.comment.replace(/'/g, "\\'") %>')"
+                                  class="text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-all duration-300 ripple">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9.586 13.586a2 2 0 002.828 0l4-4z" />
+                            </svg>
+                          </button>
+                          <!-- Delete Button -->
+                          <button onclick="openDeleteModal('<%= review.id %>', '<%= product.id %>')"
+                                  class="text-red-500 hover:text-red-700 hover:scale-110 transition-all duration-300 ripple">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4M9 7v12m6-12v12M10 3h4" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <p class="text-md text-gray-700 leading-relaxed relative z-10"><%= review.comment %></p>
+                    </div>
+                  <% }) %>
+                  <% if (product.reviews.length > 5) { %>
+                    <button class="load-more-btn mt-4 bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple"
+                            data-product-id="<%= product.id %>">
+                      Load More
+                    </button>
+                  <% } %>
+                </div>
+              </div>
+            <% } %>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <p class="text-gray-500 text-center py-8 text-xl font-medium animate-fade-in">No reviews found.</p>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Review Modal -->
+<div id="editReviewModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center hidden transition-opacity duration-500 z-50">
+  <div class="bg-white/80 backdrop-blur-md rounded-3xl p-10 w-full max-w-lg shadow-2xl border border-gray-100/50 transition-all duration-500 scale-90">
+    <h2 class="text-3xl font-bold text-gray-900 mb-3 animate-slide-in bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">Edit Review</h2>
+    <p class="text-md text-gray-600 mb-8 font-medium">Update your rating and comment to share your latest feedback.</p>
+    <form id="editReviewForm" action="" method="POST">
+      <input type="hidden" name="reviewId" id="editReviewId">
+      <div class="mb-8 p-4 bg-white/50 backdrop-blur-sm rounded-xl hover:bg-indigo-50/30 transition-all duration-300 shadow-sm">
+        <label class="block text-md font-semibold text-gray-800 mb-3">Rating</label>
+        <div class="flex items-center gap-2" id="starRating">
+          <input type="hidden" name rating" id="editRating">
+          <% for (let i = 1; i <= 5; i++) { %>
+            <button type="button" onclick="setRating(<%= i %>)" class="star-btn w-10 h-10 text-gray-300 hover:text-yellow-400 hover:scale-125 transition-all duration-300 animate-star-bounce">
+              <svg class="w-full h-full" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </button>
+          <% } %>
+        </div>
+      </div>
+      <div class="mb-8 p-4 bg-white/50 backdrop-blur-sm rounded-xl hover:bg-indigo-50/30 transition-all duration-300 shadow-sm">
+        <label class="block text-md font-semibold text-gray-800 mb-3">Comment</label>
+        <textarea name="comment" id="editComment" rows="6" placeholder="Share your feedback..." class="block w-full rounded-xl border-gray-200 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-30 py-4 px-5 bg-white transition-all duration-300 text-gray-800 placeholder-gray-400 text-md"></textarea>
+      </div>
+      <div class="flex justify-end gap-4">
+        <button type="button" onclick="closeEditModal()" class="bg-gray-100 text-gray-800 py-3 px-8 rounded-xl hover:bg-gray-200 hover:scale-105 transition-all duration-300 shadow-sm ripple">Cancel</button>
+        <button type="submit" class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-8 rounded-xl hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Review Modal -->
+<div id="deleteReviewModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center hidden transition-opacity duration-500 z-50">
+  <div class="bg-white/80 backdrop-blur-md rounded-3xl p-10 w-full max-w-md shadow-2xl border border-gray-100/50 transition-all duration-500 scale-90">
+    <h2 class="text-3xl font-bold text-gray-900 mb-3 animate-slide-in bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">Delete Review</h2>
+    <p class="text-md text-gray-600 mb-8 font-medium">Are you sure you want to delete this review? This action is permanent.</p>
+    <form id="deleteReviewForm" action="" method="POST">
+      <input type="hidden" name="reviewId" id="deleteReviewId">
+      <div class="flex justify-end gap-4">
+        <button type="button" onclick="closeDeleteModal()" class="bg-gray-100 text-gray-800 py-3 px-8 rounded-xl hover:bg-gray-200 hover:scale-105 transition-all duration-300 shadow-sm ripple">Cancel</button>
+        <button type="submit" class="bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-8 rounded-xl hover:from-red-600 hover:to-red-700 hover:scale-105 transition-all duration-300 shadow-md ripple">Delete Review</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Modal Functions
+  function openEditModal(reviewId, productId, rating, comment) {
+    document.getElementById('editReviewId').value = reviewId;
+    document.getElementById('editRating').value = rating;
+    document.getElementById('editComment').value = comment;
+    document.getElementById('editReviewForm').action = `/admin/review/edit/${productId}`;
+    updateStars(rating);
+    document.getElementById('editReviewModal').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('editReviewModal').querySelector('div').classList.remove('scale-90');
+      document.getElementById('editReviewModal').classList.add('opacity-100');
+    }, 10);
+  }
+
+  function closeEditModal() {
+    document.getElementById('editReviewModal').classList.add('hidden');
+    document.getElementById('editReviewModal').querySelector('div').classList.add('scale-90');
+    document.getElementById('editReviewModal').classList.remove('opacity-100');
+  }
+
+  function openDeleteModal(reviewId, productId) {
+    document.getElementById('deleteReviewId').value = reviewId;
+    document.getElementById('deleteReviewForm').action = `/admin/review/delete/${productId}`;
+    document.getElementById('deleteReviewModal').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('deleteReviewModal').querySelector('div').classList.remove('scale-90');
+      document.getElementById('deleteReviewModal').classList.add('opacity-100');
+    }, 10);
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteReviewModal').classList.add('hidden');
+    document.getElementById('deleteReviewModal').querySelector('div').classList.add('scale-90');
+    document.getElementById('deleteReviewModal').classList.remove('opacity-100');
+  }
+
+  function setRating(rating) {
+    document.getElementById('editRating').value = rating;
+    updateStars(rating);
+  }
+
+  function updateStars(rating) {
+    const stars = document.querySelectorAll('.star-btn');
+    stars.forEach((star, index) => {
+      star.classList.toggle('text-yellow-400', index < rating);
+      star.classList.toggle('text-gray-300', index >= rating);
+      star.classList.toggle('animate-star-bounce', index < rating);
+    });
+  }
+
+  // Load More Functionality
+  document.querySelectorAll('.load-more-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      const productId = this.getAttribute('data-product-id');
+      const reviewsList = this.closest('.reviews-list');
+      const hiddenReviews = reviewsList.querySelectorAll(`.review-item.hidden[data-product-id="${productId}"]`);
+      const nextBatch = Array.from(hiddenReviews).slice(0, 5);
+
+      nextBatch.forEach((review, index) => {
+        review.classList.remove('hidden');
+        review.classList.add('animate-fade-in-up');
+        review.style.animationDelay = `${index * 0.1}s`;
+      });
+
+      if (hiddenReviews.length <= 5) {
+        this.remove();
+      }
+    });
+  });
+
+  // Filter and Sort Functionality
+  function applyFilters() {
+    const productFilter = document.getElementById('productFilterInput').value;
+    const ratingFilter = document.getElementById('ratingFilterInput').value;
+    const sortFilter = document.getElementById('sortFilterInput').value;
+
+    // Show/Hide Products
+    const productSections = document.querySelectorAll('.product-reviews');
+    productSections.forEach(section => {
+      const productId = section.getAttribute('data-product-id');
+      section.style.display = (productFilter === 'all' || productId === productFilter) ? 'block' : 'none';
+    });
+
+    // Filter Reviews by Rating
+    const allReviews = document.querySelectorAll('.review-item');
+    allReviews.forEach(review => {
+      const rating = review.getAttribute('data-rating');
+      const parentProductId = review.closest('.product-reviews').getAttribute('data-product-id');
+      const matchesProduct = productFilter === 'all' || parentProductId === productFilter;
+      const matchesRating = ratingFilter === 'all' || rating === ratingFilter;
+      review.classList.toggle('hidden', !(matchesProduct && matchesRating));
+    });
+
+    // Sort Reviews
+    const reviewsContainer = document.getElementById('reviewsContainer');
+    const sortedSections = Array.from(productSections).filter(section => {
+      return productFilter === 'all' || section.getAttribute('data-product-id') === productFilter;
+    });
+
+    sortedSections.forEach(section => {
+      const reviewsList = section.querySelector('.reviews-list');
+      const reviews = Array.from(reviewsList.querySelectorAll('.review-item'));
+      reviews.sort((a, b) => {
+        const aTimestamp = new Date(a.getAttribute('data-timestamp')).getTime();
+        const bTimestamp = new Date(b.getAttribute('data-timestamp')).getTime();
+        const aRating = parseInt(a.getAttribute('data-rating'));
+        const bRating = parseInt(b.getAttribute('data-rating'));
+
+        if (sortFilter === 'recent') return bTimestamp - aTimestamp;
+        if (sortFilter === 'oldest') return aTimestamp - bTimestamp;
+        if (sortFilter === 'highest') return bRating - aRating;
+        if (sortFilter === 'lowest') return aRating - bRating;
+        return 0;
+      });
+
+      reviewsList.innerHTML = '';
+      reviews.forEach((review, index) => {
+        review.classList.toggle('hidden', index >= 5 && !review.classList.contains('load-more-visible'));
+        reviewsList.appendChild(review);
+      });
+
+      // Re-append Load More button if needed
+      const loadMoreBtn = section.querySelector('.load-more-btn');
+      if (loadMoreBtn) reviewsList.appendChild(loadMoreBtn);
+    });
+
+    // Update Load More Visibility
+    productSections.forEach(section => {
+      const reviewsList = section.querySelector('.reviews-list');
+      const visibleReviews = reviewsList.querySelectorAll('.review-item:not(.hidden)').length;
+      const loadMoreBtn = section.querySelector('.load-more-btn');
+      if (loadMoreBtn) {
+        loadMoreBtn.style.display = visibleReviews > 5 ? 'block' : 'none';
+      }
+    });
+  }
+
+  // Reset Filters
+  document.getElementById('resetFilters').addEventListener('click', () => {
+    document.getElementById('productFilterInput').value = 'all';
+    document.getElementById('ratingFilterInput').value = 'all';
+    document.getElementById('sortFilterInput').value = 'recent';
+    document.querySelector('#productFilterOptions').parentNode.querySelector('.dropdown-label').textContent = 'All Products';
+    document.querySelector('#ratingFilterOptions').parentNode.querySelector('.dropdown-label').textContent = 'All Ratings';
+    document.querySelector('#sortFilterOptions').parentNode.querySelector('.dropdown-label').textContent = 'Most Recent';
+    applyFilters();
+  });
+
+  // Custom Dropdown Functionality
+  document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
+    const trigger = dropdown.querySelector('.dropdown-trigger');
+    const menu = dropdown.querySelector('.dropdown-menu');
+    const options = dropdown.querySelectorAll('.dropdown-option');
+    const label = dropdown.querySelector('.dropdown-label');
+    const hiddenInput = dropdown.querySelector('input[type="hidden"]');
+    const arrow = dropdown.querySelector('svg');
+
+    trigger.addEventListener('click', () => {
+      const isOpen = !menu.classList.contains('hidden');
+      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.add('hidden'));
+      document.querySelectorAll('.dropdown-trigger svg').forEach(a => a.classList.remove('rotate-180', 'text-indigo-800'));
+      if (!isOpen) {
+        menu.classList.remove('hidden');
+        trigger.setAttribute('aria-expanded', 'true');
+        arrow.classList.add('rotate-180', 'text-indigo-800');
+      } else {
+        menu.classList.add('hidden');
+        trigger.setAttribute('aria-expanded', 'false');
+        arrow.classList.remove('rotate-180', 'text-indigo-800');
+      }
+    });
+
+    options.forEach(option => {
+      option.addEventListener('click', () => {
+        const value = option.getAttribute('data-value');
+        hiddenInput.value = value;
+        label.textContent = option.textContent;
+        menu.classList.add('hidden');
+        trigger.setAttribute('aria-expanded', 'false');
+        arrow.classList.remove('rotate-180', 'text-indigo-800');
+        applyFilters();
+      });
+      option.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          option.click();
+        }
+      });
+    });
+  });
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.custom-dropdown')) {
+      document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.add('hidden'));
+      document.querySelectorAll('.dropdown-trigger').forEach(trigger => trigger.setAttribute('aria-expanded', 'false'));
+      document.querySelectorAll('.dropdown-trigger svg').forEach(arrow => arrow.classList.remove('rotate-180', 'text-indigo-800'));
+    }
+  });
+
+  // Keyboard Accessibility
+  document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
+    trigger.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        trigger.click();
+      }
+    });
+  });
+
+  // Ripple Effect
+  document.querySelectorAll('.ripple').forEach(button => {
+    button.addEventListener('click', function(e) {
+      const ripple = document.createElement('span');
+      ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
+      const rect = button.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = `${size}px`;
+      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+      button.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    });
+  });
+</script>
+
+<style>
+  /* Font Stack */
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* Animations */
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes glow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.1); }
+  }
+  @keyframes starGlow {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  @keyframes starBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+  }
+  @keyframes ripple {
+    0% { transform: scale(0); opacity: 0.8; }
+    100% { transform: scale(4); opacity: 0; }
+  }
+  @keyframes dropdownOpen {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.5s ease-out;
+  }
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+  .animate-glow {
+    animation: glow 1.5s infinite;
+  }
+  .animate-star-glow {
+    animation: starGlow 1.2s infinite;
+  }
+  .animate-star-bounce {
+    animation: starBounce 0.4s ease-in-out;
+  }
+  .animate-ripple {
+    animation: ripple 0.6s linear;
+  }
+  .animate-dropdown-open {
+    animation: dropdownOpen 0.3s ease-out;
+  }
+
+  /* Premium UI Styles */
+  .shadow-lg {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+  .shadow-2xl {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+  }
+  .hover\:shadow-xl:hover {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+  }
+  .rounded-3xl {
+    border-radius: 1.5rem;
+  }
+  .rounded-2xl {
+    border-radius: 1rem;
+  }
+  .backdrop-blur-sm {
+    backdrop-filter: blur(8px);
+  }
+  .bg-white\/80 {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  .border-gray-100\/50 {
+    border-color: rgba(243, 244, 246, 0.5);
+  }
+  .hover\:scale-110:hover {
+    transform: scale(1.1);
+  }
+  .hover\:scale-105:hover {
+    transform: scale(1.05);
+  }
+
+  /* Custom Dropdown Styles */
+  .custom-dropdown {
+    position: relative;
+  }
+  .dropdown-trigger {
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid rgba(243, 244, 246, 0.5);
+  }
+  .dropdown-trigger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  .dropdown-trigger:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+  }
+  .dropdown-menu {
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 102, 241, 0.5) transparent;
+  }
+  .dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+  }
+  .dropdown-menu::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.5);
+    border-radius: 3px;
+  }
+  .dropdown-menu::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .dropdown-option {
+    font-size: 0.875rem;
+    color: #1f2937;
+    transition: all 0.2s ease;
+  }
+  .dropdown-option:hover, .dropdown-option:focus {
+    color: #1e40af;
+  }
+  .dropdown-trigger svg {
+    transition: transform 0.3s ease, color 0.3s ease;
+  }
+  .rotate-180 {
+    transform: rotate(180deg);
+  }
+  .dropdown-option:focus {
+    outline: none;
+    background: linear-gradient(to right, rgba(99, 102, 241, 0.1), rgba(59, 130, 246, 0.1));
+    color: #1e40af;
+  }
+</style>
+<%- include('../partials/footer') %>
