@@ -3,7 +3,7 @@
     {
       "id": "1744739166453",
       "name": "Test Product 1",
-      "category": "Grillar",
+      "category": "test2",
       "price": 540,
       "discountPrice": 425,
       "discountExpiry": "2025-04-17",
@@ -17,10 +17,10 @@
         {
           "id": "e1622042-f6f7-4186-9020-761e0fd13649",
           "userId": "1744729926566",
-          "rating": 4,
+          "rating": null,
           "comment": "sadafvsadfasdfgvdg",
-          "timestamp": "2025-04-19T07:59:39.433Z",
-          "edited": false
+          "timestamp": "2025-04-19T10:58:11.695Z",
+          "edited": true
         }
       ],
       "previewImages": [
@@ -158,7 +158,8 @@
     "Sendvich Pishirgichlar",
     "Bug'lash Moslamalari",
     "Vakuum Muhrlagichlar",
-    "Oziq-ovqat Yuk Mashinalari"
+    "Oziq-ovqat Yuk Mashinalari",
+    "test2"
   ],
   "users": [
     {
@@ -167,9 +168,9 @@
       "displayName": "Royale",
       "email": "royalepubgacc@gmail.com",
       "cart": [],
-      "role": "admin",
+      "role": "user",
       "cartCount": 0,
-      "isAdmin": true
+      "isAdmin": false
     },
     {
       "id": "1744729926566",

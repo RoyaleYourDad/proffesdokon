@@ -854,10 +854,12 @@ router.post("/review/delete/:productId", async (req, res) => {
 router.get("/admins", async (req, res) => {
   try {
     const db = await loadDB();
+    console.log("Admins route - db.admins:", db.admins); // Debug log
     res.render("admin/admins", {
       admins: db.admins || [],
       users: db.users || [],
       user: req.user,
+      currentUserEmail: req.user.email,
       error: null,
     });
   } catch (err) {
@@ -920,6 +922,18 @@ router.post("/admins/delete/:email", async (req, res) => {
   try {
     const db = await loadDB();
     const email = decodeURIComponent(req.params.email);
+
+    // Prevent self-deletion
+    if (email === req.user.email) {
+      return res.render("admin/admins", {
+        admins: db.admins || [],
+        users: db.users || [],
+        user: req.user,
+        currentUserEmail: req.user.email,
+        error: "You cannot remove yourself as an admin",
+      });
+    }
+
     db.admins = db.admins.filter((e) => e !== email);
     const user = db.users.find((u) => u.email === email);
     if (user) {
@@ -940,6 +954,7 @@ router.post("/admins/delete/:email", async (req, res) => {
         admins: db.admins || [],
         users: db.users || [],
         user: req.user,
+        currentUserEmail: req.user.email,
         error: "Failed to remove admin",
       });
     } catch (dbErr) {
@@ -1097,4 +1112,7 @@ router.post("/review/delete/:productId", async (req, res) => {
     }
   }
 });
+
+
+
 module.exports = router;
