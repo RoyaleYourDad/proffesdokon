@@ -8,7 +8,7 @@
       "discountPrice": 425,
       "discountExpiry": "2025-04-17",
       "origin": "China",
-      "stock": 14,
+      "stock": 11,
       "thumbnail": {
         "url": "https://i.ibb.co/Sw8p6FGG/21588122bc45.jpg",
         "delete_url": "https://ibb.co/k2fFGNvv/1b9b141d96de9bed3a4fa03d2d219446"
@@ -41,13 +41,13 @@
     },
     {
       "id": "1744804812036",
-      "name": "Test Product 2 (test add)",
+      "name": "Test Product 2",
       "category": "Gaz Plitalari",
       "price": 220,
       "discountPrice": 178,
       "discountExpiry": "2025-04-17",
       "origin": "China",
-      "stock": 237,
+      "stock": 15,
       "details": [
         {
           "key": "Key1asdfcasdf",
@@ -82,7 +82,7 @@
       "discountPrice": 1000,
       "discountExpiry": "2025-06-01",
       "origin": "Taiwan",
-      "stock": 91,
+      "stock": 5,
       "details": [
         {
           "key": "Watt",
@@ -207,96 +207,5 @@
   "admins": [
     "royaleyourdad@gmail.com"
   ],
-  "stockHistory": [
-    {
-      "id": "1744830540708",
-      "productId": "1744804812036",
-      "action": "sold",
-      "quantity": 10,
-      "notes": "test sell 1, 1, from test product 2  test edit",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-19T17:20:56.361Z",
-      "date": "2025-04-19T17:20:56.361Z"
-    },
-    {
-      "id": "1744836074723",
-      "productId": "1744739166453",
-      "action": "bought",
-      "quantity": 99,
-      "notes": "Bought 100 units",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-16T20:41:14.723Z",
-      "date": "2025-04-16T20:41:14.723Z"
-    },
-    {
-      "id": "1744836245459",
-      "productId": "1744804812036",
-      "action": "bought",
-      "quantity": 143,
-      "notes": "ewrw",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-16T20:44:05.459Z",
-      "date": "2025-04-16T20:44:05.459Z"
-    },
-    {
-      "id": "1744836748748",
-      "productId": "1744739166453",
-      "action": "sold",
-      "quantity": 108,
-      "notes": "test",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-16T20:52:28.748Z",
-      "date": "2025-04-16T20:52:28.748Z"
-    },
-    {
-      "id": "1744836957241",
-      "productId": "1744739166453",
-      "action": "bought",
-      "quantity": 13,
-      "notes": "32134 w",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-16T20:55:57.241Z",
-      "date": "2025-04-16T20:55:57.241Z"
-    },
-    {
-      "id": "1744837474496",
-      "productId": "1744804812036",
-      "action": "sold",
-      "quantity": 10,
-      "notes": "test",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-16T21:04:34.496Z",
-      "date": "2025-04-16T21:04:34.496Z"
-    },
-    {
-      "id": "1745082554056",
-      "productId": "1744813498742",
-      "action": "bought",
-      "quantity": 100,
-      "notes": "bought 100",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-19T17:09:14.056Z",
-      "date": "2025-04-19T17:09:14.056Z"
-    },
-    {
-      "id": "1745084376796",
-      "productId": "1744813498742",
-      "action": "sold",
-      "quantity": 14,
-      "notes": "test functionality",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-19T17:39:36.796Z",
-      "date": "2025-04-19T17:39:36.796Z"
-    },
-    {
-      "id": "1745087252867",
-      "productId": "1744804812036",
-      "action": "bought",
-      "quantity": 99,
-      "notes": ".",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-19T18:27:32.867Z",
-      "date": "2025-04-19T18:27:32.867Z"
-    }
-  ]
+  "stockHistory": []
 }

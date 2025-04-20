@@ -152,7 +152,11 @@
                   <%= entry.action === 'sold' ? '-' : '+' %><%= entry.quantity %>
                 </td>
                 <td class="p-4 text-sm text-gray-600">
-                  <%= entry.stockAfter !== null ? entry.stockAfter : 'N/A' %>
+                  <% if (entry.stockAfter === undefined || entry.stockAfter === null) { %>
+                    N/A
+                  <% } else { %>
+                    <%= entry.stockAfter %>
+                  <% } %>
                 </td>
                 <td class="p-4 text-sm text-gray-600 truncate"><%= entry.notes || '-' %></td>
                 <td class="p-4 text-sm text-gray-600 truncate"><%= users.find(u => u.id === entry.updatedBy)?.displayName || 'Unknown' %></td>

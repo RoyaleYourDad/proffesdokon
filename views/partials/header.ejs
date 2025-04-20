@@ -58,7 +58,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
-          Cart
+          Cart (<span id="cart-count">0</span>)
         </a>
         <!-- User and Admin Links -->
         <% if (user) { %>
@@ -103,17 +103,17 @@
                   Management</a>
               </div>
             </div>
-            <% } %>
-              <% } else { %>
-                <a href="/auth/login"
-                  class="text-gray-700 hover:text-blue-600 flex items-center text-base whitespace-nowrap transition-colors duration-200">
-                  <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
-                  Login
-                </a>
-                <% } %>
+          <% } %>
+        <% } else { %>
+          <a href="/auth/login"
+            class="text-gray-700 hover:text-blue-600 flex items-center text-base whitespace-nowrap transition-colors duration-200">
+            <svg class="w-5 h-5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+            Login
+          </a>
+        <% } %>
       </div>
     </div>
 
@@ -139,7 +139,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
-          Cart
+          Cart (<span id="cart-count-mobile">0</span>)
         </a>
         <!-- User and Admin Links (Mobile) -->
         <% if (user) { %>
@@ -177,17 +177,17 @@
               <a href="/admin/admins" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Admin
                 Management</a>
             </div>
-            <% } %>
-              <% } else { %>
-                <a href="/auth/login"
-                  class="text-gray-700 hover:text-blue-600 flex items-center text-base whitespace-nowrap transition-colors duration-200">
-                  <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                  </svg>
-                  Login
-                </a>
-                <% } %>
+          <% } %>
+        <% } else { %>
+          <a href="/auth/login"
+            class="text-gray-700 hover:text-blue-600 flex items-center text-base whitespace-nowrap transition-colors duration-200">
+            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+            Login
+          </a>
+        <% } %>
       </div>
     </div>
   </nav>
@@ -201,7 +201,7 @@
       mobileMenu.classList.toggle("animate-slide-in", !isOpen);
       menuToggle.setAttribute("aria-expanded", !isOpen);
     });
-  
+
     // Close mobile menu on outside click
     document.addEventListener("click", (e) => {
       if (!mobileMenu.contains(e.target) && !menuToggle.contains(e.target) && !mobileMenu.classList.contains("hidden")) {
@@ -210,7 +210,7 @@
         menuToggle.setAttribute("aria-expanded", "false");
       }
     });
-  
+
     // Admin dropdown hover persistence
     const adminMenu = document.getElementById("admin-menu");
     const adminDropdown = document.getElementById("admin-dropdown");
@@ -236,7 +236,7 @@
         }, 100);
       });
     }
-  
+
     // Click animation for logo and admin button
     const logoButton = document.querySelector('a[href="/"].group');
     const adminButtons = document.querySelectorAll('a[href="/admin"]');
@@ -250,51 +250,52 @@
         setTimeout(() => button.classList.remove("animate-pulse-click"), 300);
       });
     });
-  
+
     // Fetch cart count
     window.addEventListener("DOMContentLoaded", () => {
       fetch("/count")
         .then(res => res.json())
         .then(data => {
-          document.getElementById("cart-count").innerText = data.cartCount || 0;
+          const cartCount = data.cartCount || 0;
+          document.getElementById("cart-count").innerText = cartCount;
+          document.getElementById("cart-count-mobile").innerText = cartCount;
         })
         .catch(err => {
           console.error("Error fetching cart count:", err);
         });
     });
-  
-    // Periodically check admin status
+
+    // Check admin status and refresh if needed
     function updateAdminStatus() {
       fetch("/admin/api/user/status")
         .then(res => {
-          if (!res.ok) throw new Error("Failed to fetch user status");
+          if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
           return res.json();
         })
         .then(data => {
           const isAdmin = data.isAdmin;
-          const adminMenu = document.getElementById("admin-menu");
-          const mobileAdminLinks = document.querySelectorAll(".mobile-admin-links");
-  
-          // Current admin status in the DOM
-          const isCurrentlyAdmin = adminMenu && !adminMenu.classList.contains("hidden");
-  
-          if (isAdmin && !isCurrentlyAdmin) {
-            // User became admin: reload to update header
-            window.location.reload();
-          } else if (!isAdmin && isCurrentlyAdmin) {
-            // User is no longer admin: reload to update header
-            window.location.reload();
+          const isCurrentlyAdmin = !!document.getElementById("admin-menu");
+          const urlParams = new URLSearchParams(window.location.search);
+          const needsRefresh = urlParams.get("refresh") === "true";
+
+          console.log("Admin status check:", { isAdmin, isCurrentlyAdmin, needsRefresh });
+
+          if (needsRefresh || isAdmin !== isCurrentlyAdmin) {
+            console.log("Admin status changed or refresh requested, reloading page");
+            urlParams.delete("refresh");
+            const newUrl = urlParams.toString() ? `${window.location.pathname}?${urlParams}` : window.location.pathname;
+            window.location.href = newUrl;
           }
         })
         .catch(err => {
           console.error("Error checking admin status:", err);
         });
     }
-  
+
     // Run on load and every 30 seconds
     window.addEventListener("DOMContentLoaded", () => {
       updateAdminStatus();
-      setInterval(updateAdminStatus, 30000); // Check every 30 seconds
+      setInterval(updateAdminStatus, 30000);
     });
   </script>
 
@@ -480,17 +481,3 @@
       }
     }
   </style>
-  <script>
-    window.addEventListener("DOMContentLoaded", () => {
-      fetch("/count")
-        .then(res => res.json())
-        .then(data => {
-          document.getElementById("cart-count").innerText = data.cartCount || 0;
-        })
-        .catch(err => {
-          console.error("Error fetching cart count:", err);
-        });
-    });
-  </script>
-</body>
-</html> 
