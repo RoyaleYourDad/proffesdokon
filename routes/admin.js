@@ -27,20 +27,150 @@ router.use(async (req, res, next) => {
   next();
 });
 
+// notifications
+// Helper function to compute alerts and analytics
+const computeAlertsAndAnalytics = (db) => {
+  const now = new Date();
+  const lowStockThreshold = 5;
+  const discountExpiryDays = 7;
+
+  // Alerts
+  const lowStockProducts = db.products.filter(p => p.stock > 0 && p.stock <= lowStockThreshold);
+  const uncategorizedProducts = db.products.filter(p => !p.category);
+  const expiringDiscounts = db.products.filter(p => 
+    p.discountExpiry && 
+    new Date(p.discountExpiry) > now && 
+    (new Date(p.discountExpiry) - now) / (1000 * 60 * 60 * 24) <= discountExpiryDays
+  );
+  const pendingReviews = db.products
+    .flatMap(p => (p.reviews || []).map(r => ({ ...r, productId: p.id, productName: p.name })))
+    .filter(r => !r.moderated); // Assume reviews have a `moderated` field; add if needed
+
+  const alerts = [
+    ...lowStockProducts.map(p => ({
+      type: "low_stock",
+      message: `Product "${p.name}" has low stock (${p.stock} units)`,
+      link: `/admin/edit/${p.id}`,
+      timestamp: now,
+    })),
+    ...uncategorizedProducts.map(p => ({
+      type: "uncategorized",
+      message: `Product "${p.name}" has no category`,
+      link: `/admin/edit/${p.id}`,
+      timestamp: now,
+    })),
+    ...expiringDiscounts.map(p => ({
+      type: "expiring_discount",
+      message: `Discount for "${p.name}" expires on ${new Date(p.discountExpiry).toLocaleDateString()}`,
+      link: `/admin/edit/${p.id}`,
+      timestamp: now,
+    })),
+    ...pendingReviews.map(r => ({
+      type: "pending_review",
+      message: `New review for "${r.productName}" needs moderation`,
+      link: `/admin/edit/${r.productId}#reviews`,
+      timestamp: now,
+    })),
+  ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  // Analytics
+  const last30Days = new Date(now - 30 * 24 * 60 * 60 * 1000);
+  const sales = db.products
+    .flatMap(p => (p.sales || []).filter(s => new Date(s.date) >= last30Days))
+    .reduce((acc, s) => acc + (s.quantity * s.price), 0);
+
+  const topSellingProducts = db.products
+    .map(p => ({
+      name: p.name,
+      sales: (p.sales || []).reduce((acc, s) => acc + s.quantity, 0),
+    }))
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, 5);
+
+  const stockTurnover = db.products
+    .map(p => ({
+      name: p.name,
+      turnover: (p.sales || []).reduce((acc, s) => acc + s.quantity, 0) / (p.stock + (p.sales || []).reduce((acc, s) => acc + s.quantity, 0)) || 0,
+    }))
+    .sort((a, b) => b.turnover - a.turnover);
+
+  return {
+    alerts,
+    analytics: {
+      revenueLast30Days: sales.toFixed(2),
+      topSellingProducts,
+      stockTurnover,
+    },
+  };
+};
+
+
+
 // Admin Dashboard
 router.get("/", async (req, res) => {
   try {
+    // Reload database to ensure fresh data
     const db = await loadDB();
+    if (!db.users || !db.products) {
+      throw new Error("Invalid database structure");
+    }
+
+    const { alerts, analytics } = computeAlertsAndAnalytics(db);
+
+    // Ensure user exists and has notifications array
+    const user = db.users.find(u => u.id === req.user.id);
+    if (!user) {
+      console.error("User not found in DB:", { userId: req.user.id, email: req.user.email });
+      return res.status(401).render("error", {
+        message: "User not found",
+        user: req.user,
+        query: req.query || {},
+      });
+    }
+    if (!user.notifications) {
+      user.notifications = [];
+    }
+
+    // Add new alerts to notifications
+    alerts.forEach(alert => {
+      if (!user.notifications.some(n => n.message === alert.message && n.link === alert.link)) {
+        user.notifications.push({ ...alert, read: false });
+      }
+    });
+
+    // Save database and verify
+    try {
+      await saveDB(db);
+      console.log("Notifications saved for user:", {
+        userId: req.user.id,
+        email: req.user.email,
+        notificationCount: user.notifications.length,
+      });
+    } catch (saveErr) {
+      console.error("Failed to save notifications to DB:", saveErr);
+      return res.status(500).render("error", {
+        message: "Failed to save notifications",
+        user: req.user,
+        query: req.query || {},
+      });
+    }
+
     console.log("Rendering admin/index with:", {
       userId: req.user.id,
       productCount: db.products.length,
-      userCount: db.users.length,
+      alertCount: alerts.length,
+      notificationCount: user.notifications.length,
+      analytics,
     });
+
     res.render("admin/index", {
       products: db.products || [],
       user: req.user,
       categories: db.categories || [],
       users: db.users || [],
+      alerts,
+      analytics,
+      notifications: user.notifications,
     });
   } catch (err) {
     console.error("Error rendering admin dashboard:", err);
@@ -49,6 +179,54 @@ router.get("/", async (req, res) => {
       user: req.user,
       query: req.query || {},
     });
+  }
+});
+
+// Mark notification as read
+router.post("/notification/read/:index", async (req, res) => {
+  try {
+    // Reload database to ensure fresh data
+    const db = await loadDB();
+    if (!db.users) {
+      throw new Error("Invalid database structure");
+    }
+
+    const user = db.users.find(u => u.id === req.user.id);
+    if (!user) {
+      console.error("User not found in DB:", { userId: req.user.id, email: req.user.email });
+      return res.status(401).render("error", {
+        message: "User not found",
+        user: req.user,
+        query: req.query || {},
+      });
+    }
+
+    const index = parseInt(req.params.index);
+    if (!user.notifications || !user.notifications[index]) {
+      console.warn("Notification not found:", { userId: req.user.id, index });
+      return res.status(404).json({ success: false, message: "Notification not found" });
+    }
+
+    user.notifications[index].read = true;
+
+    // Save database and verify
+    try {
+      await saveDB(db);
+      console.log("Notification marked as read:", {
+        userId: req.user.id,
+        email: req.user.email,
+        index,
+        message: user.notifications[index].message,
+      });
+    } catch (saveErr) {
+      console.error("Failed to save notification read status:", saveErr);
+      return res.status(500).json({ success: false, message: "Failed to save notification status" });
+    }
+
+    res.redirect("/admin");
+  } catch (err) {
+    console.error("Error marking notification as read:", err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
@@ -368,20 +546,40 @@ router.post("/image/delete", async (req, res) => {
 });
 
 // Add Category
+// Add Category
 router.post("/category/add", async (req, res) => {
   try {
     const db = await loadDB();
     const { name } = req.body;
-    if (name && !db.categories.includes(name)) {
-      db.categories.push(name);
-      await saveDB(db);
-      res.json({ success: true });
-    } else {
-      res.status(400).json({ success: false, error: "Invalid or duplicate category" });
+    if (!name || name.trim() === "") {
+      return res.render("admin/categories", {
+        categories: db.categories || [],
+        user: req.user,
+        error: "Category name cannot be empty",
+        success: null,
+      });
     }
+    const normalizedName = name.trim().toLowerCase();
+    if (db.categories.some(category => category.toLowerCase() === normalizedName)) {
+      return res.render("admin/categories", {
+        categories: db.categories || [],
+        user: req.user,
+        error: "Category already exists",
+        success: null,
+      });
+    }
+    db.categories.push(name.trim());
+    await saveDB(db);
+    console.log("Category added:", name);
+    res.render("admin/categories", {
+      categories: db.categories || [],
+      user: req.user,
+      error: null,
+      success: `Category "${name}" added successfully`,
+    });
   } catch (err) {
     console.error("Add category error:", err);
-    res.status(500).json({ success: false, error: "Failed to add category" });
+    // ... (rest of the error handling remains the same)
   }
 });
 
@@ -484,13 +682,46 @@ router.post("/stock/update", async (req, res) => {
       });
     }
 
-    // Update product stock
+    // Determine sale price
+    let salePrice = product.price;
+    if (
+      product.discountPrice &&
+      product.discountPrice <= product.price &&
+      product.discountExpiry &&
+      new Date(product.discountExpiry) > new Date()
+    ) {
+      salePrice = product.discountPrice;
+    }
+
+    if (action === "sold" && !salePrice) {
+      console.log("No valid price for sale:", productId);
+      return res.render("admin/stock", {
+        products: db.products,
+        user: req.user,
+        categories: db.categories || [],
+        error: "Product has no valid price for sale",
+      });
+    }
+
+    // Generate stockHistory entry ID
+    const historyId = Date.now().toString();
+
+    // Update product stock and sales
     product.stock = action === "sold" ? product.stock - qty : product.stock + qty;
+    if (action === "sold") {
+      if (!product.sales) product.sales = [];
+      product.sales.push({
+        quantity: qty,
+        price: salePrice,
+        date: date || new Date().toISOString(),
+        historyId: historyId, // Link to stockHistory
+      });
+    }
 
     // Add to stockHistory
     db.stockHistory = db.stockHistory || [];
     const historyEntry = {
-      id: Date.now().toString(),
+      id: historyId,
       productId,
       action,
       quantity: qty,
@@ -502,7 +733,7 @@ router.post("/stock/update", async (req, res) => {
     db.stockHistory.push(historyEntry);
 
     await saveDB(db);
-    console.log("Stock updated:", { productId, action, quantity: qty, userId: req.user.id });
+    console.log("Stock updated:", { productId, action, quantity: qty, salePrice: action === "sold" ? salePrice : null, userId: req.user.id });
 
     res.render("admin/stock", {
       products: db.products,
@@ -971,6 +1202,10 @@ router.post("/stock/history/delete", async (req, res) => {
     if (product) {
       if (action === "sold") {
         product.stock += parseInt(quantity);
+        // Remove corresponding sales entry
+        if (product.sales) {
+          product.sales = product.sales.filter((s) => s.historyId !== id);
+        }
       } else if (action === "bought") {
         product.stock -= parseInt(quantity);
         if (product.stock < 0) {
@@ -1275,5 +1510,196 @@ router.post("/database/save", async (req, res) => {
     res.status(500).json({ error: "Failed to save content" });
   }
 });
+
+// manage categories functionalities
+
+router.get("/categories", async (req, res) => {
+  try {
+    const db = await loadDB();
+    res.render("admin/categories", {
+      categories: db.categories || [],
+      user: req.user,
+      error: null,
+      success: null,
+    });
+  } catch (err) {
+    console.error("Error rendering categories page:", err);
+    res.status(500).render("error", {
+      message: "Failed to load categories page",
+      user: req.user,
+      query: req.query || {},
+    });
+  }
+});
+
+// Add Category
+router.post("/category/add", async (req, res) => {
+  try {
+    const db = await loadDB();
+    const { name } = req.body;
+    if (!name || name.trim() === "") {
+      return res.render("admin/categories", {
+        categories: db.categories || [],
+        user: req.user,
+        error: "Category name cannot be empty",
+        success: null,
+      });
+    }
+    if (db.categories.includes(name)) {
+      return res.render("admin/categories", {
+        categories: db.categories || [],
+        user: req.user,
+        error: "Category already exists",
+        success: null,
+      });
+    }
+    db.categories.push(name);
+    await saveDB(db);
+    console.log("Category added:", name);
+    res.render("admin/categories", {
+      categories: db.categories || [],
+      user: req.user,
+      error: null,
+      success: `Category "${name}" added successfully`,
+    });
+  } catch (err) {
+    console.error("Add category error:", err);
+    try {
+      const db = await loadDB();
+      res.render("admin/categories", {
+        categories: db.categories || [],
+        user: req.user,
+        error: "Failed to add category",
+        success: null,
+      });
+    } catch (dbErr) {
+      console.error("Error loading db for add category error:", dbErr);
+      res.status(500).render("error", {
+        message: "Failed to load categories page",
+        user: req.user,
+        query: req.query || {},
+      });
+    }
+  }
+});
+
+// Edit Category
+router.post("/category/edit", async (req, res) => {
+  try {
+    const db = await loadDB();
+    const { oldName, newName } = req.body;
+    if (!oldName || !newName || newName.trim() === "") {
+      return res.render("admin/categories", {
+        categories: db.categories || [],
+        user: req.user,
+        error: "New category name cannot be empty",
+        success: null,
+      });
+    }
+    if (db.categories.includes(newName)) {
+      return res.render("admin/categories", {
+        categories: db.categories || [],
+        user: req.user,
+        error: "Category already exists",
+        success: null,
+      });
+    }
+    const index = db.categories.indexOf(oldName);
+    if (index === -1) {
+      return res.render("admin/categories", {
+        categories: db.categories || [],
+        user: req.user,
+        error: "Category not found",
+        success: null,
+      });
+    }
+    db.categories[index] = newName;
+    // Update products with the old category
+    db.products = db.products.map(product => {
+      if (product.category === oldName) {
+        return { ...product, category: newName };
+      }
+      return product;
+    });
+    await saveDB(db);
+    console.log("Category edited:", { oldName, newName });
+    res.render("admin/categories", {
+      categories: db.categories || [],
+      user: req.user,
+      error: null,
+      success: `Category "${oldName}" renamed to "${newName}"`,
+    });
+  } catch (err) {
+    console.error("Edit category error:", err);
+    try {
+      const db = await loadDB();
+      res.render("admin/categories", {
+        categories: db.categories || [],
+        user: req.user,
+        error: "Failed to edit category",
+        success: null,
+      });
+    } catch (dbErr) {
+      console.error("Error loading db for edit category error:", dbErr);
+      res.status(500).render("error", {
+        message: "Failed to load categories page",
+        user: req.user,
+        query: req.query || {},
+      });
+    }
+  }
+});
+
+// Delete Category
+router.post("/category/delete", async (req, res) => {
+  try {
+    const db = await loadDB();
+    const { name } = req.body;
+    if (!name || !db.categories.includes(name)) {
+      return res.render("admin/categories", {
+        categories: db.categories || [],
+        user: req.user,
+        error: "Category not found",
+        success: null,
+      });
+    }
+    db.categories = db.categories.filter(category => category !== name);
+    // Remove category from products
+    db.products = db.products.map(product => {
+      if (product.category === name) {
+        return { ...product, category: null };
+      }
+      return product;
+    });
+    await saveDB(db);
+    console.log("Category deleted:", name);
+    res.render("admin/categories", {
+      categories: db.categories || [],
+      user: req.user,
+      error: null,
+      success: `Category "${name}" deleted successfully`,
+    });
+  } catch (err) {
+    console.error("Delete category error:", err);
+    try {
+      const db = await loadDB();
+      res.render("admin/categories", {
+        categories: db.categories || [],
+        user: req.user,
+        error: "Failed to delete category",
+        success: null,
+      });
+    } catch (dbErr) {
+      console.error("Error loading db for delete category error:", dbErr);
+      res.status(500).render("error", {
+        message: "Failed to load categories page",
+        user: req.user,
+        query: req.query || {},
+      });
+    }
+  }
+});
+
+
 
 module.exports = router;

@@ -9,22 +9,24 @@ let dbLock = false;
 
 const loadDB = async () => {
   try {
-    const data = JSON.parse(await fs.readFile(dbPath, "utf8"));
+    // Always read from file to ensure fresh data
+    const data = await fs.readFile(dbPath, "utf8");
+    const parsedData = JSON.parse(data);
     dbCache = {
-      products: (data.products || []).map((p) => ({
+      products: (parsedData.products || []).map((p) => ({
         ...p,
         reviews: (p.reviews || []).map((r) => ({ ...r, edited: r.edited || false })),
       })),
-      categories: data.categories || [],
-      users: (data.users || []).map((user) => ({
+      categories: parsedData.categories || [],
+      users: (parsedData.users || []).map((user) => ({
         ...user,
         role: user.role || "user",
         cart: user.cart || [],
         cartCount: user.cartCount || 0,
         isAdmin: user.role === "admin",
       })),
-      admins: data.admins || [],
-      stockHistory: (data.stockHistory || []).map((entry) => ({
+      admins: parsedData.admins || [],
+      stockHistory: (parsedData.stockHistory || []).map((entry) => ({
         ...entry,
         notes: (entry.notes || "").replace(/[\r\n]+/g, " ").trim(),
         date: entry.date || entry.updatedAt || new Date().toISOString(), // Add date field, fallback to updatedAt
@@ -32,14 +34,13 @@ const loadDB = async () => {
         timestamp: undefined, // Remove timestamp to avoid confusion
       })),
     };
-    console.log("Database loaded:", {
+    console.log("Database loaded from disk:", {
+      path: dbPath,
       users: dbCache.users.length,
       products: dbCache.products.length,
-      admins: dbCache.admins,
+      admins: dbCache.admins.length,
       stockHistory: dbCache.stockHistory.length,
     });
-    // Save migrated data (if any changes were made)
-    await saveDB(dbCache);
     return dbCache;
   } catch (err) {
     console.error("Failed to load database.json:", {
@@ -50,6 +51,7 @@ const loadDB = async () => {
       console.log("Returning cached database due to load error");
       return dbCache;
     }
+    console.warn("No cached database available, initializing empty database");
     dbCache = { products: [], categories: [], users: [], admins: [], stockHistory: [] };
     return dbCache;
   }
@@ -66,11 +68,14 @@ const saveDB = async (data) => {
       users: data.users.length,
       products: data.products.length,
       reviews: data.products.reduce((sum, p) => sum + (p.reviews || []).length, 0),
-      admins: data.admins,
+      admins: data.admins.length,
       stockHistory: data.stockHistory.length,
     });
-    await fs.writeFile(dbPath, JSON.stringify(data, null, 2));
+    await fs.writeFile(dbPath, JSON.stringify(data, null, 2), "utf8");
     console.log("Database successfully saved to disk:", { path: dbPath });
+    // Invalidate cache to force reload on next loadDB
+    dbCache = null;
+    console.log("Database cache invalidated after save");
   } catch (err) {
     console.error("Error saving database:", {
       path: dbPath,

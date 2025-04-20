@@ -11,6 +11,46 @@
       Admin Dashboard
     </h1>
 
+    <!-- Alerts Section -->
+    <div class="bg-white shadow rounded-2xl p-6 mb-8">
+      <h2 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        Alerts
+      </h2>
+      <% if (alerts.length > 0) { %>
+        <div class="space-y-4">
+          <% alerts.slice(0, 5).forEach(alert => { %>
+            <div class="flex items-center justify-between bg-red-50 p-4 rounded-lg">
+              <p class="text-sm text-red-700">
+                <% if (alert.type === 'low_stock') { %>
+                  <span class="font-medium">Low Stock:</span> <%= alert.message %>
+                <% } else if (alert.type === 'uncategorized') { %>
+                  <span class="font-medium">Uncategorized:</span> <%= alert.message %>
+                <% } else if (alert.type === 'expiring_discount') { %>
+                  <span class="font-medium">Expiring Discount:</span> <%= alert.message %>
+                <% } else if (alert.type === 'pending_review') { %>
+                  <span class="font-medium">Pending Review:</span> <%= alert.message %>
+                <% } %>
+              </p>
+              <a href="<%= alert.link %>" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                Take Action
+              </a>
+            </div>
+          <% }) %>
+          <% if (alerts.length > 5) { %>
+            <p class="text-sm text-gray-500 text-center">
+              <%= alerts.length - 5 %> more alerts not shown.
+            </p>
+          <% } %>
+        </div>
+      <% } else { %>
+        <p class="text-gray-500 text-center py-4">No alerts at the moment. You're all set!</p>
+      <% } %>
+    </div>
+
     <!-- Navigation -->
     <div class="bg-white shadow rounded-2xl p-6 mb-8">
       <div class="flex flex-wrap gap-4">
@@ -35,6 +75,13 @@
           </svg>
           Stock History
         </a>
+        <a href="/admin/categories"
+          class="bg-blue-600 text-white py-3 px-6 rounded-lg text-sm hover:bg-blue-700 flex items-center transition-colors">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18" />
+          </svg>
+          Manage Categories
+        </a>
         <a href="/admin/admins"
           class="bg-blue-600 text-white py-3 px-6 rounded-lg text-sm hover:bg-blue-700 flex items-center transition-colors">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,6 +90,54 @@
           </svg>
           Manage Admins
         </a>
+      </div>
+    </div>
+
+    <!-- Analytics Section -->
+    <div class="bg-white shadow rounded-2xl p-6 mb-8">
+      <h2 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        Analytics
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Revenue Last 30 Days -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-sm font-medium text-gray-600">Revenue (Last 30 Days)</h3>
+          <p class="text-2xl font-bold text-gray-800">$<%= analytics.revenueLast30Days %></p>
+        </div>
+        <!-- Top Selling Products -->
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <h3 class="text-sm font-medium text-gray-600">Top Selling Products</h3>
+          <% if (analytics.topSellingProducts.length > 0) { %>
+            <ul class="mt-2 space-y-2">
+              <% analytics.topSellingProducts.forEach(product => { %>
+                <li class="text-sm text-gray-700">
+                  <%= product.name %> (<%= product.sales %> units sold)
+                </li>
+              <% }) %>
+            </ul>
+          <% } else { %>
+            <p class="text-sm text-gray-500 mt-2">No sales data available.</p>
+          <% } %>
+        </div>
+        <!-- Stock Turnover -->
+        <div class="bg-gray-50 p-4 rounded-lg col-span-1 md:col-span-2">
+          <h3 class="text-sm font-medium text-gray-600">Stock Turnover</h3>
+          <% if (analytics.stockTurnover.length > 0) { %>
+            <ul class="mt-2 space-y-2">
+              <% analytics.stockTurnover.slice(0, 5).forEach(product => { %>
+                <li class="text-sm text-gray-700">
+                  <%= product.name %> (Turnover: <%= (product.turnover * 100).toFixed(2) %>%)
+                </li>
+              <% }) %>
+            </ul>
+          <% } else { %>
+            <p class="text-sm text-gray-500 mt-2">No turnover data available.</p>
+          <% } %>
+        </div>
       </div>
     </div>
 

@@ -3,12 +3,12 @@
     {
       "id": "1744739166453",
       "name": "Test Product 1",
-      "category": "test2",
+      "category": "Grillar",
       "price": 540,
       "discountPrice": 425,
       "discountExpiry": "2025-04-17",
       "origin": "China",
-      "stock": 11,
+      "stock": 1,
       "thumbnail": {
         "url": "https://i.ibb.co/Sw8p6FGG/21588122bc45.jpg",
         "delete_url": "https://ibb.co/k2fFGNvv/1b9b141d96de9bed3a4fa03d2d219446"
@@ -37,6 +37,25 @@
           "key": "Key4",
           "value": "Value4"
         }
+      ],
+      "sales": [
+        {
+          "quantity": 134,
+          "price": 540,
+          "date": "2025-04-20"
+        },
+        {
+          "quantity": 10,
+          "price": 540,
+          "date": "2025-04-20",
+          "historyId": "1745154305406"
+        },
+        {
+          "quantity": 45,
+          "price": 540,
+          "date": "2025-04-20",
+          "historyId": "1745154560848"
+        }
       ]
     },
     {
@@ -47,7 +66,7 @@
       "discountPrice": 178,
       "discountExpiry": "2025-04-17",
       "origin": "China",
-      "stock": 15,
+      "stock": 1,
       "details": [
         {
           "key": "Key1asdfcasdf",
@@ -71,6 +90,14 @@
         {
           "url": "https://i.ibb.co/Hf6kcnj0/b3fbdb931835.jpg",
           "delete_url": "https://ibb.co/G4ybZcqX/8eaeadeea935de54b300cbea8dc84b41"
+        }
+      ],
+      "sales": [
+        {
+          "quantity": 13,
+          "price": 220,
+          "date": "2025-04-20",
+          "historyId": "1745154961219"
         }
       ]
     },
@@ -149,8 +176,7 @@
     "Sendvich Pishirgichlar",
     "Bug'lash Moslamalari",
     "Vakuum Muhrlagichlar",
-    "Oziq-ovqat Yuk Mashinalari",
-    "test2"
+    "Oziq-ovqat Yuk Mashinalari"
   ],
   "users": [
     {
@@ -171,7 +197,30 @@
       "cart": [],
       "role": "admin",
       "cartCount": 0,
-      "isAdmin": true
+      "isAdmin": true,
+      "notifications": [
+        {
+          "type": "low_stock",
+          "message": "Product \"Jdjd\" has low stock (5 units)",
+          "link": "/admin/edit/1744813498742",
+          "timestamp": "2025-04-20T12:33:35.119Z",
+          "read": true
+        },
+        {
+          "type": "low_stock",
+          "message": "Product \"Test Product 1\" has low stock (1 units)",
+          "link": "/admin/edit/1744739166453",
+          "timestamp": "2025-04-20T13:05:08.515Z",
+          "read": true
+        },
+        {
+          "type": "low_stock",
+          "message": "Product \"Test Product 2\" has low stock (1 units)",
+          "link": "/admin/edit/1744804812036",
+          "timestamp": "2025-04-20T13:16:03.081Z",
+          "read": false
+        }
+      ]
     },
     {
       "id": "1744739267240",
@@ -207,5 +256,56 @@
   "admins": [
     "royaleyourdad@gmail.com"
   ],
-  "stockHistory": []
+  "stockHistory": [
+    {
+      "id": "1745152452879",
+      "productId": "1744804812036",
+      "action": "sold",
+      "quantity": 1,
+      "notes": "",
+      "updatedBy": "1744729926566",
+      "updatedAt": "2025-04-20T12:34:12.879Z",
+      "date": "2025-04-20"
+    },
+    {
+      "id": "1745154305406",
+      "productId": "1744739166453",
+      "action": "sold",
+      "quantity": 10,
+      "notes": "",
+      "updatedBy": "1744729926566",
+      "updatedAt": "2025-04-20T13:05:05.406Z",
+      "date": "2025-04-20"
+    },
+    {
+      "id": "1745154540019",
+      "productId": "1744739166453",
+      "action": "bought",
+      "quantity": 45,
+      "notes": "gertyety eretyvberety r eybeybrt",
+      "updatedBy": "1744729926566",
+      "updatedAt": "2025-04-20T13:09:00.019Z",
+      "date": "2025-04-20"
+    },
+    {
+      "id": "1745154560848",
+      "productId": "1744739166453",
+      "action": "sold",
+      "quantity": 45,
+      "notes": "",
+      "updatedBy": "1744729926566",
+      "updatedAt": "2025-04-20T13:09:20.848Z",
+      "date": "2025-04-20"
+    },
+    {
+      "id": "1745154961219",
+      "productId": "1744804812036",
+      "action": "sold",
+      "quantity": 13,
+      "notes": "",
+      "updatedBy": "1744729926566",
+      "updatedAt": "2025-04-20T13:16:01.219Z",
+      "date": "2025-04-20"
+    }
+  ]
 }

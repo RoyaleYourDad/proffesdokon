@@ -98,9 +98,33 @@
                 <a href="/admin/stock/history"
                   class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">Stock
                   History</a>
+                <a href="/admin/categories"
+                  class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">Manage
+                  Categories</a>
                 <a href="/admin/admins"
                   class="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-600 hover:animate-slide-item transition-colors duration-200">Admin
                   Management</a>
+              </div>
+            </div>
+            <!-- Notifications Bell -->
+            <div id="notifications-menu" class="relative">
+              <button id="notifications-toggle"
+                class="text-gray-700 hover:text-blue-600 flex items-center text-base relative focus:outline-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <% const unreadCount = user.notifications ? user.notifications.filter(n => !n.read).length : 0 %>
+                <% if (unreadCount > 0) { %>
+                  <span
+                    class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    <%= unreadCount %>
+                  </span>
+                <% } %>
+              </button>
+              <div id="notifications-dropdown"
+                class="hidden absolute right-0 bg-white shadow-lg rounded-lg mt-2 w-80 z-30 max-h-96 overflow-y-auto">
+                <%- include('../partials/notifications') %>
               </div>
             </div>
           <% } %>
@@ -165,6 +189,21 @@
               </svg>
               Admin Controls
             </a>
+            <!-- Notifications Bell (Mobile) -->
+            <a href="/admin" class="text-gray-700 hover:text-blue-600 flex items-center text-base relative">
+              <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              Notifications
+              <% const unreadCount = user.notifications ? user.notifications.filter(n => !n.read).length : 0 %>
+              <% if (unreadCount > 0) { %>
+                <span
+                  class="absolute top-0 left-6 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  <%= unreadCount %>
+                </span>
+              <% } %>
+            </a>
             <!-- Admin Links (Mobile) -->
             <div class="flex flex-col gap-2 pl-4">
               <a href="/admin" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Dashboard</a>
@@ -174,6 +213,8 @@
                 Management</a>
               <a href="/admin/stock/history"
                 class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Stock History</a>
+              <a href="/admin/categories"
+                class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Manage Categories</a>
               <a href="/admin/admins" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">Admin
                 Management</a>
             </div>
@@ -234,6 +275,27 @@
             adminDropdown.classList.add("hidden");
           }
         }, 100);
+      });
+    }
+
+    // Notifications dropdown toggle
+    const notificationsToggle = document.getElementById("notifications-toggle");
+    const notificationsDropdown = document.getElementById("notifications-dropdown");
+    if (notificationsToggle && notificationsDropdown) {
+      notificationsToggle.addEventListener("click", () => {
+        const isOpen = notificationsDropdown.classList.toggle("hidden");
+        notificationsDropdown.classList.toggle("animate-slide-in", !isOpen);
+      });
+      // Close notifications on outside click
+      document.addEventListener("click", (e) => {
+        if (
+          !notificationsDropdown.contains(e.target) &&
+          !notificationsToggle.contains(e.target) &&
+          !notificationsDropdown.classList.contains("hidden")
+        ) {
+          notificationsDropdown.classList.add("hidden");
+          notificationsDropdown.classList.remove("animate-slide-in");
+        }
       });
     }
 
@@ -300,7 +362,7 @@
   </script>
 
   <style>
-    /* Animation for mobile menu */
+    /* Animation for mobile menu and notifications */
     .animate-slide-in {
       animation: slideIn 0.3s ease-in-out;
     }
