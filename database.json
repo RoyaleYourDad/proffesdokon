@@ -3,7 +3,7 @@
     {
       "id": "1744739166453",
       "name": "Test Product 1",
-      "category": "Grillar",
+      "category": "ALL-test",
       "price": 540,
       "discountPrice": 425,
       "discountExpiry": "2025-04-17",
@@ -43,7 +43,7 @@
     {
       "id": "1744804812036",
       "name": "Test Product 2",
-      "category": "Gaz Plitalari",
+      "category": "ALL-test",
       "price": 220,
       "discountPrice": 178,
       "discountExpiry": "2025-04-17",
@@ -79,7 +79,7 @@
     {
       "id": "1744813498742",
       "name": "Jdjd",
-      "category": "Tosterlar",
+      "category": "ALL-test",
       "price": 3565,
       "discountPrice": 1000,
       "discountExpiry": "2025-06-01",
@@ -118,41 +118,7 @@
     }
   ],
   "categories": [
-    "Gaz Plitalari",
-    "Elektr Plitalari",
-    "Muzlatgichlar",
-    "sovutgich",
-    "Mikroto'lqinli Pechlar",
-    "Duxovkalar",
-    "Non Pishirgichlar",
-    "Tosterlar",
-    "Popkorn Mashinalari",
-    "Lavash Pishirgichlar",
-    "Ugra Pishirgichlar",
-    "Grillar",
-    "Qovurish Moslamalari",
-    "Blenderlar",
-    "Mikserlar",
-    "Qahva Mashinalari",
-    "Espresso Mashinalari",
-    "Sharbat Chiqargichlar",
-    "Oziq-ovqat Protsessorlari",
-    "Idish Yuvgichlar",
-    "Suv Isitgichlari",
-    "Guruch Pishirgichlar",
-    "Rakovinalar",
-    "Kranlar",
-    "Oshxona uchun kesish mashinalari",
-    "Go'sht Maydalagichlar",
-    "Muz Tayyorlagichlar",
-    "Pitsa Duxovkalari",
-    "Makaron Tayyorlagichlar",
-    "Vafli Pishirgichlar",
-    "Krep Pishirgichlar",
-    "Sendvich Pishirgichlar",
-    "Bug'lash Moslamalari",
-    "Vakuum Muhrlagichlar",
-    "Oziq-ovqat Yuk Mashinalari"
+    "ALL-test"
   ],
   "users": [
     {
@@ -195,6 +161,27 @@
           "link": "/admin/edit/1744804812036",
           "timestamp": "2025-04-20T13:16:03.081Z",
           "read": true
+        },
+        {
+          "type": "uncategorized",
+          "message": "Product \"Test Product 1\" has no category",
+          "link": "/admin/edit/1744739166453",
+          "timestamp": "2025-04-21T11:57:17.554Z",
+          "read": false
+        },
+        {
+          "type": "uncategorized",
+          "message": "Product \"Test Product 2\" has no category",
+          "link": "/admin/edit/1744804812036",
+          "timestamp": "2025-04-21T11:57:17.554Z",
+          "read": false
+        },
+        {
+          "type": "uncategorized",
+          "message": "Product \"Jdjd\" has no category",
+          "link": "/admin/edit/1744813498742",
+          "timestamp": "2025-04-21T11:57:17.554Z",
+          "read": false
         }
       ]
     },

@@ -42,17 +42,19 @@
               <!-- Animated Border -->
               <span class="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out;"></span>
               <div class="flex justify-between items-center relative z-10">
-                <span class="text-md font-medium text-gray-900 truncate"><%= category %></span>
+                <span class="text-md font-medium text-gray-900 truncate" title="<%= category %>"><%- category %></span>
                 <div class="flex gap-2">
-                  <button onclick="openEditModal('<%= category %>')"
-                    class="text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-all duration-300 ripple">
+                  <button data-category="<%= encodeURIComponent(category) %>"
+                    class="edit-category-btn text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-all duration-300 ripple"
+                    aria-label="Edit category <%= category %>">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9.586 13.586a2 2 0 002.828 0l4-4z" />
                     </svg>
                   </button>
-                  <button onclick="openDeleteModal('<%= category %>')"
-                    class="text-red-500 hover:text-red-700 hover:scale-110 transition-all duration-300 ripple">
+                  <button data-category="<%= encodeURIComponent(category) %>"
+                    class="delete-category-btn text-red-500 hover:text-red-700 hover:scale-110 transition-all duration-300 ripple"
+                    aria-label="Delete category <%= category %>">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4M9 7v12m6-12v12M10 3h4" />
@@ -78,7 +80,7 @@
     <form id="editCategoryForm" action="/admin/category/edit" method="POST">
       <input type="hidden" name="oldName" id="editOldName">
       <div class="mb-8 p-4 bg-white/50 backdrop-blur-sm rounded-xl hover:bg-indigo-50/30 transition-all duration-300 shadow-sm">
-        <label class="block text-md font-semibold text-gray-800 mb-3">Category Name</label>
+        <label for="editNewName" class="block text-md font-semibold text-gray-800 mb-3">Category Name</label>
         <input type="text" name="newName" id="editNewName" placeholder="Enter new category name" required
           class="block w-full rounded-xl border-gray-200 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-30 py-4 px-5 bg-white transition-all duration-300 text-gray-800 placeholder-gray-400 text-md" />
       </div>
@@ -106,52 +108,126 @@
 </div>
 
 <script>
-  // Modal Functions
-  function openEditModal(category) {
-    document.getElementById('editOldName').value = category;
-    document.getElementById('editNewName').value = category;
-    document.getElementById('editCategoryModal').classList.remove('hidden');
-    setTimeout(() => {
-      document.getElementById('editCategoryModal').querySelector('div').classList.remove('scale-90');
-      document.getElementById('editCategoryModal').classList.add('opacity-100');
-    }, 10);
-  }
+// Utility function to escape HTML to prevent XSS
+function escapeHTML(str) {
+  return str.replace(/[&<>"']/g, match => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[match]));
+}
 
-  function closeEditModal() {
-    document.getElementById('editCategoryModal').classList.add('hidden');
-    document.getElementById('editCategoryModal').querySelector('div').classList.add('scale-90');
-    document.getElementById('editCategoryModal').classList.remove('opacity-100');
-  }
+// Modal Functions
+function openEditModal(category) {
+  const decodedCategory = decodeURIComponent(category);
+  document.getElementById('editOldName').value = decodedCategory;
+  document.getElementById('editNewName').value = decodedCategory;
+  document.getElementById('editCategoryModal').classList.remove('hidden');
+  setTimeout(() => {
+    document.getElementById('editCategoryModal').querySelector('div').classList.remove('scale-90');
+    document.getElementById('editCategoryModal').classList.add('opacity-100');
+  }, 10);
+}
 
-  function openDeleteModal(category) {
-    document.getElementById('deleteCategoryName').value = category;
-    document.getElementById('deleteCategoryModal').classList.remove('hidden');
-    setTimeout(() => {
-      document.getElementById('deleteCategoryModal').querySelector('div').classList.remove('scale-90');
-      document.getElementById('deleteCategoryModal').classList.add('opacity-100');
-    }, 10);
-  }
+function closeEditModal() {
+  document.getElementById('editCategoryModal').classList.add('hidden');
+  document.getElementById('editCategoryModal').querySelector('div').classList.add('scale-90');
+  document.getElementById('editCategoryModal').classList.remove('opacity-100');
+}
 
-  function closeDeleteModal() {
-    document.getElementById('deleteCategoryModal').classList.add('hidden');
-    document.getElementById('deleteCategoryModal').querySelector('div').classList.add('scale-90');
-    document.getElementById('deleteCategoryModal').classList.remove('opacity-100');
-  }
+function openDeleteModal(category) {
+  const decodedCategory = decodeURIComponent(category);
+  document.getElementById('deleteCategoryName').value = decodedCategory;
+  document.getElementById('deleteCategoryModal').classList.remove('hidden');
+  setTimeout(() => {
+    document.getElementById('deleteCategoryModal').querySelector('div').classList.remove('scale-90');
+    document.getElementById('deleteCategoryModal').classList.add('opacity-100');
+  }, 10);
+}
 
-  // Ripple Effect
-  document.querySelectorAll('.ripple').forEach(button => {
-    button.addEventListener('click', function(e) {
-      const ripple = document.createElement('span');
-      ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
-      const rect = button.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height);
-      ripple.style.width = ripple.style.height = `${size}px`;
-      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
-      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-      button.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 600);
-    });
+function closeDeleteModal() {
+  document.getElementById('deleteCategoryModal').classList.add('hidden');
+  document.getElementById('deleteCategoryModal').querySelector('div').classList.add('scale-90');
+  document.getElementById('deleteCategoryModal').classList.remove('opacity-100');
+}
+
+// Attach event listeners to buttons
+document.querySelectorAll('.edit-category-btn').forEach(button => {
+  button.addEventListener('click', () => {
+    const category = button.dataset.category;
+    openEditModal(category);
   });
+});
+
+document.querySelectorAll('.delete-category-btn').forEach(button => {
+  button.addEventListener('click', () => {
+    const category = button.dataset.category;
+    openDeleteModal(category);
+  });
+});
+
+// Ripple Effect
+document.querySelectorAll('.ripple').forEach(button => {
+  button.addEventListener('click', function(e) {
+    const ripple = document.createElement('span');
+    ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+    ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+    button.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  });
+});
+
+// Form submission with fetch for better feedback
+document.getElementById('editCategoryForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  try {
+    const response = await fetch(form.action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        oldName: form.oldName.value,
+        newName: form.newName.value
+      })
+    });
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      const error = await response.json();
+      alert('Failed to edit category: ' + (error.message || 'Unknown error'));
+    }
+  } catch (err) {
+    console.error('Edit category error:', err);
+    alert('Failed to edit category due to a network error.');
+  }
+});
+
+document.getElementById('deleteCategoryForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  try {
+    const response = await fetch(form.action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: form.name.value })
+    });
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      const error = await response.json();
+      alert('Failed to delete category: ' + (error.message || 'Unknown error'));
+    }
+  } catch (err) {
+    console.error('Delete category error:', err);
+    alert('Failed to delete category due to a network error.');
+  }
+});
 </script>
 
 <style>
