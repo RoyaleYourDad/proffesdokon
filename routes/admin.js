@@ -1285,13 +1285,27 @@ router.post("/review/edit/:productId", async (req, res) => {
       });
     }
 
-    review.rating = parseInt(rating);
-    review.comment = comment;
+    // Validate rating
+    const parsedRating = parseInt(rating);
+    if (isNaN(parsedRating) || parsedRating < 1 || parsedRating > 5) {
+      console.log("Invalid rating:", { rating, parsedRating, reviewId, productId: req.params.productId });
+      return res.status(400).render("admin/reviews", {
+        products: db.products || [],
+        users: db.users || [],
+        user: req.user,
+        categories: db.categories || [],
+        error: "Rating must be a number between 1 and 5",
+      });
+    }
+
+    // Update review
+    review.rating = parsedRating;
+    review.comment = comment || review.comment; // Preserve existing comment if empty
     review.edited = true;
     review.timestamp = new Date().toISOString();
 
     await saveDB(db);
-    console.log("Review edited:", { reviewId, productId: req.params.productId, userId: req.user.id });
+    console.log("Review edited:", { reviewId, productId: req.params.productId, userId: req.user.id, rating: parsedRating, comment });
     res.redirect("/admin/reviews");
   } catch (err) {
     console.error("Review edit error:", {
