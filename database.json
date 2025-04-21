@@ -8,7 +8,7 @@
       "discountPrice": 425,
       "discountExpiry": "2025-04-17",
       "origin": "China",
-      "stock": 1,
+      "stock": 10,
       "thumbnail": {
         "url": "https://i.ibb.co/Sw8p6FGG/21588122bc45.jpg",
         "delete_url": "https://ibb.co/k2fFGNvv/1b9b141d96de9bed3a4fa03d2d219446"
@@ -38,25 +38,7 @@
           "value": "Value4"
         }
       ],
-      "sales": [
-        {
-          "quantity": 134,
-          "price": 540,
-          "date": "2025-04-20"
-        },
-        {
-          "quantity": 10,
-          "price": 540,
-          "date": "2025-04-20",
-          "historyId": "1745154305406"
-        },
-        {
-          "quantity": 45,
-          "price": 540,
-          "date": "2025-04-20",
-          "historyId": "1745154560848"
-        }
-      ]
+      "sales": []
     },
     {
       "id": "1744804812036",
@@ -66,7 +48,7 @@
       "discountPrice": 178,
       "discountExpiry": "2025-04-17",
       "origin": "China",
-      "stock": 1,
+      "stock": 15,
       "details": [
         {
           "key": "Key1asdfcasdf",
@@ -92,14 +74,7 @@
           "delete_url": "https://ibb.co/G4ybZcqX/8eaeadeea935de54b300cbea8dc84b41"
         }
       ],
-      "sales": [
-        {
-          "quantity": 13,
-          "price": 220,
-          "date": "2025-04-20",
-          "historyId": "1745154961219"
-        }
-      ]
+      "sales": []
     },
     {
       "id": "1744813498742",
@@ -138,7 +113,8 @@
           "url": "https://i.ibb.co/TMZzJ7vT/01003c71b7a2.jpg",
           "delete_url": "https://ibb.co/Zz3yvFLJ/82ee40e5501b8bf2e8c89c99b92eca6f"
         }
-      ]
+      ],
+      "sales": []
     }
   ],
   "categories": [
@@ -218,7 +194,7 @@
           "message": "Product \"Test Product 2\" has low stock (1 units)",
           "link": "/admin/edit/1744804812036",
           "timestamp": "2025-04-20T13:16:03.081Z",
-          "read": false
+          "read": true
         }
       ]
     },
@@ -256,56 +232,5 @@
   "admins": [
     "royaleyourdad@gmail.com"
   ],
-  "stockHistory": [
-    {
-      "id": "1745152452879",
-      "productId": "1744804812036",
-      "action": "sold",
-      "quantity": 1,
-      "notes": "",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-20T12:34:12.879Z",
-      "date": "2025-04-20"
-    },
-    {
-      "id": "1745154305406",
-      "productId": "1744739166453",
-      "action": "sold",
-      "quantity": 10,
-      "notes": "",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-20T13:05:05.406Z",
-      "date": "2025-04-20"
-    },
-    {
-      "id": "1745154540019",
-      "productId": "1744739166453",
-      "action": "bought",
-      "quantity": 45,
-      "notes": "gertyety eretyvberety r eybeybrt",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-20T13:09:00.019Z",
-      "date": "2025-04-20"
-    },
-    {
-      "id": "1745154560848",
-      "productId": "1744739166453",
-      "action": "sold",
-      "quantity": 45,
-      "notes": "",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-20T13:09:20.848Z",
-      "date": "2025-04-20"
-    },
-    {
-      "id": "1745154961219",
-      "productId": "1744804812036",
-      "action": "sold",
-      "quantity": 13,
-      "notes": "",
-      "updatedBy": "1744729926566",
-      "updatedAt": "2025-04-20T13:16:01.219Z",
-      "date": "2025-04-20"
-    }
-  ]
+  "stockHistory": []
 }

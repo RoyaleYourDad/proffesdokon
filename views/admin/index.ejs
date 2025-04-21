@@ -94,52 +94,56 @@
     </div>
 
     <!-- Analytics Section -->
-    <div class="bg-white shadow rounded-2xl p-6 mb-8">
-      <h2 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
-        <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        Analytics
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Revenue Last 30 Days -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-sm font-medium text-gray-600">Revenue (Last 30 Days)</h3>
-          <p class="text-2xl font-bold text-gray-800">$<%= analytics.revenueLast30Days %></p>
-        </div>
-        <!-- Top Selling Products -->
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="text-sm font-medium text-gray-600">Top Selling Products</h3>
-          <% if (analytics.topSellingProducts.length > 0) { %>
-            <ul class="mt-2 space-y-2">
-              <% analytics.topSellingProducts.forEach(product => { %>
-                <li class="text-sm text-gray-700">
-                  <%= product.name %> (<%= product.sales %> units sold)
-                </li>
-              <% }) %>
-            </ul>
-          <% } else { %>
-            <p class="text-sm text-gray-500 mt-2">No sales data available.</p>
-          <% } %>
-        </div>
-        <!-- Stock Turnover -->
-        <div class="bg-gray-50 p-4 rounded-lg col-span-1 md:col-span-2">
-          <h3 class="text-sm font-medium text-gray-600">Stock Turnover</h3>
-          <% if (analytics.stockTurnover.length > 0) { %>
-            <ul class="mt-2 space-y-2">
-              <% analytics.stockTurnover.slice(0, 5).forEach(product => { %>
-                <li class="text-sm text-gray-700">
-                  <%= product.name %> (Turnover: <%= (product.turnover * 100).toFixed(2) %>%)
-                </li>
-              <% }) %>
-            </ul>
-          <% } else { %>
-            <p class="text-sm text-gray-500 mt-2">No turnover data available.</p>
-          <% } %>
-        </div>
-      </div>
+<div class="bg-white shadow rounded-2xl p-6 mb-8">
+  <h2 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
+    <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+    Analytics
+  </h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Revenue Last 30 Days -->
+    <div class="bg-gray-50 p-4 rounded-lg">
+      <h3 class="text-sm font-medium text-gray-600">Revenue (Last 30 Days)</h3>
+      <p class="text-2xl font-bold text-gray-800">$<%= analytics.revenueLast30Days || '0.00' %></p>
     </div>
+    <!-- Top Selling Products -->
+    <div class="bg-gray-50 p-4 rounded-lg">
+      <h3 class="text-sm font-medium text-gray-600">Top Selling Products</h3>
+      <% if (analytics.topSellingProducts.length > 0 && analytics.topSellingProducts.some(product => product.sales > 0)) { %>
+        <ul class="mt-2 space-y-2">
+          <% analytics.topSellingProducts.forEach(product => { %>
+            <% if (product.sales > 0) { %>
+              <li class="text-sm text-gray-700">
+                <%= product.name %> (<%= product.sales %> units sold)
+              </li>
+            <% } %>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p class="text-sm text-gray-500 mt-2">No sales data available.</p>
+      <% } %>
+    </div>
+    <!-- Stock Turnover -->
+    <div class="bg-gray-50 p-4 rounded-lg col-span-1 md:col-span-2">
+      <h3 class="text-sm font-medium text-gray-600">Stock Turnover</h3>
+      <% if (analytics.stockTurnover.length > 0 && analytics.stockTurnover.some(product => product.turnover > 0)) { %>
+        <ul class="mt-2 space-y-2">
+          <% analytics.stockTurnover.slice(0, 5).forEach(product => { %>
+            <% if (product.turnover > 0) { %>
+              <li class="text-sm text-gray-700">
+                <%= product.name %> (Turnover: <%= (product.turnover * 100).toFixed(2) %>%)
+              </li>
+            <% } %>
+          <% }) %>
+        </ul>
+      <% } else { %>
+        <p class="text-sm text-gray-500 mt-2">No turnover data available.</p>
+      <% } %>
+    </div>
+  </div>
+</div>
 
     <!-- Products Section -->
     <div class="bg-white shadow rounded-2xl p-6 mb-8">
