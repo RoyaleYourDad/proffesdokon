@@ -1,89 +1,94 @@
 <%- include('../partials/header') %>
-<div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12">
+<div class="min-h-screen bg-gray-50 pt-24 pb-12">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
     <!-- Header -->
-    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-8 flex items-center">
-      <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-16 flex items-center animate-slide-in overflow-visible leading-tight">
+      <svg class="w-8 h-8 mr-4 text-indigo-600 animate-pulse flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
           d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
-      Admin Dashboard
+      <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">Admin Dashboard</span>
     </h1>
 
     <!-- Alerts Section -->
-    <div class="bg-white shadow rounded-2xl p-6 mb-8">
-      <h2 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
-        <svg class="w-5 h-5 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="bg-white/80 backdrop-blur-sm shadow-lg rounded-3xl p-6 mb-8 transition-all duration-300 hover:shadow-2xl relative z-10">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+        <svg class="w-6 h-6 mr-2 text-red-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
         Alerts
       </h2>
       <% if (alerts.length > 0) { %>
-        <div class="space-y-4">
-          <% alerts.slice(0, 5).forEach(alert => { %>
-            <div class="flex items-center justify-between bg-red-50 p-4 rounded-lg">
-              <p class="text-sm text-red-700">
-                <% if (alert.type === 'low_stock') { %>
-                  <span class="font-medium">Low Stock:</span> <%= alert.message %>
-                <% } else if (alert.type === 'uncategorized') { %>
-                  <span class="font-medium">Uncategorized:</span> <%= alert.message %>
-                <% } else if (alert.type === 'expiring_discount') { %>
-                  <span class="font-medium">Expiring Discount:</span> <%= alert.message %>
-                <% } else if (alert.type === 'pending_review') { %>
-                  <span class="font-medium">Pending Review:</span> <%= alert.message %>
-                <% } %>
-              </p>
-              <a href="<%= alert.link %>" class="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                Take Action
-              </a>
+        <div class="space-y-4" id="alertsContainer">
+          <% alerts.slice(0, 5).forEach((alert, index) => { %>
+            <div class="relative border border-gray-100/50 rounded-2xl p-4 bg-white/80 backdrop-blur-sm hover:bg-gradient-to-br hover:from-red-50/30 hover:to-orange-50/30 transition-all duration-500 shadow-md hover:shadow-xl group animate-fade-in-up <%= index >= 5 ? 'hidden' : '' %>"
+                 style="animation-delay: <%= index * 0.1 %>s;">
+              <span class="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out;"></span>
+              <div class="flex items-center justify-between relative z-10">
+                <p class="text-sm text-gray-700">
+                  <% if (alert.type === 'low_stock') { %>
+                    <span class="font-medium text-red-600">Low Stock:</span> <%= alert.message %>
+                  <% } else if (alert.type === 'uncategorized') { %>
+                    <span class="font-medium text-orange-600">Uncategorized:</span> <%= alert.message %>
+                  <% } else if (alert.type === 'expiring_discount') { %>
+                    <span class="font-medium text-yellow-600">Expiring Discount:</span> <%= alert.message %>
+                  <% } else if (alert.type === 'pending_review') { %>
+                    <span class="font-medium text-blue-600">Pending Review:</span> <%= alert.message %>
+                  <% } %>
+                </p>
+                <a href="<%= alert.link %>" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium hover:scale-105 transition-all duration-300 ripple">
+                  Take Action
+                </a>
+              </div>
             </div>
           <% }) %>
           <% if (alerts.length > 5) { %>
-            <p class="text-sm text-gray-500 text-center">
-              <%= alerts.length - 5 %> more alerts not shown.
-            </p>
+            <button class="load-more-btn mt-4 bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple">
+              Load More Alerts
+            </button>
           <% } %>
         </div>
       <% } else { %>
-        <p class="text-gray-500 text-center py-4">No alerts at the moment. You're all set!</p>
+        <p class="text-gray-500 text-center py-8 text-xl font-medium animate-fade-in">No alerts at the moment. You're all set!</p>
       <% } %>
     </div>
 
-    <!-- Navigation -->
-    <div class="bg-white shadow rounded-2xl p-6 mb-8">
+    <!-- Navigation Section -->
+    <div class="bg-white/80 backdrop-blur-sm shadow-lg rounded-3xl p-6 mb-8 transition-all duration-300 hover:shadow-2xl relative z-10">
+      <h2 class="text-xl font-semibold text-gray-800 mb-6">Quick Actions</h2>
       <div class="flex flex-wrap gap-4">
         <a href="/admin/add"
-          class="bg-blue-600 text-white py-3 px-6 rounded-lg text-sm hover:bg-blue-700 flex items-center transition-colors">
+           class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl text-sm hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md flex items-center ripple">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
           Add Product
         </a>
         <a href="/admin/stock"
-          class="bg-blue-600 text-white py-3 px-6 rounded-lg text-sm hover:bg-blue-700 flex items-center transition-colors">
+           class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl text-sm hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md flex items-center ripple">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-3-3m0 0l-3 3m3-3v12" />
           </svg>
           Manage Stock
         </a>
         <a href="/admin/stock/history"
-          class="bg-blue-600 text-white py-3 px-6 rounded-lg text-sm hover:bg-blue-700 flex items-center transition-colors">
+           class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl text-sm hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md flex items-center ripple">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           Stock History
         </a>
         <a href="/admin/categories"
-          class="bg-blue-600 text-white py-3 px-6 rounded-lg text-sm hover:bg-blue-700 flex items-center transition-colors">
+           class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl text-sm hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md flex items-center ripple">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18" />
           </svg>
           Manage Categories
         </a>
         <a href="/admin/admins"
-          class="bg-blue-600 text-white py-3 px-6 rounded-lg text-sm hover:bg-blue-700 flex items-center transition-colors">
+           class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl text-sm hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md flex items-center ripple">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -94,63 +99,60 @@
     </div>
 
     <!-- Analytics Section -->
-<div class="bg-white shadow rounded-2xl p-6 mb-8">
-  <h2 class="text-xl font-semibold text-gray-700 mb-4 flex items-center">
-    <svg class="w-5 h-5 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-    Analytics
-  </h2>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <!-- Revenue Last 30 Days -->
-    <div class="bg-gray-50 p-4 rounded-lg">
-      <h3 class="text-sm font-medium text-gray-600">Revenue (Last 30 Days)</h3>
-      <p class="text-2xl font-bold text-gray-800">$<%= analytics.revenueLast30Days || '0.00' %></p>
+    <div class="bg-white/80 backdrop-blur-sm shadow-lg rounded-3xl p-6 mb-8 transition-all duration-300 hover:shadow-2xl relative z-10">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+        <svg class="w-6 h-6 mr-2 text-blue-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        Analytics
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white/50 backdrop-blur-sm p-4 rounded-xl hover:bg-indigo-50/30 transition-all duration-300 shadow-md animate-fade-in-up">
+          <h3 class="text-sm font-medium text-gray-600">Revenue (Last 30 Days)</h3>
+          <p class="text-2xl font-bold text-gray-800">$<%= analytics.revenueLast30Days || '0.00' %></p>
+        </div>
+        <div class="bg-white/50 backdrop-blur-sm p-4 rounded-xl hover:bg-indigo-50/30 transition-all duration-300 shadow-md animate-fade-in-up" style="animation-delay: 0.1s;">
+          <h3 class="text-sm font-medium text-gray-600">Top Selling Products</h3>
+          <% if (analytics.topSellingProducts.length > 0 && analytics.topSellingProducts.some(product => product.sales > 0)) { %>
+            <ul class="mt-2 space-y-2">
+              <% analytics.topSellingProducts.forEach(product => { %>
+                <% if (product.sales > 0) { %>
+                  <li class="text-sm text-gray-700">
+                    <%= product.name %> (<%= product.sales %> units sold)
+                  </li>
+                <% } %>
+              <% }) %>
+            </ul>
+          <% } else { %>
+            <p class="text-sm text-gray-500 mt-2">No sales data available.</p>
+          <% } %>
+        </div>
+        <div class="bg-white/50 backdrop-blur-sm p-4 rounded-xl hover:bg-indigo-50/30 transition-all duration-300 shadow-md col-span-1 md:col-span-2 animate-fade-in-up" style="animation-delay: 0.2s;">
+          <h3 class="text-sm font-medium text-gray-600">Stock Turnover</h3>
+          <% if (analytics.stockTurnover.length > 0 && analytics.stockTurnover.some(product => product.turnover > 0)) { %>
+            <ul class="mt-2 space-y-2">
+              <% analytics.stockTurnover.slice(0, 5).forEach(product => { %>
+                <% if (product.turnover > 0) { %>
+                  <li class="text-sm text-gray-700">
+                    <%= product.name %> (Turnover: <%= (product.turnover * 100).toFixed(2) %>%)
+                  </li>
+                <% } %>
+              <% }) %>
+            </ul>
+          <% } else { %>
+            <p class="text-sm text-gray-500 mt-2">No turnover data available.</p>
+          <% } %>
+        </div>
+      </div>
     </div>
-    <!-- Top Selling Products -->
-    <div class="bg-gray-50 p-4 rounded-lg">
-      <h3 class="text-sm font-medium text-gray-600">Top Selling Products</h3>
-      <% if (analytics.topSellingProducts.length > 0 && analytics.topSellingProducts.some(product => product.sales > 0)) { %>
-        <ul class="mt-2 space-y-2">
-          <% analytics.topSellingProducts.forEach(product => { %>
-            <% if (product.sales > 0) { %>
-              <li class="text-sm text-gray-700">
-                <%= product.name %> (<%= product.sales %> units sold)
-              </li>
-            <% } %>
-          <% }) %>
-        </ul>
-      <% } else { %>
-        <p class="text-sm text-gray-500 mt-2">No sales data available.</p>
-      <% } %>
-    </div>
-    <!-- Stock Turnover -->
-    <div class="bg-gray-50 p-4 rounded-lg col-span-1 md:col-span-2">
-      <h3 class="text-sm font-medium text-gray-600">Stock Turnover</h3>
-      <% if (analytics.stockTurnover.length > 0 && analytics.stockTurnover.some(product => product.turnover > 0)) { %>
-        <ul class="mt-2 space-y-2">
-          <% analytics.stockTurnover.slice(0, 5).forEach(product => { %>
-            <% if (product.turnover > 0) { %>
-              <li class="text-sm text-gray-700">
-                <%= product.name %> (Turnover: <%= (product.turnover * 100).toFixed(2) %>%)
-              </li>
-            <% } %>
-          <% }) %>
-        </ul>
-      <% } else { %>
-        <p class="text-sm text-gray-500 mt-2">No turnover data available.</p>
-      <% } %>
-    </div>
-  </div>
-</div>
 
     <!-- Products Section -->
-    <div class="bg-white shadow rounded-2xl p-6 mb-8">
+    <div class="bg-white/80 backdrop-blur-sm shadow-lg rounded-3xl p-6 mb-8 transition-all duration-300 hover:shadow-2xl relative z-10">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-semibold text-gray-700">Products</h2>
+        <h2 class="text-xl font-semibold text-gray-800">Products</h2>
         <a href="/admin/add"
-          class="bg-blue-600 text-white py-2 px-4 rounded-lg text-sm hover:bg-blue-700 flex items-center">
+           class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-2 px-4 rounded-xl text-sm hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md flex items-center ripple">
           <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
@@ -158,88 +160,95 @@
         </a>
       </div>
       <% if (products.length > 0) { %>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <% products.forEach(product => { %>
-            <div class="border rounded-xl p-4 bg-gray-50 hover:shadow-md transition-shadow">
-              <div class="flex items-start gap-4">
-                <!-- Thumbnail -->
-                <div class="w-24 h-24 flex-shrink-0">
-                  <% if (product.thumbnail && product.thumbnail.url) { %>
-                    <img src="<%= product.thumbnail.url %>" alt="<%= product.name %>"
-                      class="w-full h-full object-cover rounded-lg" />
-                  <% } else { %>
-                    <div class="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
-                      <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                  <% } %>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="productsContainer">
+          <% products.forEach((product, index) => { %>
+            <div class="relative border border-gray-100/50 rounded-2xl p-4 bg-white/80 backdrop-blur-sm hover:bg-gradient-to-br hover:from-indigo-50/30 hover:to-blue-50/30 transition-all duration-500 shadow-md hover:shadow-xl group animate-fade-in-up <%= index >= 6 ? 'hidden' : '' %>"
+                 style="animation-delay: <%= index * 0.1 %>s;">
+              <span class="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out;"></span>
+              <div class="flex flex-col relative z-10"> <!-- Changed to flex-col for better control -->
+                <div class="flex items-start gap-4">
+                  <!-- Thumbnail -->
+                  <div class="w-24 h-24 flex-shrink-0">
+                    <% if (product.thumbnail && product.thumbnail.url) { %>
+                      <img src="<%= product.thumbnail.url %>" alt="<%= product.name %>"
+                           class="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105" />
+                    <% } else { %>
+                      <div class="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    <% } %>
+                  </div>
+                  <!-- Product Info -->
+                  <div class="flex-1 min-h-[120px]"> <!-- Set a minimum height to ensure consistency -->
+                    <h3 class="text-md font-medium text-gray-800 group-hover:text-indigo-600 transition-colors duration-300"><%= product.name %></h3>
+                    <p class="text-sm text-gray-500">Category: <%= product.category || 'N/A' %></p>
+                    <p class="text-sm text-gray-500">Stock: <%= product.stock || 0 %></p>
+                    <% if (product.discountPrice && product.discountPrice <= product.price && (!product.discountExpiry || new Date(product.discountExpiry) > new Date())) { %>
+                      <p class="text-sm text-gray-600 flex items-center mt-1">
+                        <svg class="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-orange-500 line-through">$<%= product.price.toFixed(2) %></span>
+                        <span class="text-green-500 font-bold ml-2">$<%= product.discountPrice.toFixed(2) %></span>
+                      </p>
+                      <p class="text-xs text-gray-500 flex items-center mt-1">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Until <%= new Date(product.discountExpiry).toLocaleDateString() %>
+                      </p>
+                    <% } else { %>
+                      <p class="text-sm text-gray-600 flex items-center mt-1">
+                        <svg class="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-gray-800">$<%= product.price.toFixed(2) %></span>
+                      </p>
+                    <% } %>
+                  </div>
                 </div>
-                <!-- Product Info -->
-                <div class="flex-1">
-                  <h3 class="text-md font-medium text-gray-800"><%= product.name %></h3>
-                  <p class="text-sm text-gray-500">Category: <%= product.category || 'N/A' %></p>
-                  <p class="text-sm text-gray-500">Stock: <%= product.stock || 0 %></p>
-                  <% if (product.discountPrice && product.discountPrice <= product.price && (!product.discountExpiry || new Date(product.discountExpiry) > new Date())) { %>
-                    <p class="text-sm text-gray-600 flex items-center mt-1">
-                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span class="text-orange-500 line-through">$<%= product.price.toFixed(2) %></span>
-                      <span class="text-orange-500 font-bold ml-2">$<%= product.discountPrice.toFixed(2) %></span>
-                    </p>
-                    <p class="text-xs text-gray-500 flex items-center mt-1">
-                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      Until <%= new Date(product.discountExpiry).toLocaleDateString() %>
-                    </p>
-                  <% } else { %>
-                    <p class="text-sm text-gray-600 flex items-center mt-1">
-                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span class="text-gray-800">$<%= product.price.toFixed(2) %></span>
-                    </p>
-                  <% } %>
-                </div>
-              </div>
-              <!-- Actions -->
-              <div class="flex justify-end gap-2 mt-4">
-                <a href="/admin/edit/<%= product.id %>" class="text-blue-600 hover:text-blue-700">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9.586 13.586a2 2 0 002.828 0l4-4z" />
-                  </svg>
-                </a>
-                <form action="/admin/delete/<%= product.id %>" method="POST"
-                  onsubmit="return confirm('Are you sure you want to delete this product?');">
-                  <button type="submit" class="text-red-500 hover:text-red-600">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <!-- Actions -->
+                <div class="flex justify-end gap-4 mt-4 relative z-10">
+                  <a href="/admin/edit/<%= product.id %>" class="text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-all duration-300 ripple">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9.586 13.586a2 2 0 002.828 0l4-4z" />
+                    </svg>
+                  </a>
+                  <button onclick="openDeleteProductModal('<%= product.id %>', '<%= product.name.replace(/'/g, "\\'") %>')"
+                          class="text-red-500 hover:text-red-700 hover:scale-110 transition-all duration-300 ripple">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4M9 7v12m6-12v12M10 3h4" />
                     </svg>
                   </button>
-                </form>
+                </div>
               </div>
             </div>
           <% }) %>
+          <% if (products.length > 6) { %>
+            <button class="load-more-btn mt-4 bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple col-span-1 sm:col-span-2 lg:col-span-3">
+              Load More Products
+            </button>
+          <% } %>
         </div>
       <% } else { %>
-        <p class="text-gray-500 text-center py-6">No products found. Add one to get started!</p>
+        <p class="text-gray-500 text-center py-8 text-xl font-medium animate-fade-in">No products found. Add one to get started!</p>
       <% } %>
     </div>
 
     <!-- Reviews Overview -->
-    <div class="bg-white shadow rounded-2xl p-6">
+    <div class="bg-white/80 backdrop-blur-sm shadow-lg rounded-3xl p-6 transition-all duration-300 hover:shadow-2xl relative z-10">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-semibold text-gray-700">Recent Reviews</h2>
+        <h2 class="text-xl font-semibold text-gray-800">Recent Reviews</h2>
         <a href="/admin/reviews"
-          class="text-blue-600 hover:text-blue-700 flex items-center text-sm">
+           class="text-indigo-600 hover:text-indigo-800 flex items-center text-sm hover:scale-105 transition-all duration-300 ripple">
           <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -248,50 +257,363 @@
         </a>
       </div>
       <% if (products.some(p => p.reviews && p.reviews.length > 0)) { %>
-        <div class="space-y-4">
-          <% products.forEach(product => { %>
+        <div class="space-y-8" id="reviewsContainer">
+          <% products.forEach((product, index) => { %>
             <% if (product.reviews && product.reviews.length > 0) { %>
-              <% product.reviews.slice(0, 3).forEach(review => { %>
-                <div class="border-b pb-4">
-                  <div class="flex justify-between items-center mb-2">
-                    <div>
-                      <p class="text-sm font-medium text-gray-800">
-                        <%= users.find(u => u.id === review.userId)?.displayName || 'Anonymous' %>
-                        on <a href="/product/<%= product.id %>" class="text-blue-600 hover:underline"><%= product.name %></a>
-                      </p>
-                      <p class="text-xs text-gray-500">
-                        <%= new Date(review.timestamp).toLocaleDateString() %>
-                        <% if (review.edited) { %>
-                          <span class="text-xs text-gray-400">(Edited)</span>
-                        <% } %>
-                      </p>
-                      <div class="flex mt-1">
-                        <% for (let i = 1; i <= 5; i++) { %>
-                          <svg class="w-4 h-4 <%= i <= review.rating ? 'text-yellow-400' : 'text-gray-300' %>"
-                            fill="currentColor" viewBox="0 0 20 20">
-                            <path
-                              d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                          </svg>
-                        <% } %>
+              <div class="border-b border-gray-200/30 pb-6 product-reviews" data-product-id="<%= product.id %>">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 relative group">
+                  Reviews for <a href="/product/<%= product.id %>" class="text-indigo-600 hover:text-indigo-800 transition-colors duration-300"><%= product.name %></a>
+                  <span class="absolute bottom-0 left-0 w-0 h-1 bg-gradient-to-r from-indigo-500 to-blue-500 transition-all duration-300 group-hover:w-full"></span>
+                </h3>
+                <div class="reviews-list">
+                  <% product.reviews.slice(0, 3).forEach((review, reviewIndex) => { %>
+                    <div class="review-item relative border border-gray-100/50 rounded-2xl p-6 mb-4 bg-white/80 backdrop-blur-sm hover:bg-gradient-to-br hover:from-indigo-50/30 hover:to-blue-50/30 transition-all duration-500 shadow-md hover:shadow-xl group animate-fade-in-up <%= reviewIndex >= 3 ? 'hidden' : '' %>"
+                         data-rating="<%= review.rating %>"
+                         data-timestamp="<%= review.timestamp %>"
+                         style="animation-delay: <%= index * 0.1 %>s;">
+                      <span class="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out;"></span>
+                      <div class="flex justify-between items-start mb-3 relative z-10">
+                        <div>
+                          <p class="text-lg font-medium text-gray-900">
+                            <%= users.find(u => u.id === review.userId)?.displayName || 'Anonymous' %>
+                          </p>
+                          <p class="text-sm text-gray-500">
+                            <%= new Date(review.timestamp).toLocaleDateString() %>
+                            <% if (review.edited) { %>
+                              <span class="text-sm text-indigo-500 font-medium">(Edited)</span>
+                            <% } %>
+                          </p>
+                          <div class="flex mt-2">
+                            <% for (let i = 1; i <= 5; i++) { %>
+                              <svg class="w-6 h-6 <%= i <= review.rating ? 'text-yellow-400 animate-star-glow' : 'text-gray-300' %> transition-transform duration-300"
+                                   fill="currentColor" viewBox="0 0 20 20">
+                                <path
+                                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                            <% } %>
+                          </div>
+                        </div>
+                        <div class="flex gap-4">
+                          <button onclick="openEditReviewModal('<%= review.id %>', '<%= product.id %>', '<%= review.rating %>', '<%= review.comment.replace(/'/g, "\\'") %>')"
+                                  class="text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-all duration-300 ripple">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9.586 13.586a2 2 0 002.828 0l4-4z" />
+                            </svg>
+                          </button>
+                          <button onclick="openDeleteReviewModal('<%= review.id %>', '<%= product.id %>')"
+                                  class="text-red-500 hover:text-red-700 hover:scale-110 transition-all duration-300 ripple">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4M9 7v12m6-12v12M10 3h4" />
+                            </svg>
+                          </button>
+                        </div>
                       </div>
+                      <p class="text-md text-gray-700 leading-relaxed relative z-10"><%= review.comment %></p>
                     </div>
-                    <a href="/admin/edit/<%= product.id %>#reviews" class="text-blue-600 hover:text-blue-700">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9.586 13.586a2 2 0 002.828 0l4-4z" />
-                      </svg>
-                    </a>
-                  </div>
-                  <p class="text-sm text-gray-600"><%= review.comment %></p>
+                  <% }) %>
+                  <% if (product.reviews.length > 3) { %>
+                    <button class="load-more-btn mt-4 bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple"
+                            data-product-id="<%= product.id %>">
+                      Load More Reviews
+                    </button>
+                  <% } %>
                 </div>
-              <% }) %>
+              </div>
             <% } %>
           <% }) %>
         </div>
       <% } else { %>
-        <p class="text-gray-500 text-center py-6">No reviews yet.</p>
+        <p class="text-gray-500 text-center py-8 text-xl font-medium animate-fade-in">No reviews yet.</p>
       <% } %>
     </div>
   </div>
 </div>
+
+<!-- Delete Product Modal -->
+<div id="deleteProductModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center hidden transition-opacity duration-500 z-40">
+  <div class="bg-white/80 backdrop-blur-md rounded-3xl p-10 w-full max-w-md shadow-2xl border border-gray-100/50 transition-all duration-500 scale-90">
+    <h2 class="text-3xl font-bold text-gray-900 mb-3 animate-slide-in bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">Delete Product</h2>
+    <p class="text-md text-gray-600 mb-8 font-medium">Are you sure you want to delete <span id="productName"></span>? This action is permanent.</p>
+    <form id="deleteProductForm" action="" method="POST">
+      <input type="hidden" name="productId" id="deleteProductId">
+      <div class="flex justify-end gap-4">
+        <button type="button" onclick="closeDeleteProductModal()" class="bg-gray-100 text-gray-800 py-3 px-8 rounded-xl hover:bg-gray-200 hover:scale-105 transition-all duration-300 shadow-sm ripple">Cancel</button>
+        <button type="submit" class="bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-8 rounded-xl hover:from-red-600 hover:to-red-700 hover:scale-105 transition-all duration-300 shadow-md ripple">Delete Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Review Modal -->
+<div id="editReviewModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center hidden transition-opacity duration-500 z-40">
+  <div class="bg-white/80 backdrop-blur-md rounded-3xl p-10 w-full max-w-lg shadow-2xl border border-gray-100/50 transition-all duration-500 scale-90">
+    <h2 class="text-3xl font-bold text-gray-900 mb-3 animate-slide-in bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">Edit Review</h2>
+    <p class="text-md text-gray-600 mb-8 font-medium">Update your rating and comment to share your latest feedback.</p>
+    <form id="editReviewForm" action="" method="POST" onsubmit="return validateEditForm()">
+      <input type="hidden" name="reviewId" id="editReviewId">
+      <div class="mb-8 p-4 bg-white/50 backdrop-blur-sm rounded-xl hover:bg-indigo-50/30 transition-all duration-300 shadow-sm">
+        <label class="block text-md font-semibold text-gray-800 mb-3">Rating</label>
+        <div class="flex items-center gap-2" id="starRating">
+          <input type="hidden" name="rating" id="editRating" required>
+          <% for (let i = 1; i <= 5; i++) { %>
+            <button type="button" onclick="setRating(<%= i %>)" class="star-btn w-10 h-10 text-gray-300 hover:text-yellow-400 hover:scale-125 transition-all duration-300 animate-star-bounce">
+              <svg class="w-full h-full" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </button>
+          <% } %>
+        </div>
+      </div>
+      <div class="mb-8 p-4 bg-white/50 backdrop-blur-sm rounded-xl hover:bg-indigo-50/30 transition-all duration-300 shadow-sm">
+        <label class="block text-md font-semibold text-gray-800 mb-3">Comment</label>
+        <textarea name="comment" id="editComment" rows="6" placeholder="Share your feedback..." class="block w-full rounded-xl border-gray-200 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-30 py-4 px-5 bg-white transition-all duration-300 text-gray-800 placeholder-gray-400 text-md" required></textarea>
+      </div>
+      <div class="flex justify-end gap-4">
+        <button type="button" onclick="closeEditReviewModal()" class="bg-gray-100 text-gray-800 py-3 px-8 rounded-xl hover:bg-gray-200 hover:scale-105 transition-all duration-300 shadow-sm ripple">Cancel</button>
+        <button type="submit" class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-8 rounded-xl hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Review Modal -->
+<div id="deleteReviewModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center hidden transition-opacity duration-500 z-40">
+  <div class="bg-white/80 backdrop-blur-md rounded-3xl p-10 w-full max-w-md shadow-2xl border border-gray-100/50 transition-all duration-500 scale-90">
+    <h2 class="text-3xl font-bold text-gray-900 mb-3 animate-slide-in bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">Delete Review</h2>
+    <p class="text-md text-gray-600 mb-8 font-medium">Are you sure you want to delete this review? This action is permanent.</p>
+    <form id="deleteReviewForm" action="" method="POST">
+      <input type="hidden" name="reviewId" id="deleteReviewId">
+      <div class="flex justify-end gap-4">
+        <button type="button" onclick="closeDeleteReviewModal()" class="bg-gray-100 text-gray-800 py-3 px-8 rounded-xl hover:bg-gray-200 hover:scale-105 transition-all duration-300 shadow-sm ripple">Cancel</button>
+        <button type="submit" class="bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-8 rounded-xl hover:from-red-600 hover:to-red-700 hover:scale-105 transition-all duration-300 shadow-md ripple">Delete Review</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function validateEditForm() {
+    const rating = document.getElementById('editRating').value;
+    if (!rating || rating < 1 || rating > 5) {
+      alert('Please select a rating between 1 and 5 stars.');
+      return false;
+    }
+    return true;
+  }
+
+  function openDeleteProductModal(productId, productName) {
+    document.getElementById('deleteProductId').value = productId;
+    document.getElementById('productName').textContent = productName;
+    document.getElementById('deleteProductForm').action = `/admin/delete/${productId}`;
+    document.getElementById('deleteProductModal').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('deleteProductModal').querySelector('div').classList.remove('scale-90');
+      document.getElementById('deleteProductModal').classList.add('opacity-100');
+    }, 10);
+  }
+
+  function closeDeleteProductModal() {
+    document.getElementById('deleteProductModal').classList.add('hidden');
+    document.getElementById('deleteProductModal').querySelector('div').classList.add('scale-90');
+    document.getElementById('deleteProductModal').classList.remove('opacity-100');
+  }
+
+  function openEditReviewModal(reviewId, productId, rating, comment) {
+    document.getElementById('editReviewId').value = reviewId;
+    document.getElementById('editRating').value = rating;
+    document.getElementById('editComment').value = comment;
+    document.getElementById('editReviewForm').action = `/admin/review/edit/${productId}`;
+    updateStars(rating);
+    document.getElementById('editReviewModal').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('editReviewModal').querySelector('div').classList.remove('scale-90');
+      document.getElementById('editReviewModal').classList.add('opacity-100');
+    }, 10);
+  }
+
+  function closeEditReviewModal() {
+    document.getElementById('editReviewModal').classList.add('hidden');
+    document.getElementById('editReviewModal').querySelector('div').classList.add('scale-90');
+    document.getElementById('editReviewModal').classList.remove('opacity-100');
+  }
+
+  function openDeleteReviewModal(reviewId, productId) {
+    document.getElementById('deleteReviewId').value = reviewId;
+    document.getElementById('deleteReviewForm').action = `/admin/review/delete/${productId}`;
+    document.getElementById('deleteReviewModal').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('deleteReviewModal').querySelector('div').classList.remove('scale-90');
+      document.getElementById('deleteReviewModal').classList.add('opacity-100');
+    }, 10);
+  }
+
+  function closeDeleteReviewModal() {
+    document.getElementById('deleteReviewModal').classList.add('hidden');
+    document.getElementById('deleteReviewModal').querySelector('div').classList.add('scale-90');
+    document.getElementById('deleteReviewModal').classList.remove('opacity-100');
+  }
+
+  function setRating(rating) {
+    document.getElementById('editRating').value = rating;
+    updateStars(rating);
+  }
+
+  function updateStars(rating) {
+    const stars = document.querySelectorAll('.star-btn');
+    stars.forEach((star, index) => {
+      star.classList.toggle('text-yellow-400', index < rating);
+      star.classList.toggle('text-gray-300', index >= rating);
+      star.classList.toggle('animate-star-bounce', index < rating);
+    });
+  }
+
+  document.querySelectorAll('.load-more-btn').forEach(button => {
+    button.addEventListener('click', function() {
+      if (this.textContent.includes('Alerts')) {
+        const hiddenAlerts = document.querySelectorAll('#alertsContainer .hidden');
+        const nextBatch = Array.from(hiddenAlerts).slice(0, 5);
+        nextBatch.forEach((alert, index) => {
+          alert.classList.remove('hidden');
+          alert.classList.add('animate-fade-in-up');
+          alert.style.animationDelay = `${index * 0.1}s`;
+        });
+        if (hiddenAlerts.length <= 5) {
+          this.remove();
+        }
+      } else if (this.textContent.includes('Products')) {
+        const hiddenProducts = document.querySelectorAll('#productsContainer .hidden');
+        const nextBatch = Array.from(hiddenProducts).slice(0, 6);
+        nextBatch.forEach((product, index) => {
+          product.classList.remove('hidden');
+          product.classList.add('animate-fade-in-up');
+          product.style.animationDelay = `${index * 0.1}s`;
+        });
+        if (hiddenProducts.length <= 6) {
+          this.remove();
+        }
+      } else if (this.textContent.includes('Reviews')) {
+        const productId = this.getAttribute('data-product-id');
+        const reviewsList = this.closest('.reviews-list');
+        const hiddenReviews = reviewsList.querySelectorAll(`.review-item.hidden`);
+        const nextBatch = Array.from(hiddenReviews).slice(0, 3);
+        nextBatch.forEach((review, index) => {
+          review.classList.remove('hidden');
+          review.classList.add('animate-fade-in-up');
+          review.style.animationDelay = `${index * 0.1}s`;
+        });
+        if (hiddenReviews.length <= 3) {
+          this.remove();
+        }
+      }
+    });
+  });
+
+  document.querySelectorAll('.ripple').forEach(button => {
+    button.addEventListener('click', function(e) {
+      const ripple = document.createElement('span');
+      ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
+      const rect = button.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = `${size}px`;
+      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+      button.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    });
+  });
+</script>
+
+<style>
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes glow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.1); }
+  }
+  @keyframes starGlow {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  @keyframes starBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+  }
+  @keyframes ripple {
+    0% { transform: scale(0); opacity: 0.8; }
+    100% { transform: scale(4); opacity: 0; }
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.5s ease-out;
+  }
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+  .animate-glow {
+    animation: glow 1.5s infinite;
+  }
+  .animate-star-glow {
+    animation: starGlow 1.2s infinite;
+  }
+  .animate-star-bounce {
+    animation: starBounce 0.4s ease-in-out;
+  }
+  .animate-ripple {
+    animation: ripple 0.6s linear;
+  }
+
+  .shadow-lg {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+  .shadow-2xl {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+  }
+  .hover\:shadow-xl:hover {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+  }
+  .rounded-3xl {
+    border-radius: 1.5rem;
+  }
+  .rounded-2xl {
+    border-radius: 1rem;
+  }
+  .backdrop-blur-sm {
+    backdrop-filter: blur(8px);
+  }
+  .bg-white\/80 {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  .border-gray-100\/50 {
+    border-color: rgba(243, 244, 246, 0.5);
+  }
+  .hover\:scale-110:hover {
+    transform: scale(1.1);
+  }
+  .hover\:scale-105:hover {
+    transform: scale(1.05);
+  }
+
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+</style>
 <%- include('../partials/footer') %>

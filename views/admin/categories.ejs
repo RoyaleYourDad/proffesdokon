@@ -1,28 +1,28 @@
 <%- include('../partials/header') %>
-<div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12">
+<div class="min-h-screen bg-gray-50 pt-[80px] pb-12">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
     <!-- Header -->
-    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-8 flex items-center">
-      <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-16 flex items-center animate-slide-in overflow-visible leading-tight">
+      <svg class="w-8 h-8 mr-4 text-indigo-600 animate-pulse flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18" />
       </svg>
-      Manage Categories
+      <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">Manage Categories</span>
     </h1>
 
     <!-- Add Category Form -->
-    <div class="bg-white shadow rounded-2xl p-6 mb-8">
-      <h2 class="text-xl font-semibold text-gray-700 mb-4">Add New Category</h2>
+    <div class="bg-white/80 backdrop-blur-sm shadow-lg rounded-3xl p-6 mb-8 transition-all duration-300 hover:shadow-2xl">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">Add New Category</h2>
       <% if (error) { %>
-        <p class="text-red-500 mb-4"><%= error %></p>
+        <p class="text-red-500 mb-4 animate-fade-in-up"><%= error %></p>
       <% } %>
       <% if (success) { %>
-        <p class="text-green-500 mb-4"><%= success %></p>
+        <p class="text-green-500 mb-4 animate-fade-in-up"><%= success %></p>
       <% } %>
-      <form action="/admin/category/add" method="POST" class="flex flex-col sm:flex-row gap-4">
+      <form action="/admin/category/add" method="POST" class="flex flex-col sm:flex-row gap-4 items-center">
         <input type="text" name="name" placeholder="Enter category name" required
-          class="flex-1 p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          class="flex-1 p-3 border border-gray-200 rounded-xl bg-white/70 backdrop-blur-md shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-30 hover:bg-indigo-50/30 transition-all duration-300 text-gray-800 placeholder-gray-400 text-md" />
         <button type="submit"
-          class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 flex items-center">
+          class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple flex items-center">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
@@ -32,63 +32,214 @@
     </div>
 
     <!-- Categories List -->
-    <div class="bg-white shadow rounded-2xl p-6">
-      <h2 class="text-xl font-semibold text-gray-700 mb-6">Existing Categories</h2>
+    <div class="bg-white/80 backdrop-blur-sm shadow-lg rounded-3xl p-6 transition-all duration-300 hover:shadow-2xl">
+      <h2 class="text-xl font-semibold text-gray-800 mb-6">Existing Categories</h2>
       <% if (categories.length > 0) { %>
-        <div class="space-y-4">
-          <% categories.forEach(category => { %>
-            <div class="flex items-center justify-between border-b pb-2">
-              <span class="text-gray-800"><%= category %></span>
-              <div class="flex gap-2">
-                <button onclick="editCategory('<%= category %>')"
-                  class="text-blue-600 hover:text-blue-700">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9.586 13.586a2 2 0 002.828 0l4-4z" />
-                  </svg>
-                </button>
-                <form action="/admin/category/delete" method="POST"
-                  onsubmit="return confirm('Are you sure you want to delete this category? Products in this category will be uncategorized.');">
-                  <input type="hidden" name="name" value="<%= category %>" />
-                  <button type="submit" class="text-red-500 hover:text-red-600">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="categoriesContainer">
+          <% categories.forEach((category, index) => { %>
+            <div class="review-item relative border border-gray-100/50 rounded-2xl p-4 bg-white/80 backdrop-blur-sm hover:bg-gradient-to-br hover:from-indigo-50/30 hover:to-blue-50/30 transition-all duration-500 shadow-md hover:shadow-xl group animate-fade-in-up"
+                 style="animation-delay: <%= index * 0.1 %>s;">
+              <!-- Animated Border -->
+              <span class="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out;"></span>
+              <div class="flex justify-between items-center relative z-10">
+                <span class="text-md font-medium text-gray-900 truncate"><%= category %></span>
+                <div class="flex gap-2">
+                  <button onclick="openEditModal('<%= category %>')"
+                    class="text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-all duration-300 ripple">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9.586 13.586a2 2 0 002.828 0l4-4z" />
+                    </svg>
+                  </button>
+                  <button onclick="openDeleteModal('<%= category %>')"
+                    class="text-red-500 hover:text-red-700 hover:scale-110 transition-all duration-300 ripple">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5-4h4M9 7v12m6-12v12M10 3h4" />
                     </svg>
                   </button>
-                </form>
+                </div>
               </div>
             </div>
           <% }) %>
         </div>
       <% } else { %>
-        <p class="text-gray-500 text-center py-6">No categories found. Add one to get started!</p>
+        <p class="text-gray-500 text-center py-8 text-xl font-medium animate-fade-in">No categories found. Add one to get started!</p>
       <% } %>
     </div>
   </div>
 </div>
 
+<!-- Edit Category Modal -->
+<div id="editCategoryModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center hidden transition-opacity duration-500 z-[1000]">
+  <div class="bg-white/80 backdrop-blur-md rounded-3xl p-10 w-full max-w-lg shadow-2xl border border-gray-100/50 transition-all duration-500 scale-90">
+    <h2 class="text-3xl font-bold text-gray-900 mb-3 animate-slide-in bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">Edit Category</h2>
+    <p class="text-md text-gray-600 mb-8 font-medium">Update the category name.</p>
+    <form id="editCategoryForm" action="/admin/category/edit" method="POST">
+      <input type="hidden" name="oldName" id="editOldName">
+      <div class="mb-8 p-4 bg-white/50 backdrop-blur-sm rounded-xl hover:bg-indigo-50/30 transition-all duration-300 shadow-sm">
+        <label class="block text-md font-semibold text-gray-800 mb-3">Category Name</label>
+        <input type="text" name="newName" id="editNewName" placeholder="Enter new category name" required
+          class="block w-full rounded-xl border-gray-200 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-500 focus:ring-opacity-30 py-4 px-5 bg-white transition-all duration-300 text-gray-800 placeholder-gray-400 text-md" />
+      </div>
+      <div class="flex justify-end gap-4">
+        <button type="button" onclick="closeEditModal()" class="bg-gray-100 text-gray-800 py-3 px-8 rounded-xl hover:bg-gray-200 hover:scale-105 transition-all duration-300 shadow-sm ripple">Cancel</button>
+        <button type="submit" class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-8 rounded-xl hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete Category Modal -->
+<div id="deleteCategoryModal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center hidden transition-opacity duration-500 z-[1000]">
+  <div class="bg-white/80 backdrop-blur-md rounded-3xl p-10 w-full max-w-md shadow-2xl border border-gray-100/50 transition-all duration-500 scale-90">
+    <h2 class="text-3xl font-bold text-gray-900 mb-3 animate-slide-in bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">Delete Category</h2>
+    <p class="text-md text-gray-600 mb-8 font-medium">Are you sure you want to delete this category? Products in this category will be uncategorized.</p>
+    <form id="deleteCategoryForm" action="/admin/category/delete" method="POST">
+      <input type="hidden" name="name" id="deleteCategoryName">
+      <div class="flex justify-end gap-4">
+        <button type="button" onclick="closeDeleteModal()" class="bg-gray-100 text-gray-800 py-3 px-8 rounded-xl hover:bg-gray-200 hover:scale-105 transition-all duration-300 shadow-sm ripple">Cancel</button>
+        <button type="submit" class="bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-8 rounded-xl hover:from-red-600 hover:to-red-700 hover:scale-105 transition-all duration-300 shadow-md ripple">Delete Category</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
-  function editCategory(oldName) {
-    const newName = prompt('Enter new category name:', oldName);
-    if (newName && newName !== oldName) {
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/admin/category/edit';
-      const oldNameInput = document.createElement('input');
-      oldNameInput.type = 'hidden';
-      oldNameInput.name = 'oldName';
-      oldNameInput.value = oldName;
-      const newNameInput = document.createElement('input');
-      newNameInput.type = 'hidden';
-      newNameInput.name = 'newName';
-      newNameInput.value = newName;
-      form.appendChild(oldNameInput);
-      form.appendChild(newNameInput);
-      document.body.appendChild(form);
-      form.submit();
-    }
+  // Modal Functions
+  function openEditModal(category) {
+    document.getElementById('editOldName').value = category;
+    document.getElementById('editNewName').value = category;
+    document.getElementById('editCategoryModal').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('editCategoryModal').querySelector('div').classList.remove('scale-90');
+      document.getElementById('editCategoryModal').classList.add('opacity-100');
+    }, 10);
   }
+
+  function closeEditModal() {
+    document.getElementById('editCategoryModal').classList.add('hidden');
+    document.getElementById('editCategoryModal').querySelector('div').classList.add('scale-90');
+    document.getElementById('editCategoryModal').classList.remove('opacity-100');
+  }
+
+  function openDeleteModal(category) {
+    document.getElementById('deleteCategoryName').value = category;
+    document.getElementById('deleteCategoryModal').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('deleteCategoryModal').querySelector('div').classList.remove('scale-90');
+      document.getElementById('deleteCategoryModal').classList.add('opacity-100');
+    }, 10);
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteCategoryModal').classList.add('hidden');
+    document.getElementById('deleteCategoryModal').querySelector('div').classList.add('scale-90');
+    document.getElementById('deleteCategoryModal').classList.remove('opacity-100');
+  }
+
+  // Ripple Effect
+  document.querySelectorAll('.ripple').forEach(button => {
+    button.addEventListener('click', function(e) {
+      const ripple = document.createElement('span');
+      ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
+      const rect = button.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = `${size}px`;
+      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+      button.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    });
+  });
 </script>
 
+<style>
+  /* Font Stack */
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  /* Animations */
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes glow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(1.1); }
+  }
+  @keyframes ripple {
+    0% { transform: scale(0); opacity: 0.8; }
+    100% { transform: scale(4); opacity: 0; }
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.5s ease-out;
+  }
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+  .animate-glow {
+    animation: glow 1.5s infinite;
+  }
+  .animate-ripple {
+    animation: ripple 0.6s linear;
+  }
+
+  /* Premium UI Styles */
+  .shadow-lg {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+  .shadow-2xl {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+  }
+  .hover\:shadow-xl:hover {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+  }
+  .rounded-3xl {
+    border-radius: 1.5rem;
+  }
+  .rounded-2xl {
+    border-radius: 1rem;
+  }
+  .rounded-xl {
+    border-radius: 0.75rem;
+  }
+  .backdrop-blur-sm {
+    backdrop-filter: blur(8px);
+  }
+  .bg-white\/80 {
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  .border-gray-100\/50 {
+    border-color: rgba(243, 244, 246, 0.5);
+  }
+  .hover\:scale-110:hover {
+    transform: scale(1.1);
+  }
+  .hover\:scale-105:hover {
+    transform: scale(1.05);
+  }
+
+  /* Truncate long category names */
+  .truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px; /* Adjust based on your needs */
+  }
+
+  nav {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000 !important;
+  }
+</style>
 <%- include('../partials/footer') %>
