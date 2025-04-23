@@ -2,6 +2,7 @@ const express = require("express");
 const fs = require("fs").promises;
 const path = require("path");
 const router = express.Router();
+const multer = require("multer");
 const ExcelJS = require("exceljs");
 const { loadDB, saveDB } = require("../db");
 
@@ -27,24 +28,20 @@ router.use(async (req, res, next) => {
   next();
 });
 
-// notifications
 // Helper function to compute alerts and analytics
 const computeAlertsAndAnalytics = (db) => {
   const now = new Date();
   const lowStockThreshold = 5;
   const discountExpiryDays = 7;
 
-  // Alerts
   const lowStockProducts = db.products.filter(p => p.stock > 0 && p.stock <= lowStockThreshold);
   const uncategorizedProducts = db.products.filter(p => !p.category);
   const expiringDiscounts = db.products.filter(p => 
+    p.discountPrice && 
     p.discountExpiry && 
     new Date(p.discountExpiry) > now && 
     (new Date(p.discountExpiry) - now) / (1000 * 60 * 60 * 24) <= discountExpiryDays
   );
-  const pendingReviews = db.products
-    .flatMap(p => (p.reviews || []).map(r => ({ ...r, productId: p.id, productName: p.name })))
-    .filter(r => !r.moderated); // Assume reviews have a `moderated` field; add if needed
 
   const alerts = [
     ...lowStockProducts.map(p => ({
@@ -65,15 +62,8 @@ const computeAlertsAndAnalytics = (db) => {
       link: `/admin/edit/${p.id}`,
       timestamp: now,
     })),
-    ...pendingReviews.map(r => ({
-      type: "pending_review",
-      message: `New review for "${r.productName}" needs moderation`,
-      link: `/admin/edit/${r.productId}#reviews`,
-      timestamp: now,
-    })),
   ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-  // Analytics
   const last30Days = new Date(now - 30 * 24 * 60 * 60 * 1000);
   const sales = db.products
     .flatMap(p => (p.sales || []).filter(s => new Date(s.date) >= last30Days))
@@ -104,12 +94,9 @@ const computeAlertsAndAnalytics = (db) => {
   };
 };
 
-
-
 // Admin Dashboard
 router.get("/", async (req, res) => {
   try {
-    // Reload database to ensure fresh data
     const db = await loadDB();
     if (!db.users || !db.products) {
       throw new Error("Invalid database structure");
@@ -117,7 +104,6 @@ router.get("/", async (req, res) => {
 
     const { alerts, analytics } = computeAlertsAndAnalytics(db);
 
-    // Ensure user exists and has notifications array
     const user = db.users.find(u => u.id === req.user.id);
     if (!user) {
       console.error("User not found in DB:", { userId: req.user.id, email: req.user.email });
@@ -131,14 +117,12 @@ router.get("/", async (req, res) => {
       user.notifications = [];
     }
 
-    // Add new alerts to notifications
     alerts.forEach(alert => {
       if (!user.notifications.some(n => n.message === alert.message && n.link === alert.link)) {
         user.notifications.push({ ...alert, read: false });
       }
     });
 
-    // Save database and verify
     try {
       await saveDB(db);
       console.log("Notifications saved for user:", {
@@ -185,7 +169,6 @@ router.get("/", async (req, res) => {
 // Mark notification as read
 router.post("/notification/read/:index", async (req, res) => {
   try {
-    // Reload database to ensure fresh data
     const db = await loadDB();
     if (!db.users) {
       throw new Error("Invalid database structure");
@@ -209,7 +192,6 @@ router.post("/notification/read/:index", async (req, res) => {
 
     user.notifications[index].read = true;
 
-    // Save database and verify
     try {
       await saveDB(db);
       console.log("Notification marked as read:", {
@@ -259,7 +241,25 @@ router.get("/create", (req, res) => {
 // Add Product
 router.post("/add", (req, res) => {
   req.upload(req, res, async (err) => {
-    if (err) {
+    if (err instanceof multer.MulterError) {
+      console.error("Multer error:", { message: err.message, field: err.field });
+      try {
+        const db = await loadDB();
+        return res.render("admin/edit", {
+          product: null,
+          categories: db.categories || [],
+          user: req.user,
+          error: err.code === 'LIMIT_FILE_SIZE' ? 'Image file size must be less than 5MB.' : 'File upload error.',
+        });
+      } catch (dbErr) {
+        console.error("Error loading db for upload error:", dbErr);
+        return res.status(500).render("error", {
+          message: "Failed to load add product page",
+          user: req.user,
+          query: req.query || {},
+        });
+      }
+    } else if (err) {
       console.error("Upload error:", err);
       try {
         const db = await loadDB();
@@ -267,7 +267,7 @@ router.post("/add", (req, res) => {
           product: null,
           categories: db.categories || [],
           user: req.user,
-          error: err.message,
+          error: err.message || 'File upload error.',
         });
       } catch (dbErr) {
         console.error("Error loading db for upload error:", dbErr);
@@ -304,16 +304,19 @@ router.post("/add", (req, res) => {
       };
 
       if (req.files.thumbnail && req.files.thumbnail[0]) {
+        console.log("Uploading thumbnail:", { size: req.files.thumbnail[0].size, name: req.files.thumbnail[0].originalname });
         const uploaded = await req.app.locals.uploadToImgBB(req.files.thumbnail[0]);
         product.thumbnail = uploaded;
       }
 
       if (req.files.previewImages) {
-        product.previewImages = [];
-        for (const file of req.files.previewImages.slice(0, 8)) {
-          const uploaded = await req.app.locals.uploadToImgBB(file);
-          product.previewImages.push(uploaded);
-        }
+        console.log("Uploading preview images:", { count: req.files.previewImages.length });
+        product.previewImages = await Promise.all(
+          req.files.previewImages.slice(0, 8).map(async (file, index) => {
+            console.log(`Uploading preview image ${index + 1}:`, { size: file.size, name: file.originalname });
+            return await req.app.locals.uploadToImgBB(file);
+          })
+        );
       }
 
       db.products = db.products || [];
@@ -322,17 +325,17 @@ router.post("/add", (req, res) => {
         db.categories.push(category);
       }
       await saveDB(db);
-      console.log("Product added:", product.id);
+      console.log("Product added:", { id: product.id, name: product.name });
       res.redirect("/admin");
     } catch (err) {
-      console.error("Add product error:", err);
+      console.error("Add product error:", { message: err.message, stack: err.stack });
       try {
         const db = await loadDB();
         res.render("admin/edit", {
           product: null,
           categories: db.categories || [],
           user: req.user,
-          error: "Failed to add product",
+          error: 'Failed to add product. Check image sizes and try again.',
         });
       } catch (dbErr) {
         console.error("Error loading db for add product error:", dbErr);
@@ -377,7 +380,27 @@ router.get("/edit/:id", async (req, res) => {
 // Update Product
 router.post("/edit/:id", (req, res) => {
   req.upload(req, res, async (err) => {
-    if (err) {
+    if (err instanceof multer.MulterError) {
+      console.error("Multer error:", { message: err.message, field: err.field });
+      try {
+        const db = await loadDB();
+        const product = db.products.find((p) => p.id === req.params.id);
+        return res.render("admin/edit", {
+          product,
+          categories: db.categories || [],
+          users: db.users || [],
+          user: req.user,
+          error: err.code === 'LIMIT_FILE_SIZE' ? 'Image file size must be less than 5MB.' : 'File upload error.',
+        });
+      } catch (dbErr) {
+        console.error("Error loading db for upload error:", dbErr);
+        return res.status(500).render("error", {
+          message: "Failed to load edit product page",
+          user: req.user,
+          query: req.query || {},
+        });
+      }
+    } else if (err) {
       console.error("Upload error:", err);
       try {
         const db = await loadDB();
@@ -387,7 +410,7 @@ router.post("/edit/:id", (req, res) => {
           categories: db.categories || [],
           users: db.users || [],
           user: req.user,
-          error: err.message,
+          error: err.message || 'File upload error.',
         });
       } catch (dbErr) {
         console.error("Error loading db for upload error:", dbErr);
@@ -429,18 +452,24 @@ router.post("/edit/:id", (req, res) => {
 
       if (req.files.thumbnail && req.files.thumbnail[0]) {
         if (product.thumbnail?.delete_url) {
+          console.log("Deleting old thumbnail:", { url: product.thumbnail.url });
           await req.app.locals.deleteFromImgBB(product.thumbnail.delete_url);
         }
+        console.log("Uploading new thumbnail:", { size: req.files.thumbnail[0].size, name: req.files.thumbnail[0].originalname });
         const uploaded = await req.app.locals.uploadToImgBB(req.files.thumbnail[0]);
         product.thumbnail = uploaded;
       }
 
       if (req.files.previewImages) {
         product.previewImages = product.previewImages || [];
-        for (const file of req.files.previewImages.slice(0, 8 - product.previewImages.length)) {
-          const uploaded = await req.app.locals.uploadToImgBB(file);
-          product.previewImages.push(uploaded);
-        }
+        console.log("Uploading new preview images:", { count: req.files.previewImages.length });
+        const newImages = await Promise.all(
+          req.files.previewImages.slice(0, 8 - product.previewImages.length).map(async (file, index) => {
+            console.log(`Uploading preview image ${index + 1}:`, { size: file.size, name: file.originalname });
+            return await req.app.locals.uploadToImgBB(file);
+          })
+        );
+        product.previewImages.push(...newImages);
       }
 
       if (deleteImages) {
@@ -448,6 +477,7 @@ router.post("/edit/:id", (req, res) => {
         for (const url of imagesToDelete) {
           const index = product.previewImages.findIndex((img) => img.url === url);
           if (index !== -1) {
+            console.log("Deleting preview image:", { url: product.previewImages[index].url });
             await req.app.locals.deleteFromImgBB(product.previewImages[index].delete_url);
             product.previewImages.splice(index, 1);
           }
@@ -458,10 +488,10 @@ router.post("/edit/:id", (req, res) => {
         db.categories.push(category);
       }
       await saveDB(db);
-      console.log("Product edited:", product.id);
+      console.log("Product edited:", { id: product.id, name: product.name });
       res.redirect("/admin");
     } catch (err) {
-      console.error("Edit product error:", err);
+      console.error("Edit product error:", { message: err.message, stack: err.stack });
       try {
         const db = await loadDB();
         const product = db.products.find((p) => p.id === req.params.id);
@@ -470,7 +500,7 @@ router.post("/edit/:id", (req, res) => {
           categories: db.categories || [],
           users: db.users || [],
           user: req.user,
-          error: "Failed to edit product",
+          error: 'Failed to edit product. Check image sizes and try again.',
         });
       } catch (dbErr) {
         console.error("Error loading db for edit product error:", dbErr);
@@ -537,15 +567,14 @@ router.post("/image/delete", async (req, res) => {
       await saveDB(db);
       res.json({ success: true });
     } else {
-      res.status(500).json({ success: false });
+      res.status(500).json({ success: false, message: 'Failed to delete image from ImgBB' });
     }
   } catch (err) {
     console.error("Image deletion error:", err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: 'Server error during image deletion' });
   }
 });
 
-// Add Category
 // Add Category
 router.post("/category/add", async (req, res) => {
   try {
@@ -579,7 +608,22 @@ router.post("/category/add", async (req, res) => {
     });
   } catch (err) {
     console.error("Add category error:", err);
-    // ... (rest of the error handling remains the same)
+    try {
+      const db = await loadDB();
+      res.render("admin/categories", {
+        categories: db.categories || [],
+        user: req.user,
+        error: "Failed to add category",
+        success: null,
+      });
+    } catch (dbErr) {
+      console.error("Error loading db for add category error:", dbErr);
+      res.status(500).render("error", {
+        message: "Failed to load categories page",
+        user: req.user,
+        query: req.query || {},
+      });
+    }
   }
 });
 
@@ -610,7 +654,7 @@ router.post("/users/:id/role", async (req, res) => {
       targetUser.role = req.body.role;
       targetUser.isAdmin = targetUser.role === "admin";
       if (req.user.id === targetUser.id) {
-        req.session.passport.user = targetUser; // Update session
+        req.session.passport.user = targetUser;
       }
       await saveDB(db);
     }

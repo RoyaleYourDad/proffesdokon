@@ -1,5 +1,5 @@
 <%- include('../partials/header') %>
-<div class="min-h-screen bg-gray-50 pt-24 pb-12">
+<div class="min-h-screen bg-gray-50 pt-32 pb-12 relative">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
     <!-- Header -->
     <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 mb-16 flex items-center animate-slide-in overflow-visible leading-tight">
@@ -11,9 +11,9 @@
     </h1>
 
     <!-- Filters Section -->
-    <div class="bg-white/80 backdrop-blur-sm shadow-lg rounded-3xl p-6 mb-8 transition-all duration-300 hover:shadow-2xl relative z-20">
+    <div class="bg-white/80 backdrop-blur-sm shadow-lg rounded-3xl p-6 mb-8 transition-all duration-300 hover:shadow-2xl z-10">
       <h2 class="text-xl font-semibold text-gray-800 mb-4">Filter Reviews</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <!-- Product Name Filter -->
         <div class="custom-dropdown">
           <label for="productFilterInput" class="block text-sm font-medium text-gray-700 mb-2">Product</label>
@@ -33,6 +33,27 @@
               <% }) %>
             </div>
             <input type="hidden" id="productFilterInput" name="productFilter" value="all">
+          </div>
+        </div>
+        <!-- Category Filter -->
+        <div class="custom-dropdown">
+          <label for="categoryFilterInput" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+          <div class="relative">
+            <div class="dropdown-trigger block w-full rounded-xl border-0 bg-white/70 backdrop-blur-md shadow-md py-3 px-4 text-gray-800 hover:bg-gradient-to-br hover:from-indigo-50/50 hover:to-blue-50/50 transition-all duration-300 hover:scale-105 cursor-pointer" role="button" aria-expanded="false" aria-controls="categoryFilterOptions">
+              <span class="dropdown-label">All Categories</span>
+              <span class="absolute inset-y-0 right-3 flex items-center transition-transform duration-300">
+                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </span>
+            </div>
+            <div id="categoryFilterOptions" class="dropdown-menu absolute w-full mt-1 bg-white rounded-xl shadow-lg z-40 hidden border border-gray-200 animate-dropdown-open">
+              <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="all">All Categories</div>
+              <% categories.forEach(category => { %>
+                <div class="dropdown-option py-2 px-4 hover:bg-gradient-to-r hover:from-indigo-50/50 hover:to-blue-50/50 cursor-pointer transition-all duration-200" data-value="<%= category %>"><%= category %></div>
+              <% }) %>
+            </div>
+            <input type="hidden" id="categoryFilterInput" name="categoryFilter" value="all">
           </div>
         </div>
         <!-- Star Rating Filter -->
@@ -84,12 +105,12 @@
     </div>
 
     <!-- Reviews Section -->
-    <div class="bg-white shadow-lg rounded-3xl p-6 transition-all duration-300 hover:shadow-2xl relative z-10">
+    <div class="bg-white shadow-lg rounded-3xl p-6 transition-all duration-300 hover:shadow-2xl z-10">
       <% if (products.some(p => p.reviews && p.reviews.length > 0)) { %>
         <div class="space-y-8" id="reviewsContainer">
           <% products.forEach((product, index) => { %>
             <% if (product.reviews && product.reviews.length > 0) { %>
-              <div class="border-b border-gray-200/30 pb-6 product-reviews" data-product-id="<%= product.id %>">
+              <div class="border-b border-gray-200/30 pb-6 product-reviews" data-product-id="<%= product.id %>" data-category="<%= product.category || 'Uncategorized' %>">
                 <h2 class="text-2xl font-semibold text-gray-800 mb-4 relative group">
                   Reviews for <a href="/product/<%= product.id %>" class="text-indigo-600 hover:text-indigo-800 transition-colors duration-300"><%= product.name %></a>
                   <span class="absolute bottom-0 left-0 w-0 h-1 bg-gradient-to-r from-indigo-500 to-blue-500 transition-all duration-300 group-hover:w-full"></span>
@@ -99,7 +120,7 @@
                     <div class="review-item relative border border-gray-100/50 rounded-2xl p-6 mb-4 bg-white/80 backdrop-blur-sm hover:bg-gradient-to-br hover:from-indigo-50/30 hover:to-blue-50/30 transition-all duration-500 shadow-md hover:shadow-xl group animate-fade-in-up <%= reviewIndex >= 5 ? 'hidden' : '' %>"
                          data-rating="<%= review.rating %>"
                          data-timestamp="<%= review.timestamp %>"
-                         style="animation-delay: <%= index * 0.1 %>s;">
+                         data-product-id="<%= product.id %>">
                       <!-- Animated Border -->
                       <span class="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out;"></span>
                       <div class="flex justify-between items-start mb-3 relative z-10">
@@ -212,241 +233,303 @@
 </div>
 
 <script>
-  // Form Validation
-  function validateEditForm() {
-    const rating = document.getElementById('editRating').value;
-    if (!rating || rating < 1 || rating > 5) {
-      alert('Please select a rating between 1 and 5 stars.');
-      return false;
-    }
-    return true;
+// Form Validation
+function validateEditForm() {
+  const rating = document.getElementById('editRating').value;
+  if (!rating || rating < 1 || rating > 5) {
+    alert('Please select a rating between 1 and 5 stars.');
+    return false;
   }
+  return true;
+}
 
-  // Modal Functions
-  function openEditModal(reviewId, productId, rating, comment) {
-    document.getElementById('editReviewId').value = reviewId;
-    document.getElementById('editRating').value = rating;
-    document.getElementById('editComment').value = comment;
-    document.getElementById('editReviewForm').action = `/admin/review/edit/${productId}`;
-    console.log("Opening edit modal:", { reviewId, productId, rating, comment }); // Debug log
-    updateStars(rating);
-    document.getElementById('editReviewModal').classList.remove('hidden');
-    setTimeout(() => {
-      document.getElementById('editReviewModal').querySelector('div').classList.remove('scale-90');
-      document.getElementById('editReviewModal').classList.add('opacity-100');
-    }, 10);
-  }
+// Modal Functions
+function openEditModal(reviewId, productId, rating, comment) {
+  document.getElementById('editReviewId').value = reviewId;
+  document.getElementById('editRating').value = rating;
+  document.getElementById('editComment').value = comment;
+  document.getElementById('editReviewForm').action = `/admin/review/edit/${productId}`;
+  console.log("Opening edit modal:", { reviewId, productId, rating, comment });
+  updateStars(rating);
+  document.getElementById('editReviewModal').classList.remove('hidden');
+  setTimeout(() => {
+    document.getElementById('editReviewModal').querySelector('div').classList.remove('scale-90');
+    document.getElementById('editReviewModal').classList.add('opacity-100');
+  }, 10);
+}
 
-  function closeEditModal() {
-    document.getElementById('editReviewModal').classList.add('hidden');
-    document.getElementById('editReviewModal').querySelector('div').classList.add('scale-90');
-    document.getElementById('editReviewModal').classList.remove('opacity-100');
-  }
+function closeEditModal() {
+  document.getElementById('editReviewModal').classList.add('hidden');
+  document.getElementById('editReviewModal').querySelector('div').classList.add('scale-90');
+  document.getElementById('editReviewModal').classList.remove('opacity-100');
+}
 
-  function openDeleteModal(reviewId, productId) {
-    document.getElementById('deleteReviewId').value = reviewId;
-    document.getElementById('deleteReviewForm').action = `/admin/review/delete/${productId}`;
-    document.getElementById('deleteReviewModal').classList.remove('hidden');
-    setTimeout(() => {
-      document.getElementById('deleteReviewModal').querySelector('div').classList.remove('scale-90');
-      document.getElementById('deleteReviewModal').classList.add('opacity-100');
-    }, 10);
-  }
+function openDeleteModal(reviewId, productId) {
+  document.getElementById('deleteReviewId').value = reviewId;
+  document.getElementById('deleteReviewForm').action = `/admin/review/delete/${productId}`;
+  document.getElementById('deleteReviewModal').classList.remove('hidden');
+  setTimeout(() => {
+    document.getElementById('deleteReviewModal').querySelector('div').classList.remove('scale-90');
+    document.getElementById('deleteReviewModal').classList.add('opacity-100');
+  }, 10);
+}
 
-  function closeDeleteModal() {
-    document.getElementById('deleteReviewModal').classList.add('hidden');
-    document.getElementById('deleteReviewModal').querySelector('div').classList.add('scale-90');
-    document.getElementById('deleteReviewModal').classList.remove('opacity-100');
-  }
+function closeDeleteModal() {
+  document.getElementById('deleteReviewModal').classList.add('hidden');
+  document.getElementById('deleteReviewModal').querySelector('div').classList.add('scale-90');
+  document.getElementById('deleteReviewModal').classList.remove('opacity-100');
+}
 
-  function setRating(rating) {
-    document.getElementById('editRating').value = rating;
-    updateStars(rating);
-  }
+function setRating(rating) {
+  document.getElementById('editRating').value = rating;
+  updateStars(rating);
+}
 
-  function updateStars(rating) {
-    const stars = document.querySelectorAll('.star-btn');
-    stars.forEach((star, index) => {
-      star.classList.toggle('text-yellow-400', index < rating);
-      star.classList.toggle('text-gray-300', index >= rating);
-      star.classList.toggle('animate-star-bounce', index < rating);
-    });
-  }
-
-  // Load More Functionality
-  document.querySelectorAll('.load-more-btn').forEach(button => {
-    button.addEventListener('click', function() {
-      const productId = this.getAttribute('data-product-id');
-      const reviewsList = this.closest('.reviews-list');
-      const hiddenReviews = reviewsList.querySelectorAll(`.review-item.hidden[data-product-id="${productId}"]`);
-      const nextBatch = Array.from(hiddenReviews).slice(0, 5);
-
-      nextBatch.forEach((review, index) => {
-        review.classList.remove('hidden');
-        review.classList.add('animate-fade-in-up');
-        review.style.animationDelay = `${index * 0.1}s`;
-      });
-
-      if (hiddenReviews.length <= 5) {
-        this.remove();
-      }
-    });
+function updateStars(rating) {
+  const stars = document.querySelectorAll('.star-btn');
+  stars.forEach((star, index) => {
+    star.classList.toggle('text-yellow-400', index < rating);
+    star.classList.toggle('text-gray-300', index >= rating);
+    star.classList.toggle('animate-star-bounce', index < rating);
   });
+}
 
-  // Filter and Sort Functionality
-  function applyFilters() {
-    const productFilter = document.getElementById('productFilterInput').value;
-    const ratingFilter = document.getElementById('ratingFilterInput').value;
-    const sortFilter = document.getElementById('sortFilterInput').value;
+// Load More Functionality
+document.querySelectorAll('.load-more-btn').forEach(button => {
+  button.addEventListener('click', function() {
+    const productId = this.getAttribute('data-product-id');
+    const reviewsList = this.closest('.reviews-list');
+    const hiddenReviews = reviewsList.querySelectorAll(`.review-item.hidden[data-product-id="${productId}"]`);
+    const nextBatch = Array.from(hiddenReviews).slice(0, 5);
 
-    // Show/Hide Products
-    const productSections = document.querySelectorAll('.product-reviews');
-    productSections.forEach(section => {
-      const productId = section.getAttribute('data-product-id');
-      section.style.display = (productFilter === 'all' || productId === productFilter) ? 'block' : 'none';
+    nextBatch.forEach((review, index) => {
+      review.classList.remove('hidden');
+      review.classList.add('animate-fade-in-up');
+      review.style.animationDelay = `${index * 0.1}s`;
     });
 
-    // Filter Reviews by Rating
-    const allReviews = document.querySelectorAll('.review-item');
-    allReviews.forEach(review => {
-      const rating = review.getAttribute('data-rating');
-      const parentProductId = review.closest('.product-reviews').getAttribute('data-product-id');
-      const matchesProduct = productFilter === 'all' || parentProductId === productFilter;
-      const matchesRating = ratingFilter === 'all' || rating === ratingFilter;
-      review.classList.toggle('hidden', !(matchesProduct && matchesRating));
-    });
-
-    // Sort Reviews
-    const reviewsContainer = document.getElementById('reviewsContainer');
-    const sortedSections = Array.from(productSections).filter(section => {
-      return productFilter === 'all' || section.getAttribute('data-product-id') === productFilter;
-    });
-
-    sortedSections.forEach(section => {
-      const reviewsList = section.querySelector('.reviews-list');
-      const reviews = Array.from(reviewsList.querySelectorAll('.review-item'));
-      reviews.sort((a, b) => {
-        const aTimestamp = new Date(a.getAttribute('data-timestamp')).getTime();
-        const bTimestamp = new Date(b.getAttribute('data-timestamp')).getTime();
-        const aRating = parseInt(a.getAttribute('data-rating'));
-        const bRating = parseInt(b.getAttribute('data-rating'));
-
-        if (sortFilter === 'recent') return bTimestamp - aTimestamp;
-        if (sortFilter === 'oldest') return aTimestamp - bTimestamp;
-        if (sortFilter === 'highest') return bRating - aRating;
-        if (sortFilter === 'lowest') return aRating - bRating;
-        return 0;
-      });
-
-      reviewsList.innerHTML = '';
-      reviews.forEach((review, index) => {
-        review.classList.toggle('hidden', index >= 5 && !review.classList.contains('load-more-visible'));
-        reviewsList.appendChild(review);
-      });
-
-      // Re-append Load More button if needed
-      const loadMoreBtn = section.querySelector('.load-more-btn');
-      if (loadMoreBtn) reviewsList.appendChild(loadMoreBtn);
-    });
-
-    // Update Load More Visibility
-    productSections.forEach(section => {
-      const reviewsList = section.querySelector('.reviews-list');
-      const visibleReviews = reviewsList.querySelectorAll('.review-item:not(.hidden)').length;
-      const loadMoreBtn = section.querySelector('.load-more-btn');
-      if (loadMoreBtn) {
-        loadMoreBtn.style.display = visibleReviews > 5 ? 'block' : 'none';
-      }
-    });
-  }
-
-  // Reset Filters
-  document.getElementById('resetFilters').addEventListener('click', () => {
-    document.getElementById('productFilterInput').value = 'all';
-    document.getElementById('ratingFilterInput').value = 'all';
-    document.getElementById('sortFilterInput').value = 'recent';
-    document.querySelector('#productFilterOptions').parentNode.querySelector('.dropdown-label').textContent = 'All Products';
-    document.querySelector('#ratingFilterOptions').parentNode.querySelector('.dropdown-label').textContent = 'All Ratings';
-    document.querySelector('#sortFilterOptions').parentNode.querySelector('.dropdown-label').textContent = 'Most Recent';
-    applyFilters();
-  });
-
-  // Custom Dropdown Functionality
-  document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
-    const trigger = dropdown.querySelector('.dropdown-trigger');
-    const menu = dropdown.querySelector('.dropdown-menu');
-    const options = dropdown.querySelectorAll('.dropdown-option');
-    const label = dropdown.querySelector('.dropdown-label');
-    const hiddenInput = dropdown.querySelector('input[type="hidden"]');
-    const arrow = dropdown.querySelector('svg');
-
-    trigger.addEventListener('click', () => {
-      const isOpen = !menu.classList.contains('hidden');
-      document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.add('hidden'));
-      document.querySelectorAll('.dropdown-trigger svg').forEach(a => a.classList.remove('rotate-180', 'text-indigo-800'));
-      if (!isOpen) {
-        menu.classList.remove('hidden');
-        trigger.setAttribute('aria-expanded', 'true');
-        arrow.classList.add('rotate-180', 'text-indigo-800');
-      } else {
-        menu.classList.add('hidden');
-        trigger.setAttribute('aria-expanded', 'false');
-        arrow.classList.remove('rotate-180', 'text-indigo-800');
-      }
-    });
-
-    options.forEach(option => {
-      option.addEventListener('click', () => {
-        const value = option.getAttribute('data-value');
-        hiddenInput.value = value;
-        label.textContent = option.textContent;
-        menu.classList.add('hidden');
-        trigger.setAttribute('aria-expanded', 'false');
-        arrow.classList.remove('rotate-180', 'text-indigo-800');
-        applyFilters();
-      });
-      option.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          option.click();
-        }
-      });
-    });
-  });
-
-  // Close dropdowns when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.custom-dropdown')) {
-      document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.add('hidden'));
-      document.querySelectorAll('.dropdown-trigger').forEach(trigger => trigger.setAttribute('aria-expanded', 'false'));
-      document.querySelectorAll('.dropdown-trigger svg').forEach(arrow => arrow.classList.remove('rotate-180', 'text-indigo-800'));
+    if (hiddenReviews.length <= 5) {
+      this.remove();
     }
   });
+});
 
-  // Keyboard Accessibility
-  document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
-    trigger.addEventListener('keydown', (e) => {
+// Filter and Sort Functionality
+function applyFilters() {
+  console.log("Applying filters...");
+  const productFilter = document.getElementById('productFilterInput').value;
+  const categoryFilter = document.getElementById('categoryFilterInput').value;
+  const ratingFilter = document.getElementById('ratingFilterInput').value;
+  const sortFilter = document.getElementById('sortFilterInput').value;
+
+  console.log("Filter values:", { productFilter, categoryFilter, ratingFilter, sortFilter });
+
+  // Collect all reviews
+  const allReviews = [];
+  document.querySelectorAll('.product-reviews').forEach(section => {
+    const productId = section.getAttribute('data-product-id');
+    const category = section.getAttribute('data-category') || 'Uncategorized';
+    const reviews = section.querySelectorAll('.review-item');
+    reviews.forEach(review => {
+      allReviews.push({
+        element: review,
+        productId,
+        category,
+        rating: parseInt(review.getAttribute('data-rating')),
+        timestamp: new Date(review.getAttribute('data-timestamp')).getTime()
+      });
+    });
+  });
+
+  // Filter reviews
+  const filteredReviews = allReviews.filter(review => {
+    const matchesProduct = productFilter === 'all' || review.productId === productFilter;
+    const matchesCategory = categoryFilter === 'all' || review.category === categoryFilter;
+    const matchesRating = ratingFilter === 'all' || review.rating === parseInt(ratingFilter);
+    return matchesProduct && matchesCategory && matchesRating;
+  });
+
+  console.log("Filtered reviews count:", filteredReviews.length);
+
+  // Sort reviews
+  filteredReviews.sort((a, b) => {
+    if (sortFilter === 'recent') return b.timestamp - a.timestamp;
+    if (sortFilter === 'oldest') return a.timestamp - b.timestamp;
+    if (sortFilter === 'highest') return b.rating - a.rating || b.timestamp - a.timestamp; // Secondary sort by timestamp
+    if (sortFilter === 'lowest') return a.rating - b.rating || b.timestamp - a.timestamp; // Secondary sort by timestamp
+    return 0;
+  });
+
+  // Clear existing reviews and rebuild
+  const reviewsContainer = document.getElementById('reviewsContainer');
+  reviewsContainer.innerHTML = ''; // Clear current reviews
+  const noReviewsMessage = document.querySelector('.no-reviews-message');
+  if (noReviewsMessage) noReviewsMessage.remove();
+
+  if (filteredReviews.length === 0) {
+    const message = document.createElement('p');
+    message.className = 'no-reviews-message text-gray-500 text-center py-8 text-xl font-medium animate-fade-in';
+    message.textContent = 'No reviews found.';
+    reviewsContainer.appendChild(message);
+    return;
+  }
+
+  // Group reviews by product
+  const reviewsByProduct = {};
+  filteredReviews.forEach(review => {
+    if (!reviewsByProduct[review.productId]) {
+      reviewsByProduct[review.productId] = {
+        reviews: [],
+        category: review.category,
+        productName: review.element.closest('.product-reviews')?.querySelector('a')?.textContent || 'Unknown Product'
+      };
+    }
+    reviewsByProduct[review.productId].reviews.push(review);
+  });
+
+  // Render reviews
+  Object.keys(reviewsByProduct).forEach(productId => {
+    const product = reviewsByProduct[productId];
+    const section = document.createElement('div');
+    section.className = 'border-b border-gray-200/30 pb-6 product-reviews';
+    section.setAttribute('data-product-id', productId);
+    section.setAttribute('data-category', product.category);
+
+    // Product header
+    section.innerHTML = `
+      <h2 class="text-2xl font-semibold text-gray-800 mb-4 relative group">
+        Reviews for <a href="/product/${productId}" class="text-indigo-600 hover:text-indigo-800 transition-colors duration-300">${product.productName}</a>
+        <span class="absolute bottom-0 left-0 w-0 h-1 bg-gradient-to-r from-indigo-500 to-blue-500 transition-all duration-300 group-hover:w-full"></span>
+      </h2>
+      <div class="reviews-list"></div>
+    `;
+
+    const reviewsList = section.querySelector('.reviews-list');
+    product.reviews.forEach((review, index) => {
+      review.element.classList.remove('hidden');
+      review.element.classList.add('animate-fade-in-up');
+      review.element.style.animationDelay = `${index * 0.1}s`;
+      if (index >= 5) review.element.classList.add('hidden');
+      reviewsList.appendChild(review.element);
+    });
+
+    // Add load more button if needed
+    if (product.reviews.length > 5) {
+      const loadMoreBtn = document.createElement('button');
+      loadMoreBtn.className = 'load-more-btn mt-4 bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple';
+      loadMoreBtn.setAttribute('data-product-id', productId);
+      loadMoreBtn.textContent = 'Load More';
+      loadMoreBtn.addEventListener('click', function() {
+        const hiddenReviews = reviewsList.querySelectorAll(`.review-item.hidden[data-product-id="${productId}"]`);
+        const nextBatch = Array.from(hiddenReviews).slice(0, 5);
+        nextBatch.forEach((review, index) => {
+          review.classList.remove('hidden');
+          review.classList.add('animate-fade-in-up');
+          review.style.animationDelay = `${index * 0.1}s`;
+        });
+        if (hiddenReviews.length <= 5) this.remove();
+      });
+      reviewsList.appendChild(loadMoreBtn);
+    }
+
+    reviewsContainer.appendChild(section);
+  });
+}
+
+// Reset Filters
+document.getElementById('resetFilters').addEventListener('click', () => {
+  document.getElementById('productFilterInput').value = 'all';
+  document.getElementById('categoryFilterInput').value = 'all';
+  document.getElementById('ratingFilterInput').value = 'all';
+  document.getElementById('sortFilterInput').value = 'recent';
+  document.querySelector('#productFilterOptions').parentNode.querySelector('.dropdown-label').textContent = 'All Products';
+  document.querySelector('#categoryFilterOptions').parentNode.querySelector('.dropdown-label').textContent = 'All Categories';
+  document.querySelector('#ratingFilterOptions').parentNode.querySelector('.dropdown-label').textContent = 'All Ratings';
+  document.querySelector('#sortFilterOptions').parentNode.querySelector('.dropdown-label').textContent = 'Most Recent';
+  applyFilters();
+});
+
+// Custom Dropdown Functionality
+document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
+  const trigger = dropdown.querySelector('.dropdown-trigger');
+  const menu = dropdown.querySelector('.dropdown-menu');
+  const options = dropdown.querySelectorAll('.dropdown-option');
+  const label = dropdown.querySelector('.dropdown-label');
+  const hiddenInput = dropdown.querySelector('input[type="hidden"]');
+  const arrow = dropdown.querySelector('svg');
+
+  trigger.addEventListener('click', () => {
+    const isOpen = !menu.classList.contains('hidden');
+    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.add('hidden'));
+    document.querySelectorAll('.dropdown-trigger svg').forEach(a => a.classList.remove('rotate-180', 'text-indigo-800'));
+    if (!isOpen) {
+      menu.classList.remove('hidden');
+      trigger.setAttribute('aria-expanded', 'true');
+      arrow.classList.add('rotate-180', 'text-indigo-800');
+    } else {
+      menu.classList.add('hidden');
+      trigger.setAttribute('aria-expanded', 'false');
+      arrow.classList.remove('rotate-180', 'text-indigo-800');
+    }
+  });
+
+  options.forEach(option => {
+    option.addEventListener('click', () => {
+      const value = option.getAttribute('data-value');
+      hiddenInput.value = value;
+      label.textContent = option.textContent;
+      menu.classList.add('hidden');
+      trigger.setAttribute('aria-expanded', 'false');
+      arrow.classList.remove('rotate-180', 'text-indigo-800');
+      applyFilters();
+    });
+    option.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        trigger.click();
+        option.click();
       }
     });
   });
+});
 
-  // Ripple Effect
-  document.querySelectorAll('.ripple').forEach(button => {
-    button.addEventListener('click', function(e) {
-      const ripple = document.createElement('span');
-      ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
-      const rect = button.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height);
-      ripple.style.width = ripple.style.height = `${size}px`;
-      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
-      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-      button.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 600);
-    });
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.custom-dropdown')) {
+    document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.add('hidden'));
+    document.querySelectorAll('.dropdown-trigger').forEach(trigger => trigger.setAttribute('aria-expanded', 'false'));
+    document.querySelectorAll('.dropdown-trigger svg').forEach(arrow => arrow.classList.remove('rotate-180', 'text-indigo-800'));
+  }
+});
+
+// Keyboard Accessibility
+document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
+  trigger.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      trigger.click();
+    }
   });
+});
+
+// Ripple Effect
+document.querySelectorAll('.ripple').forEach(button => {
+  button.addEventListener('click', function(e) {
+    const ripple = document.createElement('span');
+    ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+    ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+    button.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  });
+});
+
+// Initialize filters on page load
+document.addEventListener('DOMContentLoaded', () => {
+  applyFilters();
+});
 </script>
 
 <style>
@@ -493,6 +576,9 @@
   }
   .animate-glow {
     animation: glow 1.5s infinite;
+  }
+  .bg-white.shadow-lg.rounded-3xl {
+    z-index: 10; /* Keep as is, but ensure it’s below dropdowns */
   }
   .animate-star-glow {
     animation: starGlow 1.2s infinite;
@@ -542,6 +628,7 @@
   /* Custom Dropdown Styles */
   .custom-dropdown {
     position: relative;
+    z-index: 50; /* Increased from 40 to avoid conflicts */
   }
   .dropdown-trigger {
     transition: all 0.3s ease;
@@ -562,6 +649,11 @@
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(99, 102, 241, 0.5) transparent;
+    z-index: 50; /* Ensure it’s above the reviews section */
+    position: absolute;
+    top: 100%; /* Position below the trigger */
+    left: 0;
+    right: 0;
   }
   .dropdown-menu::-webkit-scrollbar {
     width: 6px;
@@ -598,7 +690,7 @@
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1000;
+    z-index: 1000; /* High z-index for header */
     background-color: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }

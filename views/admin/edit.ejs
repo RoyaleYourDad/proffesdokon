@@ -1,489 +1,457 @@
 <%- include('../partials/header') %>
-  <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">
-      <!-- Header -->
-      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-8 flex items-center animate-slide-in">
-        <svg class="w-6 h-6 mr-2 text-indigo-600 animate-pulse flex-shrink-0" fill="none" stroke="currentColor"
-          viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9.586 13.586a2 2 0 002.828 0l4-4z" />
-        </svg>
-        <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
-          <%= product ? 'Edit Product' : 'Add Product' %>
-        </span>
-      </h1>
-      <div
-        class="bg-white/80 backdrop-blur-sm shadow-lg rounded-3xl p-6 sm:p-8 transition-all duration-300 hover:shadow-2xl">
-        <form action="<%= product ? '/admin/edit/' + product.id : '/admin/add' %>" method="POST"
-          enctype="multipart/form-data" id="product-form">
-          <!-- Hidden Inputs for Existing Images -->
-          <% if (product && product.thumbnail && product.thumbnail.url) { %>
-            <input type="hidden" name="existingThumbnailUrl" value="<%= product.thumbnail.url %>">
-            <input type="hidden" name="existingThumbnailDeleteUrl" value="<%= product.thumbnail.delete_url %>">
-            <% } %>
-              <% if (product && product.previewImages && product.previewImages.length> 0) { %>
-                <% product.previewImages.forEach((img, index)=> { %>
-                  <input type="hidden" name="existingPreviewImages[<%= index %>][url]" value="<%= img.url %>">
-                  <input type="hidden" name="existingPreviewImages[<%= index %>][delete_url]"
-                    value="<%= img.delete_url %>">
+<div class="min-h-screen bg-gradient-to-b from-gray-50 to-white py-12">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl">
+    <!-- Header -->
+    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-8 flex items-center animate-slide-in">
+      <svg class="w-6 h-6 mr-2 text-indigo-600 animate-pulse flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9.586 13.586a2 2 0 002.828 0l4-4z" />
+      </svg>
+      <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
+        <%= product ? 'Edit Product' : 'Add Product' %>
+      </span>
+    </h1>
+    <div class="bg-white/80 backdrop-blur-sm shadow-lg rounded-3xl p-6 sm:p-8 transition-all duration-300 hover:shadow-2xl">
+      <% if (error) { %>
+        <div class="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
+          <%= error %>
+        </div>
+      <% } %>
+      <form action="<%= product ? '/admin/edit/' + product.id : '/admin/add' %>" method="POST" enctype="multipart/form-data" id="product-form">
+        <!-- Hidden Inputs for Existing Images -->
+        <% if (product && product.thumbnail && product.thumbnail.url) { %>
+          <input type="hidden" name="existingThumbnailUrl" value="<%= product.thumbnail.url %>">
+          <input type="hidden" name="existingThumbnailDeleteUrl" value="<%= product.thumbnail.delete_url %>">
+        <% } %>
+        <% if (product && product.previewImages && product.previewImages.length > 0) { %>
+          <% product.previewImages.forEach((img, index) => { %>
+            <input type="hidden" name="existingPreviewImages[<%= index %>][url]" value="<%= img.url %>">
+            <input type="hidden" name="existingPreviewImages[<%= index %>][delete_url]" value="<%= img.delete_url %>">
+          <% }) %>
+        <% } %>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Left Column: Basic Info -->
+          <div class="space-y-6">
+            <div class="animate-fade-in-up" style="animation-delay: 0.1s;">
+              <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
+              <input type="text" name="name" id="name" value="<%= product ? product.name : '' %>" class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300" required>
+            </div>
+            <div class="animate-fade-in-up" style="animation-delay: 0.2s;">
+              <label for="category" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+              <div class="flex gap-2">
+                <select name="category" id="category" class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300" required>
+                  <option value="">Select Category</option>
+                  <% categories.forEach(category => { %>
+                    <option value="<%= category %>" <%= product && product.category === category ? 'selected' : '' %>>
+                      <%= category %>
+                    </option>
                   <% }) %>
-                    <% } %>
-                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Left Column: Basic Info -->
-                        <div class="space-y-6">
-                          <div class="animate-fade-in-up" style="animation-delay: 0.1s;">
-                            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
-                            <input type="text" name="name" id="name" value="<%= product ? product.name : '' %>"
-                              class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300"
-                              required>
-                          </div>
-                          <div class="animate-fade-in-up" style="animation-delay: 0.2s;">
-                            <label for="category" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                            <div class="flex gap-2">
-                              <select name="category" id="category"
-                                class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300"
-                                required>
-                                <option value="">Select Category</option>
-                                <% categories.forEach(category=> { %>
-                                  <option value="<%= category %>" <%=product && product.category===category ? 'selected'
-                                    : '' %>>
-                                    <%= category %>
-                                  </option>
-                                  <% }) %>
-                              </select>
-                            </div>
-                            <div class="mt-4">
-                              <label for="new-category" class="block text-sm font-medium text-gray-700 mb-2">Add New
-                                Category</label>
-                              <div class="flex gap-2">
-                                <input type="text" id="new-category" placeholder="New category..."
-                                  class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
-                                <button type="button" id="add-category-btn"
-                                  class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-4 rounded-xl text-sm hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple">
-                                  Add
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="animate-fade-in-up" style="animation-delay: 0.3s;">
-                            <label for="price" class="block text-sm font-medium text-gray-700 mb-2">Price (USD)</label>
-                            <input type="number" name="price" id="price" step="0.01"
-                              value="<%= product ? product.price : '' %>"
-                              class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300"
-                              required>
-                          </div>
-                          <div class="animate-fade-in-up" style="animation-delay: 0.4s;">
-                            <label for="stock" class="block text-sm font-medium text-gray-700 mb-2">Stock
-                              Quantity</label>
-                            <input type="number" name="stock" id="stock" min="0"
-                              value="<%= product ? product.stock : '0' %>"
-                              class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300"
-                              required>
-                          </div>
-                          <div class="animate-fade-in-up" style="animation-delay: 0.5s;">
-                            <label for="discountPrice" class="block text-sm font-medium text-gray-700 mb-2">Discount
-                              Price (Optional)</label>
-                            <input type="number" name="discountPrice" id="discountPrice" step="0.01"
-                              value="<%= product && product.discountPrice ? product.discountPrice : '' %>"
-                              class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
-                          </div>
-                          <div class="animate-fade-in-up" style="animation-delay: 0.6s;">
-                            <label for="discountExpiry" class="block text-sm font-medium text-gray-700 mb-2">Discount
-                              Expiry (Optional)</label>
-                            <input type="date" name="discountExpiry" id="discountExpiry"
-                              value="<%= product && product.discountExpiry ? product.discountExpiry : '' %>"
-                              class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
-                          </div>
-                          <div class="animate-fade-in-up" style="animation-delay: 0.7s;">
-                            <label for="origin" class="block text-sm font-medium text-gray-700 mb-2">Origin
-                              (Optional)</label>
-                            <input type="text" name="origin" id="origin"
-                              value="<%= product && product.origin ? product.origin : '' %>"
-                              class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
-                          </div>
-                        </div>
-                        <!-- Right Column: Images -->
-                        <div class="space-y-6">
-                          <div class="animate-fade-in-up" style="animation-delay: 0.1s;">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Thumbnail</label>
-                            <div
-                              class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:bg-gray-50 cursor-pointer transition-all duration-300"
-                              id="thumbnail-dropzone">
-                              <input type="file" name="thumbnail" id="thumbnail-input" accept="image/*" class="hidden">
-                              <p class="text-sm text-gray-500">Drag & drop or click to upload</p>
-                            </div>
-                            <div id="thumbnail-preview" class="mt-2 flex flex-wrap gap-2">
-                              <% if (product && product.thumbnail && product.thumbnail.url) { %>
-                                <div class="relative w-24 h-24">
-                                  <img src="<%= product.thumbnail.url %>" alt="Thumbnail"
-                                    class="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 hover:scale-105 transition-all duration-300"
-                                    data-url="<%= product.thumbnail.url %>">
-                                  <button type="button"
-                                    class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-2 text-sm delete-image ripple"
-                                    data-delete-url="<%= product.thumbnail.delete_url %>">×</button>
-                                </div>
-                                <% } %>
-                            </div>
-                          </div>
-                          <div class="animate-fade-in-up" style="animation-delay: 0.2s;">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Preview Images</label>
-                            <div
-                              class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:bg-gray-50 cursor-pointer transition-all duration-300"
-                              id="preview-dropzone">
-                              <input type="file" name="previewImages" id="preview-input" accept="image/*" multiple
-                                class="hidden">
-                              <p class="text-sm text-gray-500">Drag & drop or click to upload (max 10)</p>
-                            </div>
-                            <div id="preview-images" class="mt-2 flex flex-wrap gap-2">
-                              <% if (product && product.previewImages && product.previewImages.length> 0) { %>
-                                <% product.previewImages.forEach(img=> { %>
-                                  <div class="relative w-24 h-24">
-                                    <img src="<%= img.url %>" alt="Preview"
-                                      class="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 hover:scale-105 transition-all duration-300"
-                                      data-url="<%= img.url %>">
-                                    <button type="button"
-                                      class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-2 text-sm delete-image ripple"
-                                      data-delete-url="<%= img.delete_url %>">×</button>
-                                  </div>
-                                  <% }) %>
-                                    <% } %>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <!-- Details -->
-                      <div class="mt-8 animate-fade-in-up" style="animation-delay: 0.3s;">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Details</label>
-                        <div id="details-container" class="mt-2 space-y-2">
-                          <% if (product && product.details) { %>
-                            <% product.details.forEach(detail=> { %>
-                              <div class="flex gap-2 detail-entry">
-                                <input type="text" name="details[key][]" value="<%= detail.key %>" placeholder="Key"
-                                  class="w-1/2 p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
-                                <input type="text" name="details[value][]" value="<%= detail.value %>"
-                                  placeholder="Value"
-                                  class="w-1/2 p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
-                                <button type="button"
-                                  class="text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-300 ripple">
-                                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
-                                </button>
-                              </div>
-                              <% }) %>
-                                <% } %>
-                        </div>
-                        <button type="button" id="add-detail"
-                          class="mt-4 text-indigo-600 hover:text-indigo-800 flex items-center hover:scale-105 transition-all duration-300 ripple">
-                          <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </select>
+              </div>
+              <div class="mt-4">
+                <label for="new-category" class="block text-sm font-medium text-gray-700 mb-2">Add New Category</label>
+                <div class="flex gap-2">
+                  <input type="text" id="new-category" placeholder="New category..." class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
+                  <button type="button" id="add-category-btn" class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-4 rounded-xl text-sm hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple">
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="animate-fade-in-up" style="animation-delay: 0.3s;">
+              <label for="price" class="block text-sm font-medium text-gray-700 mb-2">Price (USD)</label>
+              <input type="number" name="price" id="price" step="0.01" value="<%= product ? product.price : '' %>" class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300" required>
+            </div>
+            <div class="animate-fade-in-up" style="animation-delay: 0.4s;">
+              <label for="stock" class="block text-sm font-medium text-gray-700 mb-2">Stock Quantity</label>
+              <input type="number" name="stock" id="stock" min="0" value="<%= product ? product.stock : '0' %>" class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300" required>
+            </div>
+            <div class="animate-fade-in-up" style="animation-delay: 0.5s;">
+              <label for="discountPrice" class="block text-sm font-medium text-gray-700 mb-2">Discount Price (Optional)</label>
+              <input type="number" name="discountPrice" id="discountPrice" step="0.01" value="<%= product && product.discountPrice ? product.discountPrice : '' %>" class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
+            </div>
+            <div class="animate-fade-in-up" style="animation-delay: 0.6s;">
+              <label for="discountExpiry" class="block text-sm font-medium text-gray-700 mb-2">Discount Expiry (Optional)</label>
+              <input type="date" name="discountExpiry" id="discountExpiry" value="<%= product && product.discountExpiry ? product.discountExpiry : '' %>" class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
+            </div>
+            <div class="animate-fade-in-up" style="animation-delay: 0.7s;">
+              <label for="origin" class="block text-sm font-medium text-gray-700 mb-2">Origin (Optional)</label>
+              <input type="text" name="origin" id="origin" value="<%= product && product.origin ? product.origin : '' %>" class="w-full p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
+            </div>
+          </div>
+          <!-- Right Column: Images -->
+          <div class="space-y-6">
+            <div class="animate-fade-in-up" style="animation-delay: 0.1s;">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Thumbnail</label>
+              <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:bg-gray-50 cursor-pointer transition-all duration-300" id="thumbnail-dropzone">
+                <input type="file" name="thumbnail" id="thumbnail-input" accept="image/*" class="hidden">
+                <p class="text-sm text-gray-500">Drag & drop or click to upload (max 5MB)</p>
+              </div>
+              <div id="thumbnail-preview" class="mt-2 flex flex-wrap gap-2">
+                <% if (product && product.thumbnail && product.thumbnail.url) { %>
+                  <div class="relative w-24 h-24">
+                    <img src="<%= product.thumbnail.url %>" alt="Thumbnail" class="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 hover:scale-105 transition-all duration-300" data-url="<%= product.thumbnail.url %>">
+                    <button type="button" class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-2 text-sm delete-image ripple" data-delete-url="<%= product.thumbnail.delete_url %>">×</button>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+            <div class="animate-fade-in-up" style="animation-delay: 0.2s;">
+              <label class="block text-sm font-medium text-gray-700 mb-2">Preview Images</label>
+              <div class="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:bg-gray-50 cursor-pointer transition-all duration-300" id="preview-dropzone">
+                <input type="file" name="previewImages" id="preview-input" accept="image/*" multiple class="hidden">
+                <p class="text-sm text-gray-500">Drag & drop or click to upload (max 8, 5MB each)</p>
+              </div>
+              <div id="preview-images" class="mt-2 flex flex-wrap gap-2">
+                <% if (product && product.previewImages && product.previewImages.length > 0) { %>
+                  <% product.previewImages.forEach(img => { %>
+                    <div class="relative w-24 h-24">
+                      <img src="<%= img.url %>" alt="Preview" class="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 hover:scale-105 transition-all duration-300" data-url="<%= img.url %>">
+                      <button type="button" class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-2 text-sm delete-image ripple" data-delete-url="<%= img.delete_url %>">×</button>
+                    </div>
+                  <% }) %>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Details -->
+        <div class="mt-8 animate-fade-in-up" style="animation-delay: 0.3s;">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Details</label>
+          <div id="details-container" class="mt-2 space-y-2">
+            <% if (product && product.details) { %>
+              <% product.details.forEach(detail => { %>
+                <div class="flex gap-2 detail-entry">
+                  <input type="text" name="details[key][]" value="<%= detail.key %>" placeholder="Key" class="w-1/2 p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
+                  <input type="text" name="details[value][]" value="<%= detail.value %>" placeholder="Value" class="w-1/2 p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
+                  <button type="button" class="text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-300 ripple">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              <% }) %>
+            <% } %>
+          </div>
+          <button type="button" id="add-detail" class="mt-4 text-indigo-600 hover:text-indigo-800 flex items-center hover:scale-105 transition-all duration-300 ripple">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add Detail
+          </button>
+        </div>
+        <!-- Reviews Management -->
+        <div class="mt-8 animate-fade-in-up" style="animation-delay: 0.4s;">
+          <h2 class="text-lg font-semibold text-gray-700 mb-4 relative group">
+            Manage Reviews
+            <span class="absolute bottom-0 left-0 w-0 h-1 bg-gradient-to-r from-indigo-500 to-blue-500 transition-all duration-300 group-hover:w-full"></span>
+          </h2>
+          <% if (product && product.reviews && product.reviews.length > 0) { %>
+            <div class="space-y-4">
+              <% product.reviews.forEach((review, index) => { %>
+                <div class="relative border border-gray-100/50 rounded-2xl p-6 bg-white/80 backdrop-blur-sm hover:bg-gradient-to-br hover:from-indigo-50/30 hover:to-blue-50/30 transition-all duration-500 shadow-md hover:shadow-xl group animate-fade-in-up" style="animation-delay: <%= index * 0.1 %>s;">
+                  <span class="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style="mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out;"></span>
+                  <div class="flex justify-between items-start mb-3 relative z-10">
+                    <div>
+                      <p class="text-sm font-medium text-gray-800">
+                        <%= users.find(u => u.id === review.userId)?.displayName || 'Anonymous' %>
+                        <span class="text-xs text-gray-500">
+                          <%= new Date(review.timestamp).toLocaleDateString() %>
+                          <% if (review.edited) { %>
+                            <span class="text-xs text-indigo-500 font-medium">(Edited)</span>
+                          <% } %>
+                        </span>
+                      </p>
+                      <div class="flex mt-1">
+                        <% for (let i = 1; i <= 5; i++) { %>
+                          <svg class="w-4 h-4 <%= i <= review.rating ? 'text-yellow-400 animate-star-glow' : 'text-gray-300' %> transition-transform duration-300" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                           </svg>
-                          Add Detail
-                        </button>
+                        <% } %>
                       </div>
-                      <!-- Reviews Management -->
-                      <div class="mt-8 animate-fade-in-up" style="animation-delay: 0.4s;">
-                        <h2 class="text-lg font-semibold text-gray-700 mb-4 relative group">
-                          Manage Reviews
-                          <span
-                            class="absolute bottom-0 left-0 w-0 h-1 bg-gradient-to-r from-indigo-500 to-blue-500 transition-all duration-300 group-hover:w-full"></span>
-                        </h2>
-                        <% if (product && product.reviews && product.reviews.length> 0) { %>
-                          <div class="space-y-4">
-                            <% product.reviews.forEach((review, index)=> { %>
-                              <div
-                                class="relative border border-gray-100/50 rounded-2xl p-6 bg-white/80 backdrop-blur-sm hover:bg-gradient-to-br hover:from-indigo-50/30 hover:to-blue-50/30 transition-all duration-500 shadow-md hover:shadow-xl group animate-fade-in-up"
-                                style="animation-delay: <%= index * 0.1 %>s;">
-                                <!-- Animated Border -->
-                                <span
-                                  class="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                                  style="mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: destination-out;"></span>
-                                <div class="flex justify-between items-start mb-3 relative z-10">
-                                  <div>
-                                    <p class="text-sm font-medium text-gray-800">
-                                      <%= users.find(u=> u.id === review.userId)?.displayName || 'Anonymous' %>
-                                        <span class="text-xs text-gray-500">
-                                          <%= new Date(review.timestamp).toLocaleDateString() %>
-                                            <% if (review.edited) { %>
-                                              <span class="text-xs text-indigo-500 font-medium">(Edited)</span>
-                                              <% } %>
-                                        </span>
-                                    </p>
-                                    <div class="flex mt-1">
-                                      <% for (let i=1; i <=5; i++) { %>
-                                        <svg
-                                          class="w-4 h-4 <%= i <= review.rating ? 'text-yellow-400 animate-star-glow' : 'text-gray-300' %> transition-transform duration-300"
-                                          fill="currentColor" viewBox="0 0 20 20">
-                                          <path
-                                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3 .921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784 .57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81 .588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                        </svg>
-                                        <% } %>
-                                    </div>
-                                  </div>
-                                  <div class="flex gap-2">
-                                    <a href="/admin/reviews"
-                                      class="text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-all duration-300 ripple p-2">
-                                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9.586 13.586a2 2 0 002.828 0l4-4z" />
-                                      </svg>
-                                    </a>
-                                    <a href="/admin/reviews"
-                                      class="text-red-500 hover:text-red-700 hover:scale-110 transition-all duration-300 ripple p-2">
-                                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M6 18L18 6M6 6l12 12" />
-                                      </svg>
-                                    </a>
-                                  </div>
-                                </div>
-                                <p class="text-sm text-gray-600 relative z-10">
-                                  <%= review.comment %>
-                                </p>
-                              </div>
-                              <% }) %>
-                          </div>
-                          <% } else { %>
-                            <p class="text-gray-500 text-sm animate-fade-in-up">No reviews for this product yet.</p>
-                            <% } %>
-                      </div>
-                      <div
-                        class="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-start gap-4 animate-fade-in-up"
-                        style="animation-delay: 0.5s;">
-                        <button type="submit"
-                          class="flex items-center justify-center bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl text-sm hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple w-full sm:w-auto">
-                          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                          <%= product ? 'Update Product' : 'Add Product' %>
-                        </button>
-
-                        <a href="/admin"
-                          class="flex items-center justify-center bg-gray-200 text-gray-700 py-3 px-6 rounded-xl text-sm hover:bg-gray-300 hover:scale-105 transition-all duration-300 shadow-md ripple w-full sm:w-auto">
-                          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                          Cancel
-                        </a>
-                      </div>
-
-        </form>
-      </div>
+                    </div>
+                    <div class="flex gap-2">
+                      <a href="/admin/reviews" class="text-indigo-600 hover:text-indigo-800 hover:scale-110 transition-all duration-300 ripple p-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9.586 13.586a2 2 0 002.828 0l4-4z" />
+                        </svg>
+                      </a>
+                      <a href="/admin/reviews" class="text-red-500 hover:text-red-700 hover:scale-110 transition-all duration-300 ripple p-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+                  <p class="text-sm text-gray-600 relative z-10">
+                    <%= review.comment %>
+                  </p>
+                </div>
+              <% }) %>
+            </div>
+          <% } else { %>
+            <p class="text-gray-500 text-sm animate-fade-in-up">No reviews for this product yet.</p>
+          <% } %>
+        </div>
+        <div class="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-start gap-4 animate-fade-in-up" style="animation-delay: 0.5s;">
+          <button type="submit" class="flex items-center justify-center bg-gradient-to-r from-indigo-500 to-blue-500 text-white py-3 px-6 rounded-xl text-sm hover:from-indigo-600 hover:to-blue-600 hover:scale-105 transition-all duration-300 shadow-md ripple w-full sm:w-auto">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            <%= product ? 'Update Product' : 'Add Product' %>
+          </button>
+          <a href="/admin" class="flex items-center justify-center bg-gray-200 text-gray-700 py-3 px-6 rounded-xl text-sm hover:bg-gray-300 hover:scale-105 transition-all duration-300 shadow-md ripple w-full sm:w-auto">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Cancel
+          </a>
+        </div>
+      </form>
     </div>
   </div>
-
-  <!-- Image Zoom Modal -->
-  <div id="image-modal"
-    class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center hidden transition-opacity duration-500 z-50">
-    <div class="relative max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-      <img id="modal-image" src="" alt="Zoomed Image" class="w-full h-auto rounded-lg">
-      <button id="close-modal"
-        class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-3 text-lg hover:bg-red-600 hover:scale-105 transition-all duration-300 shadow-md ripple">×</button>
-    </div>
+</div>
+<!-- Image Zoom Modal -->
+<div id="image-modal" class="fixed inset-0 bg-gray-900 bg-opacity-70 flex items-center justify-center hidden transition-opacity duration-500 z-50">
+  <div class="relative max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <img id="modal-image" src="" alt="Zoomed Image" class="w-full h-auto rounded-lg">
+    <button id="close-modal" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-3 text-lg hover:bg-red-600 hover:scale-105 transition-all duration-300 shadow-md ripple">×</button>
   </div>
+</div>
+<script>
+// Form Submission Handling
+const productForm = document.getElementById('product-form');
+productForm.addEventListener('submit', (e) => {
+  const thumbnailInput = document.getElementById('thumbnail-input');
+  const previewInput = document.getElementById('preview-input');
+  const maxFileSize = 5 * 1024 * 1024; // 5MB
 
-  <script>
-    // Form Submission Handling
-    const productForm = document.getElementById('product-form');
-    productForm.addEventListener('submit', async (e) => {
-      e.preventDefault(); // Prevent default submission for debugging
+  // Validate thumbnail
+  if (thumbnailInput.files.length > 1) {
+    e.preventDefault();
+    alert('Only one thumbnail image is allowed.');
+    return;
+  }
+  if (thumbnailInput.files.length > 0 && thumbnailInput.files[0].size > maxFileSize) {
+    e.preventDefault();
+    alert('Thumbnail image must be less than 5MB.');
+    return;
+  }
 
-      const formData = new FormData(productForm);
-
-      // Log the form data to debug
-      console.log('Form Data:');
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-
-      try {
-        const response = await fetch(productForm.action, {
-          method: 'POST',
-          body: formData
-        });
-        if (response.ok) {
-          console.log('Product updated successfully');
-          window.location.href = '/admin'; // Redirect to admin page on success
-        } else {
-          console.error('Failed to update product:', response.status, response.statusText);
-          alert('Failed to update product. Check the console for details.');
-        }
-      } catch (err) {
-        console.error('Error submitting form:', err);
-        alert('An error occurred while updating the product. Check the console for details.');
-      }
-    });
-
-    // Add New Category
-    const addCategoryBtn = document.getElementById('add-category-btn');
-    const newCategoryInput = document.getElementById('new-category');
-    const categorySelect = document.getElementById('category');
-    const categories = <% - JSON.stringify(categories || []) %>;
-
-    addCategoryBtn.addEventListener('click', async () => {
-      const newCategory = newCategoryInput.value.trim();
-      if (newCategory && !categories.includes(newCategory)) {
-        try {
-          const response = await fetch('/admin/category/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: newCategory })
-          });
-          if (response.ok) {
-            categories.push(newCategory);
-            const option = document.createElement('option');
-            option.value = newCategory;
-            option.textContent = newCategory;
-            option.selected = true;
-            categorySelect.appendChild(option);
-            newCategoryInput.value = '';
-          } else {
-            console.error('Failed to add category:', response.status);
-          }
-        } catch (err) {
-          console.error('Error adding category:', err);
-        }
-      }
-    });
-
-    // Image Upload Drag-and-Drop
-    const thumbnailDropzone = document.getElementById('thumbnail-dropzone');
-    const thumbnailInput = document.getElementById('thumbnail-input');
-    const thumbnailPreview = document.getElementById('thumbnail-preview');
-    const previewDropzone = document.getElementById('preview-dropzone');
-    const previewInput = document.getElementById('preview-input');
-    const previewImages = document.getElementById('preview-images');
-
-    function handleDropzone(dropzone, input, previewDiv, isMultiple) {
-      dropzone.addEventListener('click', () => input.click());
-      dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.classList.add('border-indigo-500', 'bg-indigo-50');
-      });
-      dropzone.addEventListener('dragleave', (e) => {
-        dropzone.classList.remove('border-indigo-500', 'bg-indigo-50');
-      });
-      dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('border-indigo-500', 'bg-indigo-50');
-        const files = e.dataTransfer.files;
-        const dt = new DataTransfer();
-        Array.from(files).forEach(file => {
-          if (file.type.startsWith('image/')) dt.items.add(file);
-        });
-        input.files = dt.files;
-        updatePreview(input, previewDiv, isMultiple);
-      });
-      input.addEventListener('change', () => updatePreview(input, previewDiv, isMultiple));
+  // Validate preview images
+  if (previewInput.files.length > 8) {
+    e.preventDefault();
+    alert('Maximum 8 preview images allowed.');
+    return;
+  }
+  for (let file of previewInput.files) {
+    if (file.size > maxFileSize) {
+      e.preventDefault();
+      alert('Each preview image must be less than 5MB.');
+      return;
     }
+  }
+});
 
-    function updatePreview(input, previewDiv, isMultiple) {
-      if (!isMultiple) previewDiv.innerHTML = '';
-      const files = Array.from(input.files);
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const div = document.createElement('div');
-          div.className = 'relative w-24 h-24';
-          div.innerHTML = `
+// Add New Category
+const addCategoryBtn = document.getElementById('add-category-btn');
+const newCategoryInput = document.getElementById('new-category');
+const categorySelect = document.getElementById('category');
+const categories = <%- JSON.stringify(categories || []) %>;
+
+addCategoryBtn.addEventListener('click', async () => {
+  const newCategory = newCategoryInput.value.trim();
+  if (newCategory && !categories.includes(newCategory)) {
+    try {
+      const response = await fetch('/admin/category/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newCategory })
+      });
+      if (response.ok) {
+        categories.push(newCategory);
+        const option = document.createElement('option');
+        option.value = newCategory;
+        option.textContent = newCategory;
+        option.selected = true;
+        categorySelect.appendChild(option);
+        newCategoryInput.value = '';
+      } else {
+        console.error('Failed to add category:', response.status);
+        alert('Failed to add category.');
+      }
+    } catch (err) {
+      console.error('Error adding category:', err);
+      alert('Error adding category.');
+    }
+  } else {
+    alert('Category name is invalid or already exists.');
+  }
+});
+
+// Image Upload Drag-and-Drop
+const thumbnailDropzone = document.getElementById('thumbnail-dropzone');
+const thumbnailInput = document.getElementById('thumbnail-input');
+const thumbnailPreview = document.getElementById('thumbnail-preview');
+const previewDropzone = document.getElementById('preview-dropzone');
+const previewInput = document.getElementById('preview-input');
+const previewImages = document.getElementById('preview-images');
+
+function handleDropzone(dropzone, input, previewDiv, isMultiple) {
+  dropzone.addEventListener('click', () => input.click());
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('border-indigo-500', 'bg-indigo-50');
+  });
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('border-indigo-500', 'bg-indigo-50');
+  });
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('border-indigo-500', 'bg-indigo-50');
+    const files = e.dataTransfer.files;
+    const maxFileSize = 5 * 1024 * 1024; // 5MB
+    const validFiles = Array.from(files).filter(file => file.type.startsWith('image/') && file.size <= maxFileSize);
+    if (validFiles.length !== files.length) {
+      alert('Some files were ignored. Only images under 5MB are allowed.');
+    }
+    if (!isMultiple && validFiles.length > 1) {
+      alert('Only one thumbnail image is allowed.');
+      return;
+    }
+    if (isMultiple && validFiles.length + previewImages.children.length > 8) {
+      alert('Maximum 8 preview images allowed.');
+      return;
+    }
+    const dt = new DataTransfer();
+    validFiles.forEach(file => dt.items.add(file));
+    input.files = dt.files;
+    updatePreview(input, previewDiv, isMultiple);
+  });
+  input.addEventListener('change', () => {
+    const maxFileSize = 5 * 1024 * 1024; // 5MB
+    const validFiles = Array.from(input.files).filter(file => file.type.startsWith('image/') && file.size <= maxFileSize);
+    if (!isMultiple && validFiles.length > 1) {
+      alert('Only one thumbnail image is allowed.');
+      return;
+    }
+    if (isMultiple && validFiles.length + previewImages.children.length > 8) {
+      alert('Maximum 8 preview images allowed.');
+      return;
+    }
+    const dt = new DataTransfer();
+    validFiles.forEach(file => dt.items.add(file));
+    input.files = dt.files;
+    updatePreview(input, previewDiv, isMultiple);
+  });
+}
+
+function updatePreview(input, previewDiv, isMultiple) {
+  if (!isMultiple) previewDiv.innerHTML = '';
+  const files = Array.from(input.files);
+  files.forEach((file, index) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const div = document.createElement('div');
+      div.className = 'relative w-24 h-24';
+      div.innerHTML = `
         <img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 hover:scale-105 transition-all duration-300" data-url="${e.target.result}">
         <button type="button" class="absolute top-0 right-0 bg-red-500 text-white rounded-full p-2 text-sm temp-delete ripple">×</button>
       `;
-          previewDiv.appendChild(div);
-          div.querySelector('.temp-delete').addEventListener('click', () => {
-            div.remove();
-            const dt = new DataTransfer();
-            Array.from(input.files).forEach(f => {
-              if (f !== file) dt.items.add(f);
-            });
-            input.files = dt.files;
-          });
-          // Add ripple effect to the temp-delete button
-          div.querySelector('.temp-delete').addEventListener('click', function (e) {
-            const ripple = document.createElement('span');
-            ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            ripple.style.width = ripple.style.height = `${size}px`;
-            ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
-            ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-            this.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 600);
-          });
-        };
-        reader.readAsDataURL(file);
+      previewDiv.appendChild(div);
+      div.querySelector('.temp-delete').addEventListener('click', () => {
+        div.remove();
+        const dt = new DataTransfer();
+        Array.from(input.files).forEach((f, i) => {
+          if (i !== index) dt.items.add(f);
+        });
+        input.files = dt.files;
       });
-    }
+      div.querySelector('.temp-delete').addEventListener('click', function (e) {
+        const ripple = document.createElement('span');
+        ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
+        const rect = this.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = `${size}px`;
+        ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+        ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+        this.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+      });
+    };
+    reader.readAsDataURL(file);
+  });
+}
 
-    handleDropzone(thumbnailDropzone, thumbnailInput, thumbnailPreview, false);
-    handleDropzone(previewDropzone, previewInput, previewImages, true);
+handleDropzone(thumbnailDropzone, thumbnailInput, thumbnailPreview, false);
+handleDropzone(previewDropzone, previewInput, previewImages, true);
 
-    // Image Deletion
-    document.querySelectorAll('.delete-image').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const deleteUrl = btn.dataset.deleteUrl;
-        try {
-          const response = await fetch('/admin/image/delete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ delete_url: deleteUrl })
-          });
-          if (response.ok) {
-            btn.parentElement.remove();
-            // Remove the corresponding hidden inputs
-            const existingThumbnailUrl = document.querySelector('input[name="existingThumbnailUrl"][value="' + deleteUrl + '"]');
-            const existingPreviewUrl = document.querySelector('input[name*="existingPreviewImages"][value="' + deleteUrl + '"]');
-            if (existingThumbnailUrl) {
-              existingThumbnailUrl.remove();
-              document.querySelector('input[name="existingThumbnailDeleteUrl"]').remove();
-            }
-            if (existingPreviewUrl) {
-              existingPreviewUrl.parentElement.remove();
-            }
-          }
-        } catch (err) {
-          console.error('Error deleting image:', err);
+// Image Deletion
+document.querySelectorAll('.delete-image').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const deleteUrl = btn.dataset.deleteUrl;
+    try {
+      const response = await fetch('/admin/image/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ delete_url: deleteUrl })
+      });
+      if (response.ok) {
+        btn.parentElement.remove();
+        const existingThumbnailUrl = document.querySelector(`input[name="existingThumbnailUrl"][value="${deleteUrl}"]`);
+        const existingPreviewUrl = document.querySelector(`input[name*="existingPreviewImages"][value="${deleteUrl}"]`);
+        if (existingThumbnailUrl) {
+          existingThumbnailUrl.remove();
+          document.querySelector('input[name="existingThumbnailDeleteUrl"]').remove();
         }
-      });
-    });
-
-    // Image Zoom Modal
-    const modal = document.getElementById('image-modal');
-    const modalImage = document.getElementById('modal-image');
-    const closeModal = document.getElementById('close-modal');
-
-    document.addEventListener('click', (e) => {
-      if (e.target.tagName === 'IMG' && e.target.dataset.url) {
-        modalImage.src = e.target.dataset.url;
-        modal.classList.remove('hidden');
-        setTimeout(() => {
-          modal.classList.add('opacity-100');
-        }, 10);
+        if (existingPreviewUrl) {
+          existingPreviewUrl.parentElement.remove();
+        }
+        alert('Image deleted successfully.');
+      } else {
+        console.error('Failed to delete image:', response.status);
+        alert('Failed to delete image.');
       }
-    });
+    } catch (err) {
+      console.error('Error deleting image:', err);
+      alert('Error deleting image.');
+    }
+  });
+});
 
-    closeModal.addEventListener('click', () => {
-      modal.classList.add('hidden');
-      modal.classList.remove('opacity-100');
-      modalImage.src = '';
-    });
+// Image Zoom Modal
+const modal = document.getElementById('image-modal');
+const modalImage = document.getElementById('modal-image');
+const closeModal = document.getElementById('close-modal');
 
-    // Add/Remove Details
-    document.addEventListener('DOMContentLoaded', () => {
-      const addDetailBtn = document.getElementById('add-detail');
-      const detailsContainer = document.getElementById('details-container');
+document.addEventListener('click', (e) => {
+  if (e.target.tagName === 'IMG' && e.target.dataset.url) {
+    modalImage.src = e.target.dataset.url;
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      modal.classList.add('opacity-100');
+    }, 10);
+  }
+});
 
-      if (addDetailBtn && detailsContainer) {
-        let detailIndex = detailsContainer.children.length;
+closeModal.addEventListener('click', () => {
+  modal.classList.add('hidden');
+  modal.classList.remove('opacity-100');
+  modalImage.src = '';
+});
 
-        addDetailBtn.addEventListener('click', () => {
-          const div = document.createElement('div');
-          div.className = 'flex gap-2 detail-entry animate-fade-in-up';
-          div.style.animationDelay = '0.1s';
-          div.innerHTML = `
+// Add/Remove Details
+document.addEventListener('DOMContentLoaded', () => {
+  const addDetailBtn = document.getElementById('add-detail');
+  const detailsContainer = document.getElementById('details-container');
+
+  if (addDetailBtn && detailsContainer) {
+    let detailIndex = detailsContainer.children.length;
+
+    addDetailBtn.addEventListener('click', () => {
+      const div = document.createElement('div');
+      div.className = 'flex gap-2 detail-entry animate-fade-in-up';
+      div.style.animationDelay = '0.1s';
+      div.innerHTML = `
         <input type="text" name="details[key][]" placeholder="Key" class="w-1/2 p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
         <input type="text" name="details[value][]" placeholder="Value" class="w-1/2 p-3 bg-white/70 backdrop-blur-md border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm hover:bg-indigo-50/30 transition-all duration-300">
         <button type="button" class="text-gray-400 hover:text-red-500 hover:scale-110 transition-all duration-300 ripple">
@@ -492,353 +460,283 @@
           </svg>
         </button>
       `;
-          detailsContainer.appendChild(div);
-          detailIndex++;
+      detailsContainer.appendChild(div);
+      detailIndex++;
 
-          // Add remove functionality and ripple effect to the new button
-          const removeBtn = div.querySelector('button');
-          removeBtn.addEventListener('click', () => {
-            div.remove();
-            detailIndex--;
-          });
-          removeBtn.addEventListener('click', function (e) {
-            const ripple = document.createElement('span');
-            ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            ripple.style.width = ripple.style.height = `${size}px`;
-            ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
-            ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-            this.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 600);
-          });
-        });
-
-        // Add remove functionality and ripple effect to existing detail entries
-        document.querySelectorAll('.detail-entry button').forEach(btn => {
-          btn.classList.add('ripple');
-          btn.addEventListener('click', () => {
-            btn.parentElement.remove();
-            detailIndex--;
-          });
-          btn.addEventListener('click', function (e) {
-            const ripple = document.createElement('span');
-            ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            ripple.style.width = ripple.style.height = `${size}px`;
-            ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
-            ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-            this.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 600);
-          });
-        });
-      }
-    });
-
-    // Ripple Effect for Buttons
-    document.querySelectorAll('.ripple').forEach(button => {
-      button.addEventListener('click', function (e) {
+      const removeBtn = div.querySelector('button');
+      removeBtn.addEventListener('click', () => {
+        div.remove();
+        detailIndex--;
+      });
+      removeBtn.addEventListener('click', function (e) {
         const ripple = document.createElement('span');
         ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
-        const rect = button.getBoundingClientRect();
+        const rect = this.getBoundingClientRect();
         const size = Math.max(rect.width, rect.height);
         ripple.style.width = ripple.style.height = `${size}px`;
         ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
         ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-        button.appendChild(ripple);
+        this.appendChild(ripple);
         setTimeout(() => ripple.remove(), 600);
       });
     });
-  </script>
 
-  <style>
-    /* Font Stack */
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
-
-    /* Animations */
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes glow {
-
-      0%,
-      100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-
-      50% {
-        opacity: 0.85;
-        transform: scale(1.1);
-      }
-    }
-
-    @keyframes starGlow {
-
-      0%,
-      100% {
-        transform: scale(1);
-      }
-
-      50% {
-        transform: scale(1.15);
-      }
-    }
-
-    @keyframes starBounce {
-
-      0%,
-      100% {
-        transform: scale(1);
-      }
-
-      50% {
-        transform: scale(1.3);
-      }
-    }
-
-    @keyframes ripple {
-      0% {
-        transform: scale(0);
-        opacity: 0.8;
-      }
-
-      100% {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-
-    .animate-slide-in {
-      animation: slideIn 0.5s ease-out;
-    }
-
-    .animate-fade-in-up {
-      animation: fadeInUp 0.6s ease-out forwards;
-    }
-
-    .animate-glow {
-      animation: glow 1.5s infinite;
-    }
-
-    .animate-star-glow {
-      animation: starGlow 1.2s infinite;
-    }
-
-    .animate-star-bounce {
-      animation: starBounce 0.4s ease-in-out;
-    }
-
-    .animate-ripple {
-      animation: ripple 0.6s linear;
-    }
-
-    /* Premium UI Styles */
-    .shadow-lg {
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    }
-
-    .shadow-2xl {
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-    }
-
-    .hover\:shadow-xl:hover {
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-    }
-
-    .rounded-3xl {
-      border-radius: 1.5rem;
-    }
-
-    .rounded-2xl {
-      border-radius: 1rem;
-    }
-
-    .backdrop-blur-sm {
-      backdrop-filter: blur(8px);
-    }
-
-    .bg-white\/80 {
-      background-color: rgba(255, 255, 255, 0.8);
-    }
-
-    .border-gray-100\/50 {
-      border-color: rgba(243, 244, 246, 0.5);
-    }
-
-    .hover\:scale-110:hover {
-      transform: scale(1.1);
-    }
-
-    .hover\:scale-105:hover {
-      transform: scale(1.05);
-    }
-
-    /* Responsive Styles */
-    @media (max-width: 1024px) {
-      .lg\:grid-cols-2 {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .text-3xl {
-        font-size: 1.5rem;
-      }
-
-      .text-lg {
-        font-size: 1.125rem;
-      }
-
-      .text-sm {
-        font-size: 0.875rem;
-      }
-
-      .p-8 {
-        padding: 1.5rem;
-      }
-
-      .p-6 {
-        padding: 1rem;
-      }
-
-      .p-3 {
-        padding: 0.75rem;
-      }
-
-      .py-3 {
-        padding-top: 0.75rem;
-        padding-bottom: 0.75rem;
-      }
-
-      .px-6 {
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
-      }
-
-      .w-1\/2 {
-        width: 100%;
-      }
-
-      .space-y-6>*+* {
-        margin-top: 1.5rem;
-      }
-
-      .space-y-4>*+* {
-        margin-top: 1rem;
-      }
-
-      .detail-entry {
-        flex-direction: column;
-        gap: 0.75rem;
-      }
-
-      .detail-entry input {
-        width: 100%;
-      }
-
-      .mt-8 {
-        margin-top: 2rem;
-      }
-
-      .mt-4 {
-        margin-top: 1rem;
-      }
-
-      .gap-4 {
-        gap: 1rem;
-      }
-
-      .gap-2 {
-        gap: 0.5rem;
-      }
-
-      .w-24 {
-        width: 5rem;
-      }
-
-      .h-24 {
-        height: 5rem;
-      }
-
-      .text-xs {
-        font-size: 0.75rem;
-      }
-
-      .w-4 {
-        width: 1rem;
-      }
-
-      .h-4 {
-        height: 1rem;
-      }
-
-      .w-5 {
-        width: 1.25rem;
-      }
-
-      .h-5 {
-        height: 1.25rem;
-      }
-
-      .w-6 {
-        width: 1.5rem;
-      }
-
-      .h-6 {
-        height: 1.5rem;
-      }
-    }
-
-    @media (max-width: 375px) {
-      .container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-      }
-
-      .p-8 {
-        padding: 1rem;
-      }
-
-      .p-6 {
-        padding: 0.75rem;
-      }
-
-      .text-3xl {
-        font-size: 1.25rem;
-      }
-
-      .text-lg {
-        font-size: 1rem;
-      }
-
-      .text-sm {
-        font-size: 0.75rem;
-      }
-    }
-  </style>
-  <%- include('../partials/footer') %>
+    document.querySelectorAll('.detail-entry button').forEach(btn => {
+      btn.classList.add('ripple');
+      btn.addEventListener('click', () => {
+        btn.parentElement.remove();
+        detailIndex--;
+      });
+      btn.addEventListener('click', function (e) {
+        const ripple = document.createElement('span');
+        ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
+        const rect = this.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = `${size}px`;
+        ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+        ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+        this.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 600);
+      });
+    });
+  }
+});
+
+// Ripple Effect for Buttons
+document.querySelectorAll('.ripple').forEach(button => {
+  button.addEventListener('click', function (e) {
+    const ripple = document.createElement('span');
+    ripple.classList.add('absolute', 'rounded-full', 'bg-white/40', 'animate-ripple');
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+    ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+    button.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  });
+});
+</script>
+<style>
+/* Font Stack */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes glow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.1);
+  }
+}
+@keyframes starGlow {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+}
+@keyframes starBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+.animate-slide-in {
+  animation: slideIn 0.5s ease-out;
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+.animate-glow {
+  animation: glow 1.5s infinite;
+}
+.animate-star-glow {
+  animation: starGlow 1.2s infinite;
+}
+.animate-star-bounce {
+  animation: starBounce 0.4s ease-in-out;
+}
+.animate-ripple {
+  animation: ripple 0.6s linear;
+}
+/* Premium UI Styles */
+.shadow-lg {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+.shadow-2xl {
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+}
+.hover\:shadow-xl:hover {
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+}
+.rounded-3xl {
+  border-radius: 1.5rem;
+}
+.rounded-2xl {
+  border-radius: 1rem;
+}
+.backdrop-blur-sm {
+  backdrop-filter: blur(8px);
+}
+.bg-white\/80 {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+.border-gray-100\/50 {
+  border-color: rgba(243, 244, 246, 0.5);
+}
+.hover\:scale-110:hover {
+  transform: scale(1.1);
+}
+.hover\:scale-105:hover {
+  transform: scale(1.05);
+}
+/* Responsive Styles */
+@media (max-width: 1024px) {
+  .lg\:grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .text-3xl {
+    font-size: 1.5rem;
+  }
+  .text-lg {
+    font-size: 1.125rem;
+  }
+  .text-sm {
+    font-size: 0.875rem;
+  }
+  .p-8 {
+    padding: 1.5rem;
+  }
+  .p-6 {
+    padding: 1rem;
+  }
+  .p-3 {
+    padding: 0.75rem;
+  }
+  .py-3 {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+  .px-6 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  .w-1\/2 {
+    width: 100%;
+  }
+  .space-y-6>*+* {
+    margin-top: 1.5rem;
+  }
+  .space-y-4>*+* {
+    margin-top: 1rem;
+  }
+  .detail-entry {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .detail-entry input {
+    width: 100%;
+  }
+  .mt-8 {
+    margin-top: 2rem;
+  }
+  .mt-4 {
+    margin-top: 1rem;
+  }
+  .gap-4 {
+    gap: 1rem;
+  }
+  .gap-2 {
+    gap: 0.5rem;
+  }
+  .w-24 {
+    width: 5rem;
+  }
+  .h-24 {
+    height: 5rem;
+  }
+  .text-xs {
+    font-size: 0.75rem;
+  }
+  .w-4 {
+    width: 1rem;
+  }
+  .h-4 {
+    height: 1rem;
+  }
+  .w-5 {
+    width: 1.25rem;
+  }
+  .h-5 {
+    height: 1.25rem;
+  }
+  .w-6 {
+    width: 1.5rem;
+  }
+  .h-6 {
+    height: 1.5rem;
+  }
+}
+@media (max-width: 375px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .p-8 {
+    padding: 1rem;
+  }
+  .p-6 {
+    padding: 0.75rem;
+  }
+  .text-3xl {
+    font-size: 1.25rem;
+  }
+  .text-lg {
+    font-size: 1rem;
+  }
+  .text-sm {
+    font-size: 0.75rem;
+  }
+}
+</style>
+<%- include('../partials/footer') %>

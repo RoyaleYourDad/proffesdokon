@@ -13,7 +13,16 @@
         "url": "https://i.ibb.co/Sw8p6FGG/21588122bc45.jpg",
         "delete_url": "https://ibb.co/k2fFGNvv/1b9b141d96de9bed3a4fa03d2d219446"
       },
-      "reviews": [],
+      "reviews": [
+        {
+          "id": "3ec7eb4e-840e-4827-a0cf-2736a01fa67f",
+          "userId": "1744729186213",
+          "rating": 4,
+          "comment": "sadf asd dsfgs dfgvs fg",
+          "timestamp": "2025-04-23T17:02:30.222Z",
+          "edited": false
+        }
+      ],
       "previewImages": [
         {
           "url": "https://i.ibb.co/Ldm1sT39/88561e9fd3d0.jpg",
@@ -63,7 +72,16 @@
           "value": "sadcf"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "id": "da63bdc7-6b45-4d3d-a7df-e997069ba73f",
+          "userId": "1744729186213",
+          "rating": 5,
+          "comment": " sdfgs dfg sghs zt5y",
+          "timestamp": "2025-04-23T17:02:40.909Z",
+          "edited": false
+        }
+      ],
       "thumbnail": {
         "url": "https://i.ibb.co/1GKrgrBm/bc561e73a4d2.jpg",
         "delete_url": "https://ibb.co/Kx72P2Br/3520594a27f796bcc1284f602f362a68"
@@ -95,7 +113,16 @@
           "value": "1tonn"
         }
       ],
-      "reviews": [],
+      "reviews": [
+        {
+          "id": "8ada42cd-f59b-43ba-803f-478cba602393",
+          "userId": "1744729926566",
+          "rating": 4,
+          "comment": "dsdzfvbdf fb",
+          "timestamp": "2025-04-23T17:14:08.203Z",
+          "edited": false
+        }
+      ],
       "thumbnail": {
         "url": "https://i.ibb.co/BV7L4M1C/2a7f6483614a.jpg",
         "delete_url": "https://ibb.co/JRbnxJhs/fe51b76cf34cb5c599132201d595da4f"
@@ -115,6 +142,46 @@
         }
       ],
       "sales": []
+    },
+    {
+      "id": "1745424355245",
+      "name": "Jdjd",
+      "category": "ALL-test",
+      "price": 123,
+      "stock": 123,
+      "discountPrice": 120,
+      "discountExpiry": "2025-04-30",
+      "origin": "China",
+      "details": [
+        {
+          "key": "Watt",
+          "value": "590"
+        },
+        {
+          "key": "Key1asdfcasdf",
+          "value": "Value1"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "e4942e6e-b0de-41d1-a739-c2ed32254491",
+          "userId": "1744729926566",
+          "rating": 4,
+          "comment": "gfdfgh dghdgh fh",
+          "timestamp": "2025-04-23T17:01:19.278Z",
+          "edited": true
+        }
+      ],
+      "thumbnail": {
+        "url": "https://i.ibb.co/bR62yTsG/c9cd82d43108.jpg",
+        "delete_url": "https://ibb.co/1J0dp1r4/ba4447613b33bfcc9d6cc81206df9f22"
+      },
+      "previewImages": [
+        {
+          "url": "https://i.ibb.co/bR62yTsG/c9cd82d43108.jpg",
+          "delete_url": "https://ibb.co/1J0dp1r4/ba4447613b33bfcc9d6cc81206df9f22"
+        }
+      ]
     }
   ],
   "categories": [
@@ -129,16 +196,58 @@
       "cart": [],
       "role": "user",
       "cartCount": 0,
-      "isAdmin": false
+      "isAdmin": false,
+      "notifications": [
+        {
+          "type": "low_stock",
+          "message": "Product \"Jdjd\" has low stock (5 units)",
+          "link": "/admin/edit/1744813498742",
+          "timestamp": "2025-04-23T16:54:10.394Z",
+          "read": false
+        },
+        {
+          "type": "expiring_discount",
+          "message": "Discount for \"Jdjd\" expires on 4/30/2025",
+          "link": "/admin/edit/1745424355245",
+          "timestamp": "2025-04-23T16:54:10.394Z",
+          "read": false
+        },
+        {
+          "type": "pending_review",
+          "message": "New review for \"Jdjd\" needs moderation",
+          "link": "/admin/edit/1745424355245#reviews",
+          "timestamp": "2025-04-23T16:54:10.394Z",
+          "read": false
+        },
+        {
+          "type": "pending_review",
+          "message": "New review for \"Test Product 1\" needs moderation",
+          "link": "/admin/edit/1744739166453#reviews",
+          "timestamp": "2025-04-23T17:02:45.034Z",
+          "read": false
+        },
+        {
+          "type": "pending_review",
+          "message": "New review for \"Test Product 2\" needs moderation",
+          "link": "/admin/edit/1744804812036#reviews",
+          "timestamp": "2025-04-23T17:02:45.034Z",
+          "read": false
+        }
+      ]
     },
     {
       "id": "1744729926566",
       "googleId": "111987115029041087440",
       "displayName": "Ubaydulloh Sayfullayev",
       "email": "royaleyourdad@gmail.com",
-      "cart": [],
+      "cart": [
+        {
+          "productId": "1745424355245",
+          "quantity": 2
+        }
+      ],
       "role": "admin",
-      "cartCount": 0,
+      "cartCount": 2,
       "isAdmin": true,
       "notifications": [
         {
@@ -181,6 +290,20 @@
           "message": "Product \"Jdjd\" has no category",
           "link": "/admin/edit/1744813498742",
           "timestamp": "2025-04-21T11:57:17.554Z",
+          "read": false
+        },
+        {
+          "type": "pending_review",
+          "message": "New review for \"Jdjd\" needs moderation",
+          "link": "/admin/edit/1745424355245#reviews",
+          "timestamp": "2025-04-23T16:50:25.834Z",
+          "read": false
+        },
+        {
+          "type": "expiring_discount",
+          "message": "Discount for \"Jdjd\" expires on 4/30/2025",
+          "link": "/admin/edit/1745424355245",
+          "timestamp": "2025-04-23T16:50:53.222Z",
           "read": false
         }
       ]

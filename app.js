@@ -2,17 +2,16 @@ const express = require("express");
 const session = require("express-session");
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-const fs = require("fs").promises;
-const path = require("path");
-const dotenv = require("dotenv");
 const multer = require("multer");
 const axios = require("axios");
 const FormData = require("form-data");
-const sizeOf = require("image-size");
-
-dotenv.config();
-
+const sharp = require("sharp");
+const fs = require("fs").promises;
+const path = require("path");
+const { loadDB, saveDB } = require("./db"); // Import from db.js
 const app = express();
+require("dotenv").config();
+
 const dbPath = path.join(__dirname, "database.json");
 
 // Enable trust proxy for Railway
@@ -21,6 +20,7 @@ app.set("trust proxy", 1);
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith("image/")) {
       cb(null, true);
@@ -51,17 +51,18 @@ if (process.env.NODE_ENV === "production") {
 // Session configuration with MemoryStore
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "fallback-secret",
+    secret: process.env.SESSION_SECRET || "your-secret-key",
     resave: false,
     saveUninitialized: false,
-    store: undefined, // Use default MemoryStore
     cookie: {
-      secure: "auto",
       maxAge: 12 * 60 * 60 * 1000, // 12 hours
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Auto-set secure in production
       sameSite: "lax",
     },
   })
 );
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -94,66 +95,29 @@ app.use((req, res, next) => {
   next();
 });
 
-// Cached database and lock
-let dbCache = null;
-let dbLock = false;
-
-const loadDB = async () => {
-  if (dbCache && !dbLock) return dbCache;
-  try {
-    const data = JSON.parse(await fs.readFile(dbPath, "utf8"));
-    dbCache = {
-      products: (data.products || []).map((p) => ({
-        ...p,
-        reviews: (p.reviews || []).map((r) => ({ ...r, edited: r.edited || false })),
-      })),
-      categories: data.categories || [],
-      users: (data.users || []).map((user) => ({
-        ...user,
-        role: user.role || "user",
-        cart: user.cart || [],
-        cartCount: user.cartCount || 0,
-        isAdmin: user.role === "admin",
-      })),
-      admins: data.admins || [],
-      stockHistory: data.stockHistory || [],
-    };
-    console.log("Database loaded:", { users: dbCache.users.length, products: dbCache.products.length });
-    return dbCache;
-  } catch (err) {
-    console.error("Failed to load database.json:", {
-      path: dbPath,
-      error: err.message,
-    });
-    dbCache = { products: [], categories: [], users: [], admins: [], stockHistory: [] };
-    return dbCache;
-  }
-};
-
-const saveDB = async (data) => {
-  while (dbLock) {
-    await new Promise((resolve) => setTimeout(resolve, 100));
-  }
-  dbLock = true;
-  try {
-    dbCache = data;
-    await fs.writeFile(dbPath, JSON.stringify(data, null, 2));
-    console.log("Database saved:", { users: data.users.length, products: data.products.length });
-  } catch (err) {
-    console.error("Error saving database:", err);
-    throw err;
-  } finally {
-    dbLock = false;
-  }
-};
-
-// ImgBB upload/delete functions (unchanged)
+// ImgBB upload function with resizing and compression
 async function uploadToImgBB(file) {
   try {
-    const dimensions = sizeOf(file.buffer);
-    if (dimensions.width < 512 || dimensions.height < 512) {
-      throw new Error("Image must be at least 512x512 pixels");
-    }
+    console.log("Processing image for ImgBB:", {
+      fileName: file.originalname,
+      fileSize: file.size,
+    });
+
+    // Resize and compress the image using sharp
+    const processedImage = await sharp(file.buffer)
+      .resize({
+        width: 1024, // Max width of 1024px
+        height: 1024, // Max height of 1024px
+        fit: "inside", // Fit within 1024x1024 without cropping
+        withoutEnlargement: true, // Don't upscale smaller images
+      })
+      .jpeg({ quality: 80 }) // Compress to JPEG with 80% quality
+      .toBuffer();
+
+    console.log("Image processed:", {
+      originalSize: file.size,
+      processedSize: processedImage.length,
+    });
 
     const imgbbApiKeys = [
       process.env.IMGBB_API_KEY_1,
@@ -161,37 +125,55 @@ async function uploadToImgBB(file) {
       process.env.IMGBB_API_KEY_3,
     ].filter((key) => key);
 
+    if (!imgbbApiKeys.length) {
+      throw new Error("No valid ImgBB API keys configured");
+    }
+
     for (const apiKey of imgbbApiKeys) {
       try {
         const formData = new FormData();
-        formData.append("image", file.buffer.toString("base64"));
+        formData.append("image", processedImage.toString("base64"));
         formData.append("key", apiKey);
 
         const response = await axios.post("https://api.imgbb.com/1/upload", formData, {
           headers: formData.getHeaders(),
-          timeout: 10000,
+          timeout: 5000,
         });
 
         if (response.data.success) {
+          console.log(`ImgBB upload successful with key ${apiKey.slice(0, 4)}...:`, {
+            url: response.data.data.url,
+            fileSize: processedImage.length,
+          });
           return {
             url: response.data.data.url,
             delete_url: response.data.data.delete_url,
           };
         }
       } catch (err) {
-        console.error(`ImgBB upload failed with key ${apiKey.slice(0, 4)}...:`, err.message);
+        console.error(`ImgBB upload failed with key ${apiKey.slice(0, 4)}...:`, {
+          error: err.message,
+          fileSize: processedImage.length,
+        });
         continue;
       }
     }
     throw new Error("All ImgBB API keys failed");
   } catch (err) {
+    console.error("uploadToImgBB error:", {
+      error: err.message,
+      fileName: file.originalname,
+      fileSize: file.size,
+    });
     throw err;
   }
 }
 
+// ImgBB delete function
 async function deleteFromImgBB(deleteUrl) {
   try {
     await axios.get(deleteUrl, { timeout: 5000 });
+    console.log("Image deleted from ImgBB:", { deleteUrl });
     return true;
   } catch (err) {
     console.error("ImgBB delete failed:", err.message);
